@@ -112,7 +112,9 @@ for src, dest in (
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
     ("files/terminator/config", ".config/terminator/config"),
     ("files/terminator/plugins/theme_menu.py", ".config/terminator/plugins/theme_menu.py"),
-    ("files/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
+    ("files/applications/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
+    # Debian's terminator.desktop fails uwsm's validation (menu launch fails)
+    ("files/applications/terminator.desktop", ".local/share/applications/terminator.desktop"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
     ("files/gtk-3.0/gtk.css", ".config/gtk-3.0/gtk.css"),  # slim Terminator tabs
 ):
@@ -150,13 +152,18 @@ files.put(
 )
 
 for script, what in (("hypr-glass", "glass window on|off"), ("hypr-pin", "stay on top on|off"),
-                     ("hypr-termtheme", "Terminator theme switch"), ("hypr-term", "Terminator with that theme")):
+                     ("hypr-termtheme", "Terminator theme switch")):
     files.put(
         name=f"Title bar button: {script} ({what})",
         src=f"files/bin/{script}",
         dest=f"{home}/.local/bin/{script}",
         mode="755",
     )
+
+# Terminator with the chosen theme; system-wide so desktop entries find it on PATH.
+files.put(name="hypr-term (Terminator with the chosen theme)", src="files/bin/hypr-term",
+          dest="/usr/local/bin/hypr-term", mode="755", _sudo=True)
+files.file(name="Remove old ~/.local/bin/hypr-term", path=f"{home}/.local/bin/hypr-term", present=False)
 
 # Xfe: Windows 3.11 File Manager look (grey, navy selection), folder tree + list.
 # Seeded once; Xfe rewrites the file with the user's own changes afterwards.

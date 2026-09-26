@@ -1,0 +1,16 @@
+[Desktop Entry]
+# debian-hypr: Debian's file has a "[NewWindow Shortcut Group]" section that uwsm rejects
+Name=Terminator
+Comment=Multiple terminals in one window
+TryExec=terminator
+Exec=hypr-term
+Icon=terminator
+Type=Application
+Categories=GNOME;GTK;Utility;TerminalEmulator;System;
+StartupNotify=true
+X-ExecArg=-x
+X-TerminalArgExec=-x
+X-TerminalArgDir=--working-directory=
+X-TerminalArgTitle=--title=
+X-TerminalArgAppId=--classname=
+Keywords=terminal;shell;prompt;command;commandline;
