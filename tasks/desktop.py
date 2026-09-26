@@ -1,4 +1,6 @@
 """Hyprland desktop without Omarchy: packages, config, theme, fonts, Terminator."""
+from io import StringIO
+
 from pyinfra import host
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
@@ -145,6 +147,13 @@ files.put(
     src="files/bin/hypr-deco",
     dest=f"{home}/.local/bin/hypr-deco",
     mode="755",
+)
+
+files.put(
+    name="Hyprland session env (llvmpipe threads)",
+    src=StringIO(f"# Managed by debian-hypr\nexport LP_NUM_THREADS={host.data.llvmpipe_threads}\n"),
+    dest=f"{home}/.config/uwsm/env-hyprland",
+    mode="644",
 )
 
 # Terminator as the default for xdg-terminal-exec style launchers.

@@ -93,7 +93,9 @@ refreshes a full-screen copy each time. So:
 * Terminal cursors don't blink and the bar updates every 5 s. Each blink or
   bar update is a full redraw plus capture.
 * No animations, blur or shadows by default; `MALLOC_ARENA_MAX=2` and
-  `LP_NUM_THREADS=2` keep Hyprland's memory and software-renderer threads small.
+  `LP_NUM_THREADS=1` (`llvmpipe_threads`) keep memory and
+  renderer overhead small: one llvmpipe thread halved the CPU of scrolling
+  compared with 2 or 3 threads.
 * The unused Proxmox console output is switched off while an RDP client is
   connected, so only one screen is drawn.
 

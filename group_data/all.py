@@ -21,6 +21,9 @@ hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
 # without a GPU: 60 Hz 177 %, 30 Hz 140 %, 20 Hz 85 % (pointer stays smooth).
 rdp_refresh_hz = 20
 hypr_rdp_fps = 20
+# llvmpipe rasterizer threads for Hyprland and GL clients. Measured at 3198x1264@20:
+# 1 thread scrolls at ~half the CPU of 2-3 threads (fewer threads to sync per frame).
+llvmpipe_threads = 1
 hypr_rdp_bind = "0.0.0.0:3389"
 
 # Units stopped + disabled when present (minimal installs usually lack them)

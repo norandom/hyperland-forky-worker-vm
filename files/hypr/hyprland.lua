@@ -8,10 +8,10 @@ for _, m in ipairs({ "monitors", "input", "looknfeel", "layouts", "bindings", "a
   package.loaded[m] = nil
 end
 
--- Memory/CPU on software rendering (llvmpipe): fewer malloc arenas and
--- fewer llvmpipe threads; no accessibility bus.
+-- Memory/CPU on software rendering: fewer malloc arenas; no accessibility bus.
+-- LP_NUM_THREADS is set in ~/.config/uwsm/env-hyprland (must be in Hyprland's
+-- own environment at start).
 hl.env("MALLOC_ARENA_MAX", "2")
-hl.env("LP_NUM_THREADS", "2")
 hl.env("NO_AT_BRIDGE", "1")
 hl.env("XCURSOR_THEME", "Adwaita")
 hl.env("XCURSOR_SIZE", "24")
