@@ -12,7 +12,10 @@ keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwi
 hypr_rdp_version = "0.1.6"
 hypr_rdp_sha256 = "6857d170da5d678211eb5318bb03c1bd3ff9503f5c26cf0ea05755fa63ff1d13"
 hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
-hypr_rdp_fps = 30
+# RDP refresh: Hyprland output rate and hypr-rdp frame rate. Mouse movement CPU
+# without a GPU: 60 Hz 177 %, 30 Hz 140 %, 20 Hz 85 % (pointer stays smooth).
+rdp_refresh_hz = 20
+hypr_rdp_fps = 20
 hypr_rdp_bind = "0.0.0.0:3389"
 
 # Units stopped + disabled when present (minimal installs usually lack them)
@@ -78,7 +81,15 @@ blacklist_modules = ["floppy", "pcspkr", "joydev"]   # unused in the VM
 # JetBrainsMono Nerd Font (same release/files as Omarchy's ttf-jetbrains-mono-nerd-basic);
 # Neovim/LazyVim icons need the patched glyphs.
 nerd_font_version = "3.5.1"
-nerd_font_sha256 = "04d5e8f903693f9dd13e16f867e994834e681eb3c72c0d337a770dcda09010cf"
+# Nerd Fonts release archives: name -> (sha256, font files to install)
+nerd_fonts = {
+    "JetBrainsMono": ("04d5e8f903693f9dd13e16f867e994834e681eb3c72c0d337a770dcda09010cf",
+                      ["Regular", "Bold", "Italic", "BoldItalic"]),
+    # Fira Code (github.com/tonsky/FiraCode) for the terminals
+    "FiraCode": ("68e3bd6164864b8b514605bc34e3a87ac401c8c48682fcce6478c70263340207",
+                 ["Light", "Regular", "Retina", "Medium", "SemiBold", "Bold"]),
+}
+terminal_font = "FiraCode Nerd Font"
 
 # Font rendering: "rgb" = ClearType-like subpixel (RDP shown 1:1, RGB display),
 # "grayscale" = no colour fringes when the RDP client scales (Retina/HiDPI).

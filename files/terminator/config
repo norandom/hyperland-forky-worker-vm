@@ -3,7 +3,7 @@
 [profiles]
   [[default]]
     background_color = "#0049b2"
-    font = JetBrainsMono Nerd Font 13
+    font = FiraCode Nerd Font 13
     foreground_color = "#fff8f0"
     show_titlebar = False
     # No blinking: every blink redraws + re-captures the screen (~25% CPU without a GPU)
@@ -15,7 +15,7 @@
     copy_on_selection = True
   [[navy]]
     background_color = "#1a2a3f"
-    font = JetBrainsMono Nerd Font 11
+    font = FiraCode Nerd Font 11
     foreground_color = "#fff8f0"
     show_titlebar = False
     # No blinking: every blink redraws + re-captures the screen (~25% CPU without a GPU)

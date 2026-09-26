@@ -175,8 +175,9 @@ drawn by the CPU). With `win311` a hard black drop shadow, otherwise a soft one.
   (LazyVim + aether), btop (`color_theme = "cobalt"`), Claude Code
   (`~/.claude/themes/cobalt.json`, `theme = custom:cobalt`). Chromium keeps
   the cream frame (managed policy).
-* **JetBrainsMono Nerd Font 3.5.1** (the same files as Omarchy's, checksum
-  verified): terminals, bar, launcher, notifications, title bars; Neovim icons need it.
+* **Nerd Fonts 3.5.1** (checksum verified): **FiraCode Nerd Font** in the terminals
+  (Terminator, xfce4-terminal; `terminal_font`), **JetBrainsMono Nerd Font** (the same
+  files as Omarchy's) for bar, launcher, notifications and title bars. Neovim icons need the glyphs.
 * **Font rendering** (`font_rendering`): `rgb` = ClearType-like subpixel +
   hintslight (best when RoyalTS shows the session 1:1), `grayscale` = no colour
   fringes when the client scales (Retina). hypr-rdp sends lossless ClearCodec
@@ -194,3 +195,22 @@ drawn by the CPU). With `win311` a hard black drop shadow, otherwise a soft one.
 * **xfce4-terminal** (SUPER + SHIFT + Return): pasting text that contains a
   line break opens an editable review dialog first (Ctrl+Shift+V, right-click
   Paste or middle-click). Single-line pastes go straight in.
+
+## CPU without a GPU
+
+Measured with a 60 events/s virtual mouse, RDP client connected (1920x1080):
+
+| | Hyprland CPU |
+|---|---|
+| idle, blinking terminal cursor | 25-33 % |
+| idle now (no cursor blink, bar every 5 s) | 7-12 % |
+| mouse moving, output at 60 Hz | 177 % |
+| mouse moving, output at 20 Hz (default here) | 66 % |
+
+Why: with a software cursor Hyprland redraws on every pointer motion (even
+with the cursor hidden) and, while screen sharing is active, refreshes a
+full-screen mirror copy each time; hypr-rdp also got a full-screen copy per
+frame. Fixes: `rdp_refresh_hz` / `hypr_rdp_fps` = 20 (the pointer itself is
+drawn by the RDP client and stays smooth), the `capture-pacing.patch` in
+hypr-rdp (capture requests at most at `fps`, 10/s while unchanged), no
+blinking terminal cursors. Raise `rdp_refresh_hz` to 30 if scrolling feels choppy.

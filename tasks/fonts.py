@@ -1,22 +1,23 @@
-"""JetBrainsMono Nerd Font (patched with icon glyphs), same files as Omarchy."""
+"""Nerd Fonts (icon glyphs): JetBrainsMono (UI, as on Omarchy) and FiraCode (terminals)."""
 from pyinfra import host
 from pyinfra.operations import server
 
 ver = host.data.nerd_font_version
-dest = "/usr/local/share/fonts/jetbrains-mono-nerd"
-server.shell(
-    name=f"JetBrainsMono Nerd Font {ver} (Regular/Bold/Italic/BoldItalic, checksum verified)",
-    commands=[f"""[ -f {dest}/.v{ver} ] || (set -e
+for family, (sha, styles) in host.data.nerd_fonts.items():
+    dest = f"/usr/local/share/fonts/{family.lower()}-nerd"
+    names = " ".join(f"{family}NerdFont-{st}.ttf" for st in styles)
+    server.shell(
+        name=f"{family} Nerd Font {ver} ({', '.join(styles)}; checksum verified)",
+        commands=[f"""[ -f {dest}/.v{ver} ] || (set -e
 t=$(mktemp -d)
-curl -fsSL -o "$t/f.tar.xz" https://github.com/ryanoasis/nerd-fonts/releases/download/v{ver}/JetBrainsMono.tar.xz
-echo "{host.data.nerd_font_sha256}  $t/f.tar.xz" | sha256sum -c --quiet
+curl -fsSL -o "$t/f.tar.xz" https://github.com/ryanoasis/nerd-fonts/releases/download/v{ver}/{family}.tar.xz
+echo "{sha}  $t/f.tar.xz" | sha256sum -c --quiet
 install -d -m 755 {dest}
-tar -xJf "$t/f.tar.xz" -C {dest} JetBrainsMonoNerdFont-Regular.ttf JetBrainsMonoNerdFont-Bold.ttf \\
-    JetBrainsMonoNerdFont-Italic.ttf JetBrainsMonoNerdFont-BoldItalic.ttf
+tar -xJf "$t/f.tar.xz" -C {dest} {names}
 chmod 644 {dest}/*.ttf; touch {dest}/.v{ver}; rm -rf "$t"
 fc-cache -f {dest} >/dev/null)"""],
-    _sudo=True,
-)
+        _sudo=True,
+    )
 
 from pyinfra.operations import files  # noqa: E402
 

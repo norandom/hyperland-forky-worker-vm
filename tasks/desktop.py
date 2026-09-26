@@ -50,10 +50,16 @@ hypr = [
         mode="644",
     )
     for name in (
-        "hyprland.lua", "monitors.lua", "looknfeel.lua", "layouts.lua", "bindings.lua",
+        "hyprland.lua", "looknfeel.lua", "layouts.lua", "bindings.lua",
         "autostart.lua", "decorations.lua", "aerosnap.lua", "cursorzone.lua",
     )
 ]
+hypr.append(files.template(
+    name=f"Hyprland: monitors.lua (RDP output at {host.data.rdp_refresh_hz} Hz)",
+    src="templates/hypr/monitors.lua.j2",
+    dest=f"{home}/.config/hypr/monitors.lua",
+    mode="644",
+))
 hypr.append(files.template(
     name="Hyprland: input.lua (keyboard layout)",
     src="templates/hypr/input.lua.j2",

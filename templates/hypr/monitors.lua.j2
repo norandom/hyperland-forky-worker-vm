@@ -1,0 +1,43 @@
+-- Managed by debian-hypr.
+
+-- Refresh rate of the RDP output. Without a GPU, Hyprland redraws (and updates
+-- its screen-share copy) on every pointer motion, up to the refresh rate:
+-- measured 177% CPU at 60 Hz, 140% at 30 Hz, 85% at 20 Hz while moving the
+-- mouse. The pointer itself is drawn by the RDP client, so it stays smooth.
+local RDP_HZ = {{ host.data.rdp_refresh_hz }}
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
+
+-- hypr-rdp sizes its headless output to the RDP client at runtime. A config
+-- reload would re-apply the rule above to it (wrong size), so re-assert the
+-- last size recorded by hypr-rdp-modecache.service.
+local runtime = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+local cache = io.open(runtime .. "/hypr-rdp-mode", "r")
+if cache then
+  local mode, scale, position = (cache:read("*l") or ""):match("^(%S+) (%S+) (%S+)$")
+  cache:close()
+  if mode then
+    mode = mode:gsub("@.*$", "") .. "@" .. RDP_HZ
+    hl.monitor({ output = "hypr-rdp", mode = mode, scale = tonumber(scale), position = position })
+  end
+end
+
+-- While an RDP session is active (flag from hypr-rdp-cursor), keep the unused
+-- Proxmox console output off across config reloads.
+local active = io.open(runtime .. "/hypr-rdp-active", "r")
+if active then
+  active:close()
+  hl.monitor({ output = "Virtual-1", disabled = true })
+end
+
+-- hypr-rdp creates/resizes its output at 60 Hz; hold it at RDP_HZ.
+local function cap_rdp_refresh()
+  for _, m in ipairs(hl.get_monitors() or {}) do
+    if m.name == "hypr-rdp" and m.refresh_rate and math.abs(m.refresh_rate - RDP_HZ) > 0.5 then
+      hl.monitor({ output = "hypr-rdp", mode = string.format("%dx%d@%d", m.size.width, m.size.height, RDP_HZ),
+                   scale = m.scale, position = string.format("%dx%d", m.position.x, m.position.y) })
+    end
+  end
+end
+hl.on("monitor.layout_changed", cap_rdp_refresh)
+hl.on("monitor.added", cap_rdp_refresh)
+hl.timer(cap_rdp_refresh, { timeout = 500, type = "oneshot" })
