@@ -17,6 +17,8 @@ tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
   background-position: center;
 }
 #custom-layout { padding: 0 8px; color: #2b4570; }
+#custom-kbd { padding: 0 8px; color: #2b4570; }
+#custom-kbd:hover { background: #f5ede0; }
 #custom-layout:hover { background: #f5ede0; }
 #taskbar button { padding: 0 8px; color: #2b4570; border-bottom: 2px solid transparent; }
 #taskbar button:hover { background: #f5ede0; }

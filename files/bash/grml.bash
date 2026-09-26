@@ -14,6 +14,8 @@ alias ls='ls --color=auto -F'
 alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
+# Keyboard layout (Hyprland, live): US / German without dead keys
+alias kbus='hypr-kbd us' kbde='hypr-kbd de'
 
 # --- grml aliases -------------------------------------------------------------------
 alias l='ls -lF'

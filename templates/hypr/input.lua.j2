@@ -1,9 +1,16 @@
 -- Managed by debian-hypr.
 -- Apple German keyboard via RoyalTS/RDP: Right Option acts as Super,
 -- Right Cmd becomes AltGr (@ = RightCmd+Q, EUR = RightCmd+E).
+-- Layout chosen with hypr-kbd (us|de) survives reloads and reboots.
+local KB = { us = { "us", "" }, de = { "de", "nodeadkeys" } }
+local kb = { "{{ host.data.keyboard_layout }}", "" }
+local f = io.open(os.getenv("HOME") .. "/.local/state/hypr-kbd", "r")
+if f then kb = KB[(f:read("l") or ""):match("%a+")] or kb; f:close() end
+
 hl.config({
   input = {
-    kb_layout = "{{ host.data.keyboard_layout }}",
+    kb_layout = kb[1],
+    kb_variant = kb[2],
     kb_options = "{{ host.data.keyboard_options }}",
     follow_mouse = 1,
     sensitivity = 0,

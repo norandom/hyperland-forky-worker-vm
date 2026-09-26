@@ -1,0 +1,24 @@
+#!/bin/sh
+# Switch the Hyprland keyboard layout: hypr-kbd us|de|toggle (de = no dead keys).
+# The choice is kept in ~/.local/state/hypr-kbd (input.lua reads it on reload).
+# setxkbmap only reaches X11 apps on Wayland, so this goes through Hyprland.
+# hypr-rdp reads the keymap only at start: it is restarted, and a connected
+# RDP client reconnects once.
+state="$HOME/.local/state/hypr-kbd"
+cur=$(cat "$state" 2>/dev/null)
+case "$1" in
+  us|de) new=$1 ;;
+  toggle|"") [ "$cur" = us ] && new=de || new=us ;;
+  *) echo "usage: hypr-kbd us|de|toggle   (de = German, no dead keys)" >&2; exit 2 ;;
+esac
+case "$new" in
+  us) layout=us variant="" ;;
+  de) layout=de variant=nodeadkeys ;;
+esac
+mkdir -p "${state%/*}" && echo "$new" > "$state"
+hyprctl eval "hl.config({ input = { kb_layout = '$layout', kb_variant = '$variant' } })" >/dev/null
+pkill -RTMIN+9 -x waybar 2>/dev/null
+if [ "$new" != "$cur" ] && systemctl --user -q is-active hypr-rdp; then
+  systemctl --user --no-block restart hypr-rdp
+fi
+echo "keyboard: $new"

@@ -144,6 +144,13 @@ files.put(
 )
 
 files.put(
+    name="Keyboard layout switcher: hypr-kbd us|de (aliases kbus, kbde)",
+    src="files/bin/hypr-kbd",
+    dest=f"{home}/.local/bin/hypr-kbd",
+    mode="755",
+)
+
+files.put(
     name="Title bar style switcher: hypr-deco win311|mac",
     src="files/bin/hypr-deco",
     dest=f"{home}/.local/bin/hypr-deco",

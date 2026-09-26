@@ -185,11 +185,14 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 * **Title bars** (`hypr-deco win311|mac`): Windows 3.11 (navy, ⊟ ⊠) or macOS
   style. Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
 * **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
-  power button. Drag a window to a screen edge for half / full size.
+  keyboard layout (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
 **Keyboard**: `keyboard_layout` / `keyboard_options` (default: German Apple
 layout, `altwin:swap_ralt_rwin`, so SUPER is the right Option key). hypr-rdp
-uses Hyprland's keymap, so the mapping is the same over RDP.
+uses Hyprland's keymap, so the mapping is the same over RDP. Switch layouts with
+`kbus` / `kbde` (`hypr-kbd us|de`, German without dead keys) or the ⌨ bar button;
+the choice survives reloads and reboots. hypr-rdp only reads the keymap at
+start, so a connected RDP client reconnects once after a switch.
 
 ## Shell and tools
 
