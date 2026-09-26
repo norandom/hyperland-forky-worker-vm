@@ -68,6 +68,17 @@ end
 
 local function addr_sel(w) return "address:" .. w.address end
 
+-- Floating windows stay below the top bar: the title bar (hyprbars, drawn
+-- above the window) must not end up under waybar.
+local function title_height()
+  return read_line(HOME .. "/.config/hypr/decorations-style") == "win311" and 22 or 24
+end
+
+local function top_limit(m)
+  local r = type(m.reserved) == "table" and (m.reserved.top or 0) or 0
+  return m.position.y + r + title_height()
+end
+
 if mode == "dynamic" then
   hl.on("window.close", function(w)
     if not (w and w.floating and w.class and w.class ~= "" and w.monitor) then return end
@@ -84,7 +95,8 @@ if mode == "dynamic" then
       if not (win and win.floating and win.monitor) then return end
       local mx, my, mw, mh = mon_box(win.monitor)
       hl.dispatch(hl.dsp.window.resize({ x = math.floor(g[3] * mw), y = math.floor(g[4] * mh), window = sel }))
-      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw), y = math.floor(my + g[2] * mh), window = sel }))
+      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw),
+                                       y = math.max(top_limit(win.monitor), math.floor(my + g[2] * mh)), window = sel }))
     end, { timeout = 80, type = "oneshot" })
   end)
 end
@@ -133,8 +145,34 @@ local function remember_open_windows()
   if dirty then save_geom(); dirty = false end
 end
 
+-- Push floating windows back below the bar once they have stopped moving
+-- (a window that moved since the last tick may still be dragged).
+local seen = {}
+local function keep_below_bar()
+  local mons, now = {}, {}
+  for _, m in ipairs(hl.get_monitors() or {}) do mons[m.name] = m end
+  for _, w in ipairs(hl.get_windows() or {}) do
+    local m = w.monitor and mons[w.monitor.name]
+    local pos = w.at.x .. "," .. w.at.y
+    if m and w.floating and w.fullscreen == 0 and seen[w.address] == pos then
+      local top = top_limit(m)
+      if w.at.y < top then
+        local sel = addr_sel(w)
+        local avail = m.position.y + m.size.height / m.scale - top
+        if w.size.y > avail then
+          hl.dispatch(hl.dsp.window.resize({ x = w.size.x, y = math.floor(avail), window = sel }))
+        end
+        hl.dispatch(hl.dsp.window.move({ x = w.at.x, y = top, window = sel }))
+      end
+    end
+    now[w.address] = pos
+  end
+  seen = now
+end
+
 snapshot()
 hl.timer(function()
+  keep_below_bar()
   snapshot()
   ticks = ticks + 1
   if ticks % 5 == 0 then remember_open_windows() end
@@ -153,7 +191,7 @@ hl.on("monitor.layout_changed", function()
           hl.dispatch(hl.dsp.window.resize({ x = math.max(200, math.floor(g[4] * nw)),
                                              y = math.max(120, math.floor(g[5] * nh)), window = sel }))
           hl.dispatch(hl.dsp.window.move({ x = math.floor(nx + g[2] * nw),
-                                           y = math.floor(ny + g[3] * nh), window = sel }))
+                                           y = math.max(top_limit(m), math.floor(ny + g[3] * nh)), window = sel }))
         end
       end
     end
