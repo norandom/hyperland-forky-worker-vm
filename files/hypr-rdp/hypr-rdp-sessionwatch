@@ -1,0 +1,10 @@
+#!/bin/bash
+# hypr-rdp's on_session_start/end hooks never fire (IronRDP takes the
+# connection handler out during a session). Derive session start/end from
+# hypr-rdp's own log lines instead and run hypr-rdp-session accordingly.
+journalctl --user -u hypr-rdp -f -n 0 -o cat | while IFS= read -r line; do
+  case "$line" in
+    *"Clipboard channel ready"*)         hypr-rdp-session start ;;  # every connect, any codec
+    *"Display update channel closed"*)   hypr-rdp-session end ;;
+  esac
+done

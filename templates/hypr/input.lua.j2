@@ -1,0 +1,14 @@
+-- Managed by debian-hypr.
+-- Apple German keyboard via RoyalTS/RDP: Right Option acts as Super,
+-- Right Cmd becomes AltGr (@ = RightCmd+Q, EUR = RightCmd+E).
+hl.config({
+  input = {
+    kb_layout = "{{ host.data.keyboard_layout }}",
+    kb_options = "{{ host.data.keyboard_options }}",
+    follow_mouse = 1,
+    sensitivity = 0,
+    repeat_rate = 40,
+    repeat_delay = 250,
+    numlock_by_default = true,
+  },
+})

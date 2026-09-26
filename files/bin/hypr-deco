@@ -1,0 +1,8 @@
+#!/bin/bash
+# Switch Hyprland title bar style:  hypr-deco win311 | mac   (no argument: show current)
+f="$HOME/.config/hypr/decorations-style"
+case "${1:-}" in
+  win311|mac) echo "$1" > "$f"; hyprctl reload >/dev/null && echo "title bars: $1" ;;
+  "") cat "$f" 2>/dev/null || echo mac ;;
+  *) echo "usage: hypr-deco win311|mac" >&2; exit 1 ;;
+esac

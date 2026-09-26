@@ -1,0 +1,23 @@
+/* Managed by debian-hypr. cream-blue-light. */
+* { font-family: "JetBrains Mono", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
+window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
+#taskbar, #clock, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 6px; }
+#clock { font-weight: bold; }
+#cpu.warning, #memory.warning { color: #a87a2f; }
+#cpu.critical, #memory.critical { color: #c0605a; }
+tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
+#custom-menu { padding: 0 10px; background: #2b4570; color: #fff8f0; font-weight: bold; }
+#custom-menu:hover { background: #4a90d9; }
+#custom-power {
+  min-width: 20px;
+  margin: 3px 8px 3px 4px;
+  background-image: url("/usr/local/share/debian-hypr/power.png");
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#custom-layout { padding: 0 8px; color: #2b4570; }
+#custom-layout:hover { background: #f5ede0; }
+#taskbar button { padding: 0 8px; color: #2b4570; border-bottom: 2px solid transparent; }
+#taskbar button:hover { background: #f5ede0; }
+#taskbar button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }

@@ -1,0 +1,30 @@
+[global_config]
+[keybindings]
+[profiles]
+  [[default]]
+    background_color = "#0049b2"
+    font = JetBrains Mono 13
+    foreground_color = "#fff8f0"
+    show_titlebar = False
+    scrollbar_position = hidden
+    disable_mousewheel_zoom = True
+    palette = "#00347d:#e87a74:#7ac48a:#f1dc9a:#8bb4e0:#b89cd9:#6f88a7:#e8dfc9:#1453af:#e87a74:#7ac48a:#ffe9a8:#8bb4e0:#d29acb:#8bb4e0:#fff8f0"
+    use_system_font = False
+    copy_on_selection = True
+  [[navy]]
+    background_color = "#1a2a3f"
+    font = JetBrains Mono 11
+    foreground_color = "#fff8f0"
+    show_titlebar = False
+    scrollbar_position = hidden
+    palette = "#243b55:#c0605a:#5a9e6f:#c4933f:#4a90d9:#c4a0e0:#5b7fa5:#7b96b4:#3a5a7a:#e87a74:#70b880:#c4933f:#6aabe8:#c4a0e0:#8babc7:#fff8f0"
+    use_system_font = False
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+      parent = ""
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]

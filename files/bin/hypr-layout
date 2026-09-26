@@ -1,0 +1,43 @@
+#!/bin/bash
+# Switch Hyprland layout mode:  hypr-layout dynamic|golden-h|golden-v|golden-spiral|next
+#   (no argument: print the current mode)
+set -u
+f="$HOME/.config/hypr/layout-mode"
+modes=(dynamic golden-h golden-v golden-spiral)
+cur=$(cat "$f" 2>/dev/null || echo dynamic)
+
+case "${1:-}" in
+  "") echo "$cur"; exit 0 ;;
+  next)
+    new=${modes[0]}
+    for i in "${!modes[@]}"; do [ "${modes[$i]}" = "$cur" ] && new=${modes[$(( (i + 1) % ${#modes[@]} ))]}; done ;;
+  dynamic|golden-h|golden-v|golden-spiral) new=$1 ;;
+  *) echo "usage: hypr-layout dynamic|golden-h|golden-v|golden-spiral|next" >&2; exit 1 ;;
+esac
+
+echo "$new" > "$f"
+hyprctl reload >/dev/null
+
+# Existing windows: tile them for golden-*, float them again for dynamic.
+action=disable; [ "$new" = dynamic ] && action=enable
+geom="$HOME/.local/state/hypr-window-geometry"
+mons=$(hyprctl monitors -j)
+hyprctl clients -j | jq -r '.[] | select(.mapped and (.hidden | not)) | "\(.address) \(.monitor) \(.class)"' |
+while read -r a mon class; do
+  hyprctl dispatch "hl.dsp.window.float({ action = \"$action\", window = \"address:$a\" })" >/dev/null
+  [ "$new" = dynamic ] || continue
+  # remembered geometry (fractions of the monitor) or center
+  g=$(awk -v c="$class" '$1 == c { print $2, $3, $4, $5 }' "$geom" 2>/dev/null)
+  if [ -n "$g" ]; then
+    read -r fx fy fw fh <<<"$g"
+    read -r mx my mw mh < <(jq -r --argjson id "$mon" '.[] | select(.id == $id) | "\(.x) \(.y) \(.width / .scale) \(.height / .scale)"' <<<"$mons")
+    w=$(awk -v f="$fw" -v m="$mw" 'BEGIN{printf "%d", f*m}'); h=$(awk -v f="$fh" -v m="$mh" 'BEGIN{printf "%d", f*m}')
+    x=$(awk -v f="$fx" -v m="$mw" -v o="$mx" 'BEGIN{printf "%d", o+f*m}'); y=$(awk -v f="$fy" -v m="$mh" -v o="$my" 'BEGIN{printf "%d", o+f*m}')
+    hyprctl dispatch "hl.dsp.window.resize({ x = $w, y = $h, window = \"address:$a\" })" >/dev/null
+    hyprctl dispatch "hl.dsp.window.move({ x = $x, y = $y, window = \"address:$a\" })" >/dev/null
+  else
+    hyprctl dispatch "hl.dsp.window.center({ window = \"address:$a\" })" >/dev/null
+  fi
+done
+pkill -RTMIN+8 waybar 2>/dev/null   # refresh the bar's layout indicator
+hyprctl notify -1 1500 "rgb(4a90d9)" "Layout: $new" >/dev/null

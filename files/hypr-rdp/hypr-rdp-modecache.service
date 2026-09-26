@@ -1,0 +1,11 @@
+[Unit]
+Description=Remember hypr-rdp output size across Hyprland config reloads
+PartOf=graphical-session.target
+After=graphical-session.target hypr-rdp.service
+
+[Service]
+ExecStart=%h/.local/bin/hypr-rdp-modecache
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

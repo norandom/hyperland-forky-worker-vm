@@ -1,0 +1,10 @@
+# Managed by debian-hypr. cream-blue-light.
+font=JetBrains Mono 10
+background-color=#fff8f0
+text-color=#2b4570
+border-color=#4a90d9
+border-size=2
+padding=10
+width=360
+default-timeout=6000
+anchor=top-right

@@ -1,0 +1,4 @@
+# Managed by debian-hypr.
+# Act when available RAM < 5% and free swap (zram) < 10%. Report every hour.
+# Never kill the desktop/RDP stack; kill browsers first.
+EARLYOOM_ARGS="-m 5 -s 10 -r 3600 --avoid '(^|/)(init|systemd|sshd|Hyprland|hyprland|waybar|mako|hypr-rdp|pipewire|wireplumber|uwsm|agetty)$' --prefer '(^|/)(chromium|chrome|firefox|firefox-esr|electron)$'"

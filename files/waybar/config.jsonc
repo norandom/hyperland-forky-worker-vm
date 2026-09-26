@@ -1,0 +1,52 @@
+// Managed by debian-hypr. Minimal bar: clock + CPU/MEM/net, like the Omarchy setup.
+{
+  "layer": "top",
+  "position": "top",
+  "height": 26,
+  "spacing": 14,
+  "modules-left": ["custom/menu", "custom/layout", "wlr/taskbar"],
+  "modules-center": ["clock"],
+  "modules-right": ["cpu", "memory", "network", "pulseaudio", "tray", "custom/power"],
+  "custom/menu": {
+    "format": "☰ Apps",
+    "tooltip-format": "Applications (right-click: search)",
+    "on-click": "$HOME/.local/bin/hypr-appmenu",
+    "on-click-right": "uwsm app -- fuzzel"
+  },
+  // Red square with the Debian swirl: the PNG is the CSS background (see style.css).
+  // (waybar 0.15's "image" module hangs the bar at startup.)
+  "custom/power": {
+    "format": " ",
+    "tooltip-format": "Log out / reboot / shut down",
+    "on-click": "$HOME/.local/bin/hypr-appmenu power"
+  },
+  "custom/layout": {
+    "exec": "cat $HOME/.config/hypr/layout-mode 2>/dev/null || echo dynamic",
+    "interval": "once",
+    "signal": 8,
+    "format": "▦ {}",
+    "tooltip-format": "Layout mode (click or SUPER+L: next)",
+    "on-click": "$HOME/.local/bin/hypr-layout next"
+  },
+  // Window list: click = bring to front (also un-minimizes), middle-click = close.
+  "wlr/taskbar": {
+    "format": "{icon} {title:.22}",
+    "icon-size": 16,
+    "icon-theme": "Adwaita",
+    "tooltip-format": "{title}",
+    "on-click": "activate",
+    "on-click-middle": "close",
+    "ignore-list": ["fuzzel"]
+  },
+  "clock": { "format": "{:%A %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
+  "cpu": { "interval": 2, "format": "CPU {usage}%", "on-click": "uwsm app -- terminator -x btop" },
+  "memory": { "interval": 2, "format": "MEM {percentage}%", "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used" },
+  "network": {
+    "interval": 2,
+    "format": "↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
+    "format-disconnected": "offline",
+    "tooltip-format": "{ifname} {ipaddr}"
+  },
+  "pulseaudio": { "format": "VOL {volume}%", "format-muted": "muted" },
+  "tray": { "spacing": 8 }
+}

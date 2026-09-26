@@ -1,0 +1,102 @@
+diff --git i/src/config.rs w/src/config.rs
+index 65b7771..811ac81 100644
+--- i/src/config.rs
++++ w/src/config.rs
+@@ -569,8 +569,9 @@ fn parse_egfx_codec_policy(s: &str) -> anyhow::Result<EgfxCodecPolicy> {
+         "avc420" => Ok(EgfxCodecPolicy::Avc420),
+         "avc444" => Ok(EgfxCodecPolicy::Avc444),
+         "clearcodec" => Ok(EgfxCodecPolicy::ClearCodec),
++        "planar" => Ok(EgfxCodecPolicy::Planar),
+         other => anyhow::bail!(
+-            "unknown EGFX codec '{}', expected 'auto', 'avc420', 'avc444', or 'clearcodec'",
++            "unknown EGFX codec '{}', expected 'auto', 'avc420', 'avc444', 'clearcodec', or 'planar'",
+             other
+         ),
+     }
+diff --git i/src/egfx/factory.rs w/src/egfx/factory.rs
+index cd8882e..d9c44a4 100644
+--- i/src/egfx/factory.rs
++++ w/src/egfx/factory.rs
+@@ -16,7 +16,7 @@ pub(super) fn capability_avc_support(
+     codec_policy: EgfxCodecPolicy,
+ ) -> (bool, bool) {
+     use ironrdp_egfx::pdu::*;
+-    if codec_policy == EgfxCodecPolicy::ClearCodec {
++    if matches!(codec_policy, EgfxCodecPolicy::ClearCodec | EgfxCodecPolicy::Planar) {
+         return (false, false);
+     }
+     let (avc420, avc444) = match cap {
+@@ -47,7 +47,7 @@ pub(super) fn capability_avc_support(
+     };
+     let avc444 = match codec_policy {
+         EgfxCodecPolicy::Auto | EgfxCodecPolicy::Avc444 => avc444 && !disable_avc444,
+-        EgfxCodecPolicy::Avc420 | EgfxCodecPolicy::ClearCodec => false,
++        EgfxCodecPolicy::Avc420 | EgfxCodecPolicy::ClearCodec | EgfxCodecPolicy::Planar => false,
+     };
+     (avc420, avc444)
+ }
+@@ -57,7 +57,7 @@ pub(super) fn preferred_capabilities_for_policy(
+ ) -> Vec<ironrdp_egfx::pdu::CapabilitySet> {
+     use ironrdp_egfx::pdu::*;
+     match codec_policy {
+-        EgfxCodecPolicy::ClearCodec => vec![
++        EgfxCodecPolicy::ClearCodec | EgfxCodecPolicy::Planar => vec![
+             CapabilitySet::V10_7 {
+                 flags: CapabilitiesV107Flags::AVC_DISABLED,
+             },
+diff --git i/src/egfx/shared.rs w/src/egfx/shared.rs
+index d5820f4..cfee988 100644
+--- i/src/egfx/shared.rs
++++ w/src/egfx/shared.rs
+@@ -17,6 +17,8 @@ pub enum EgfxCodecPolicy {
+     Avc444,
+     /// Never negotiate AVC: send damage-only ClearCodec frames (xrdp-like).
+     ClearCodec,
++    /// No graphics pipeline at all: legacy damage-only RDP 6.0 planar bitmaps.
++    Planar,
+ }
+ 
+ pub(in crate::egfx) fn avc444_disabled_by_env() -> bool {
+diff --git i/src/server/mod.rs w/src/server/mod.rs
+index 4bf6a55..9b281a1 100644
+--- i/src/server/mod.rs
++++ w/src/server/mod.rs
+@@ -13,7 +13,7 @@ use crate::audio::{AudioMode, HyprSoundFactory};
+ use crate::capture::{HyprDisplay, HyprDisplayHandle};
+ use crate::clipboard::HyprCliprdrFactory;
+ use crate::config::{ConfigCredentials, RuntimeConfig};
+-use crate::egfx::{EgfxShared, HyprGfxFactory};
++use crate::egfx::{EgfxCodecPolicy, EgfxShared, HyprGfxFactory};
+ use crate::input::{HyprInputHandler, RdpInputSessionSink, SharedOutputLayout};
+ 
+ mod session_hooks;
+@@ -86,7 +86,18 @@ pub async fn setup(config: RuntimeConfig) -> Result<ServerContext> {
+         .context("input handler has no command channel")?;
+     let input_session_sink: Box<dyn RdpInputSessionSink> = Box::new(input_session_sink);
+ 
+-    let gfx_factory = HyprGfxFactory::new(Arc::clone(&egfx_shared));
++    // "planar": never open the graphics pipeline and advertise no bitmap codecs,
++    // so IronRDP falls back to damage-only RDP 6.0 planar bitmap updates.
++    let planar = egfx_codec == EgfxCodecPolicy::Planar;
++    let gfx_factory: Option<Box<dyn ironrdp_server::GfxServerFactory>> = if planar {
++        None
++    } else {
++        Some(Box::new(HyprGfxFactory::new(Arc::clone(&egfx_shared))))
++    };
++    let codec_config: &[&str] = if planar { &["remotefx:off", "qoi:off", "qoiz:off"] } else { &[] };
++    let bitmap_codecs = ironrdp_pdu::rdp::capability_sets::server_codecs_capabilities(codec_config)
++        .map_err(|e| anyhow::anyhow!(e))
++        .context("invalid bitmap codec configuration")?;
+     let cliprdr_factory = HyprCliprdrFactory::new(
+         file_transfer_mode,
+         file_transfer_max_chunk_bytes,
+@@ -121,7 +132,8 @@ pub async fn setup(config: RuntimeConfig) -> Result<ServerContext> {
+             input_session_sink,
+             session_hooks,
+         ))))
+-        .with_gfx_factory(Some(Box::new(gfx_factory)))
++        .with_gfx_factory(gfx_factory)
++        .with_bitmap_codecs(bitmap_codecs)
+         .with_cliprdr_factory(Some(Box::new(cliprdr_factory)))
+         .with_sound_factory(sound_factory)
+         .build();

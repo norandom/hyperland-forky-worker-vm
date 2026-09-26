@@ -1,0 +1,13 @@
+[Unit]
+Description=hypr-rdp RDP server for the Hyprland session
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/local/bin/hypr-rdp
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

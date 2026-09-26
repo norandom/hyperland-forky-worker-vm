@@ -1,0 +1,12 @@
+#!/bin/bash
+# Hide Hyprland's software-drawn cursor while an RDP session is active; the RDP
+# client draws its local cursor, so this avoids a double cursor.
+# Use from ~/.config/hypr-rdp/config.toml:
+#   on_session_start = "hypr-rdp-cursor start"
+#   on_session_end = "hypr-rdp-cursor end"
+flag="${XDG_RUNTIME_DIR:-/tmp}/hypr-rdp-active"
+case "$1" in
+  start) touch "$flag"; hyprctl eval 'hl.config({ cursor = { invisible = true } })' ;;
+  end)   rm -f "$flag"; hyprctl eval 'hl.config({ cursor = { invisible = false } })' ;;
+  *)     echo "Usage: hypr-rdp-cursor start|end" >&2; exit 1 ;;
+esac >/dev/null

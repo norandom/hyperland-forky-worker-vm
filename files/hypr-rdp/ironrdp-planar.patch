@@ -1,0 +1,13 @@
+--- a/crates/ironrdp-server/src/encoder/mod.rs
++++ b/crates/ironrdp-server/src/encoder/mod.rs
+@@ -181,7 +181,9 @@
+                     nscodec: Some((id, cll)),
+                     ..
+                 } => BitmapUpdater::NsCodec(NsCodecHandler::new(id, cll)),
+-                _ => BitmapUpdater::None(NoneHandler),
++                // hypr-rdp-clearcodec: with no negotiated surface codec, send
++                // RLE-compressed RDP 6.0 planar bitmaps instead of raw pixels.
++                _ => BitmapUpdater::Bitmap(BitmapHandler::new()),
+             }
+         } else {
+             BitmapUpdater::Bitmap(BitmapHandler::new())

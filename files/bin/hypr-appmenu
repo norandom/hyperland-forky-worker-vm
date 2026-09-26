@@ -1,0 +1,67 @@
+#!/bin/bash
+# XFCE-style application menu with fuzzel (no extra toolkit):
+#   hypr-appmenu              categories -> applications (top-left)
+#   hypr-appmenu --at X Y     same, opened at X/Y (desktop right-click)
+#   hypr-appmenu power        log out / reboot / shut down
+set -u
+pos=()
+if [ "${1:-}" = --at ]; then
+  pos=(--x-margin "$2" --y-margin "$3"); shift 3
+fi
+menu() { fuzzel --dmenu --anchor top-left --width 32 "${pos[@]}" "$@"; }
+
+if [ "${1:-}" = power ]; then
+  choice=$(printf 'Log out\nReboot\nShut down\n' | menu --prompt 'Power > ' --lines 3) || exit 0
+  case "$choice" in
+    "Log out")   uwsm stop ;;
+    "Reboot")    systemctl reboot ;;
+    "Shut down") systemctl poweroff ;;
+  esac
+  exit 0
+fi
+
+# "Category<TAB>Name<TAB>desktop-id" for every visible application;
+# ~/.local/share/applications overrides /usr/share/applications.
+entries() {
+  local seen=" " d f id
+  for d in "$HOME/.local/share/applications" /usr/local/share/applications /usr/share/applications; do
+    for f in "$d"/*.desktop; do
+      [ -f "$f" ] || continue
+      id=${f##*/}
+      case "$seen" in *" $id "*) continue ;; esac
+      seen="$seen$id "
+      awk -v id="$id" '
+        BEGIN {
+          m["AudioVideo"]="Multimedia"; m["Audio"]="Multimedia"; m["Video"]="Multimedia"
+          m["Development"]="Development"; m["Education"]="Education"; m["Game"]="Games"
+          m["Graphics"]="Graphics"; m["Network"]="Internet"; m["Office"]="Office"
+          m["Science"]="Science"; m["Settings"]="Settings"; m["System"]="System"
+          m["Utility"]="Accessories"
+        }
+        /^\[/ { sec = $0; next }
+        sec != "[Desktop Entry]" { next }
+        /^Name=/ && name == "" { name = substr($0, 6) }
+        /^Categories=/ { cats = substr($0, 12) }
+        /^Type=/ { type = substr($0, 6) }
+        /^(NoDisplay|Hidden)=true/ { hidden = 1 }
+        END {
+          if (hidden || name == "" || (type != "" && type != "Application")) exit
+          cat = "Other"; n = split(cats, a, ";")
+          for (i = 1; i <= n; i++) if (a[i] in m) { cat = m[a[i]]; break }
+          printf "%s\t%s\t%s\n", cat, name, id
+        }' "$f"
+    done
+  done
+}
+
+list=$(entries)
+all="All applications (search)"
+cat=$( { echo "$all"; cut -f1 <<<"$list" | sort -u; } | menu --prompt 'Apps > ' ) || exit 0
+
+if [ "$cat" = "$all" ]; then
+  exec uwsm app -- fuzzel
+fi
+
+id=$(awk -F'\t' -v c="$cat" '$1 == c { print $2 "\t" $3 }' <<<"$list" | sort -f |
+     menu --prompt "$cat > " --with-nth=1 --accept-nth=2) || exit 0
+[ -n "$id" ] && exec uwsm app -- "$id"

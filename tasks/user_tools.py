@@ -1,0 +1,48 @@
+"""Per-user developer tools: uv, npm globals + pnpm, Aikido Safe Chain, Neovim config."""
+from pathlib import Path
+
+from pyinfra import host
+from pyinfra.operations import files, server
+
+home = host.data.desktop_home
+bin_dir = f"{home}/.local/bin"
+env = f'export PATH="{bin_dir}:$PATH"; '
+
+# --- npm globals go to ~/.local (no sudo), then pnpm --------------------------------------
+files.line(name="npm global prefix = ~/.local", path=f"{home}/.npmrc",
+           line=r"^prefix=.*", replace=f"prefix={home}/.local")
+server.shell(
+    name="pnpm (npm global, user-level)",
+    commands=[env + f"[ -x {bin_dir}/pnpm ] || npm install -g pnpm"],
+)
+
+# --- uv (Astral installer, user-level) ---------------------------------------------------------
+server.shell(
+    name="uv + uvx in ~/.local/bin",
+    commands=[f"[ -x {bin_dir}/uv ] || (curl -LsSf https://astral.sh/uv/install.sh | "
+              f"env UV_NO_MODIFY_PATH=1 UV_INSTALL_DIR={bin_dir} sh)"],
+)
+
+# --- Aikido Safe Chain: malware check for npm/npx/pnpm/pip/uv/uvx ... ---------------------
+ver = host.data.safe_chain_version
+sha = host.data.safe_chain_installer_sha256
+server.shell(
+    name=f"Aikido Safe Chain {ver} (pinned installer, checksum verified)",
+    commands=[f"""[ -x {home}/.safe-chain/bin/safe-chain ] || (set -e
+t=$(mktemp)
+curl -fsSL https://github.com/AikidoSec/safe-chain/releases/download/{ver}/install-safe-chain.sh -o "$t"
+echo "{sha}  $t" | sha256sum -c -
+sh "$t"
+rm -f "$t")"""],
+)
+
+# --- Neovim: Omarchy's LazyVim config, cream-blue theme ------------------------------------
+nvim = [
+    files.put(name=f"nvim: {p}", src=f"files/nvim/{p}", dest=f"{home}/.config/nvim/{p}", mode="644")
+    for p in sorted(str(f.relative_to("files/nvim")) for f in Path("files/nvim").rglob("*") if f.is_file())
+]
+server.shell(
+    name="nvim: install plugins (headless LazyVim sync)",
+    commands=[env + "timeout 900 nvim --headless '+Lazy! sync' +qa >/dev/null 2>&1 || true"],
+    _if=lambda: any(op.did_change() for op in nvim),
+)

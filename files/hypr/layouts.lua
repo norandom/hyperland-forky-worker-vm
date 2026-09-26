@@ -1,0 +1,161 @@
+-- Managed by debian-hypr.
+-- Layout modes (switch: SUPER + L, the bar button, or `hypr-layout <mode>`):
+--   dynamic        floating windows (default); remembers each app's position/size
+--   golden-h       master left 61.8 %, others stacked right
+--   golden-v       master top 61.8 %, others stacked below
+--   golden-spiral  every split 61.8 : 38.2, spiralling in (Fibonacci)
+-- Also: when the RDP screen changes size, floating windows are scaled with it.
+
+local HOME = os.getenv("HOME") or ""
+local MODE_FILE = HOME .. "/.config/hypr/layout-mode"
+local GEOM_FILE = HOME .. "/.local/state/hypr-window-geometry"
+local PHI = 0.618
+
+local function read_line(path)
+  local f = io.open(path, "r")
+  if not f then return nil end
+  local l = f:read("*l"); f:close()
+  return l and l:match("^%s*(%S+)")
+end
+
+local mode = read_line(MODE_FILE) or "dynamic"
+
+if mode == "golden-h" or mode == "golden-v" then
+  hl.config({
+    general = { layout = "master" },
+    master = { mfact = PHI, orientation = (mode == "golden-h") and "left" or "top", new_status = "slave" },
+  })
+elseif mode == "golden-spiral" then
+  hl.config({
+    general = { layout = "dwindle" },
+    -- split ratio 1.0 = 50/50; 2 * 0.618 = 1.236 gives 61.8 : 38.2
+    dwindle = { default_split_ratio = 2 * PHI, preserve_split = true, force_split = 2 },
+  })
+else
+  mode = "dynamic"
+  hl.config({ general = { layout = "dwindle" } })
+  -- Stacking (non-tiling): every new window floats, centered.
+  hl.window_rule({ match = { class = ".*" }, float = true, center = true })
+end
+
+-- --- dynamic: remember geometry per application class ------------------------------
+-- Stored as fractions of the monitor, so it survives RDP resolution changes.
+local geom = {}
+do
+  local f = io.open(GEOM_FILE, "r")
+  if f then
+    for line in f:lines() do
+      local class, x, y, w, h = line:match("^(%S+) (%S+) (%S+) (%S+) (%S+)$")
+      if class then geom[class] = { tonumber(x), tonumber(y), tonumber(w), tonumber(h) } end
+    end
+    f:close()
+  end
+end
+
+local function save_geom()
+  os.execute("mkdir -p '" .. HOME .. "/.local/state'")
+  local f = io.open(GEOM_FILE, "w")
+  if not f then return end
+  for class, g in pairs(geom) do
+    f:write(string.format("%s %.5f %.5f %.5f %.5f\n", class, g[1], g[2], g[3], g[4]))
+  end
+  f:close()
+end
+
+local function mon_box(m)
+  return m.position.x, m.position.y, m.size.width / m.scale, m.size.height / m.scale
+end
+
+local function addr_sel(w) return "address:" .. w.address end
+
+if mode == "dynamic" then
+  hl.on("window.close", function(w)
+    if not (w and w.floating and w.class and w.class ~= "" and w.monitor) then return end
+    local mx, my, mw, mh = mon_box(w.monitor)
+    geom[w.class] = { (w.at.x - mx) / mw, (w.at.y - my) / mh, w.size.x / mw, w.size.y / mh }
+    save_geom()
+  end)
+
+  hl.on("window.open", function(w)
+    if not (w and w.class and geom[w.class]) then return end
+    local g, sel = geom[w.class], addr_sel(w)
+    hl.timer(function()
+      local win = w
+      if not (win and win.floating and win.monitor) then return end
+      local mx, my, mw, mh = mon_box(win.monitor)
+      hl.dispatch(hl.dsp.window.resize({ x = math.floor(g[3] * mw), y = math.floor(g[4] * mh), window = sel }))
+      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw), y = math.floor(my + g[2] * mh), window = sel }))
+    end, { timeout = 80, type = "oneshot" })
+  end)
+end
+
+-- --- Scale floating windows when a monitor (the RDP output) changes size -------------
+-- Hyprland pushes windows back on-screen before we hear about a resize, so the
+-- geometry is snapshotted (as fractions of the monitor) while the size is stable
+-- and restored from that snapshot afterwards. Scaling back up is then exact.
+local last, snap = {}, {}
+
+local function snapshot()
+  local mons = {}
+  for _, m in ipairs(hl.get_monitors() or {}) do
+    local x, y, w, h = mon_box(m)
+    mons[m.name] = { x, y, w, h }
+    last[m.name] = last[m.name] or { x, y, w, h }
+  end
+  for _, w in ipairs(hl.get_windows() or {}) do
+    local m = w.monitor and mons[w.monitor.name]
+    local l = m and last[w.monitor.name]
+    -- only while the monitor still has the size we last acted on
+    if m and l and l[3] == m[3] and l[4] == m[4] and w.floating and w.fullscreen == 0 then
+      snap[w.address] = { w.monitor.name, (w.at.x - m[1]) / m[3], (w.at.y - m[2]) / m[4],
+                          w.size.x / m[3], w.size.y / m[4] }
+    end
+  end
+end
+
+-- dynamic: keep the per-app memory current even for windows that are never
+-- closed (reboot, logout): write changed geometry every few seconds.
+local ticks, dirty = 0, false
+local function remember_open_windows()
+  if mode ~= "dynamic" then return end
+  for _, w in ipairs(hl.get_windows() or {}) do
+    local g = snap[w.address]
+    if g and w.class and w.class ~= "" and not w.class:find("%s") then
+      local cur = geom[w.class]
+      local new = { g[2], g[3], g[4], g[5] }
+      if not cur or math.abs(cur[1] - new[1]) + math.abs(cur[2] - new[2])
+                     + math.abs(cur[3] - new[3]) + math.abs(cur[4] - new[4]) > 0.002 then
+        geom[w.class] = new
+        dirty = true
+      end
+    end
+  end
+  if dirty then save_geom(); dirty = false end
+end
+
+snapshot()
+hl.timer(function()
+  snapshot()
+  ticks = ticks + 1
+  if ticks % 5 == 0 then remember_open_windows() end
+end, { timeout = 1000, type = "repeat" })
+
+hl.on("monitor.layout_changed", function()
+  for _, m in ipairs(hl.get_monitors() or {}) do
+    local nx, ny, nw, nh = mon_box(m)
+    local o = last[m.name]
+    last[m.name] = { nx, ny, nw, nh }
+    if o and (o[3] ~= nw or o[4] ~= nh) then
+      for _, w in ipairs(hl.get_windows() or {}) do
+        local g = snap[w.address]
+        if g and g[1] == m.name and w.floating and w.fullscreen == 0 then
+          local sel = addr_sel(w)
+          hl.dispatch(hl.dsp.window.resize({ x = math.max(200, math.floor(g[4] * nw)),
+                                             y = math.max(120, math.floor(g[5] * nh)), window = sel }))
+          hl.dispatch(hl.dsp.window.move({ x = math.floor(nx + g[2] * nw),
+                                           y = math.floor(ny + g[3] * nh), window = sel }))
+        end
+      end
+    end
+  end
+end)

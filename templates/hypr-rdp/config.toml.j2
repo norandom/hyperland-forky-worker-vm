@@ -1,0 +1,14 @@
+# Managed by debian-hypr. Local edits are overwritten.
+# hypr-rdp attaches to the running Hyprland session (tty1 autologin).
+bind = "{{ host.data.hypr_rdp_bind }}"
+username = "{{ host.data.desktop_user }}"
+password_file = "{{ host.data.desktop_home }}/.config/hypr-rdp/password"
+fps = {{ host.data.hypr_rdp_fps }}
+# Use Hyprland's keymap (input.lua), so Right Option -> Super also applies over RDP.
+keyboard_layout_policy = "compositor"
+audio_mode = "redirect"
+file_transfer_mode = "both"
+capture_mode = "ext"
+# avc420 | avc444 | auto (stock) ; clearcodec | planar (patched build)
+egfx_codec = "{{ host.data.hypr_rdp_codec }}"
+# Session start/end: hypr-rdp-sessionwatch.service (built-in hooks never fire).

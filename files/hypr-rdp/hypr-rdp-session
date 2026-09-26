@@ -1,0 +1,31 @@
+#!/bin/bash
+# hypr-rdp session hooks: hide the server cursor (hypr-rdp-cursor) and turn the
+# unused Proxmox console output off while an RDP client is connected.
+console=Virtual-1
+# Windows keep absolute coordinates; when hypr-rdp recreates its output at a
+# different position (restart, console on/off) they can end up off-screen.
+# Center every window whose middle is not on an active monitor.
+rescue_windows() {
+  sleep 1
+  local mons
+  mons=$(hyprctl monitors -j)
+  hyprctl clients -j | jq -r --argjson m "$mons" '
+    .[] | select(.mapped and (.hidden | not)) |
+    (.at[0] + .size[0] / 2) as $cx | (.at[1] + .size[1] / 2) as $cy |
+    select([$m[] | select($cx >= .x and $cx < .x + .width and $cy >= .y and $cy < .y + .height)] | length == 0) |
+    .address' |
+  while read -r a; do
+    hyprctl dispatch "hl.dsp.window.center({ window = \"address:$a\" })" >/dev/null
+  done
+}
+
+case "$1" in
+  start)
+    hypr-rdp-cursor start
+    hyprctl eval "hl.monitor({ output = \"$console\", disabled = true })" >/dev/null
+    rescue_windows ;;
+  end)
+    hypr-rdp-cursor end
+    hyprctl eval "hl.monitor({ output = \"$console\", mode = \"preferred\", position = \"auto\", scale = \"auto\" })" >/dev/null ;;
+  *) echo "Usage: hypr-rdp-session start|end" >&2; exit 1 ;;
+esac

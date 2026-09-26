@@ -1,0 +1,7 @@
+#!/bin/bash
+# Record the hypr-rdp headless output's mode so monitors.lua can restore it after reloads.
+cache="${XDG_RUNTIME_DIR:-/tmp}/hypr-rdp-mode"
+while sleep 2; do
+  line=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.name == "hypr-rdp") | "\(.width)x\(.height)@60 \(.scale) \(.x)x\(.y)"')
+  [[ -n $line && $line != "$(cat "$cache" 2>/dev/null)" ]] && echo "$line" > "$cache"
+done

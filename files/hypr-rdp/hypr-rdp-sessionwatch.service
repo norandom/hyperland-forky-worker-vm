@@ -1,0 +1,12 @@
+[Unit]
+Description=Run hypr-rdp-session start/end on RDP connect/disconnect
+PartOf=graphical-session.target
+After=graphical-session.target hypr-rdp.service
+
+[Service]
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+ExecStart=%h/.local/bin/hypr-rdp-sessionwatch
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

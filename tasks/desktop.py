@@ -1,0 +1,132 @@
+"""Hyprland desktop without Omarchy: packages, config, theme, fonts, Terminator."""
+from pyinfra import host
+from pyinfra.operations import apt, files, server
+from pyinfra.operations.util import any_changed
+
+home = host.data.desktop_home
+
+apt.packages(
+    name="Hyprland + minimal desktop (no recommends)",
+    packages=[
+        # compositor, session, title bars, portals
+        "hyprland", "hyprland-plugin-hyprbars", "hyprland-guiutils", "uwsm",
+        "xdg-desktop-portal-hyprland", "xdg-desktop-portal-gtk", "xwayland",
+        # software rendering (no GPU in the VM)
+        "libgl1-mesa-dri", "libegl-mesa0",
+        # bar, notifications, launcher, terminal
+        "waybar", "mako-notifier", "fuzzel", "terminator",
+        # fonts, cursor/icons
+        "fonts-jetbrains-mono", "fonts-dejavu-core", "adwaita-icon-theme",
+        # audio (hypr-rdp redirects sound to the RDP client via pactl)
+        "pipewire", "pipewire-pulse", "wireplumber", "pulseaudio-utils",
+        # clipboard + RDP file transfer
+        "wl-clipboard", "fuse3",
+    ],
+    no_recommends=True,
+    _sudo=True,
+)
+
+server.shell(
+    name=f"Title bar style (set once to {host.data.decorations_style}; switch with hypr-deco)",
+    commands=[f"[ -s {home}/.config/hypr/decorations-style ] || echo {host.data.decorations_style} > {home}/.config/hypr/decorations-style"],
+)
+
+server.shell(
+    name="Layout mode (set once to dynamic; switch with SUPER+L / hypr-layout)",
+    commands=[f"[ -s {home}/.config/hypr/layout-mode ] || echo dynamic > {home}/.config/hypr/layout-mode"],
+)
+
+# --- Hyprland config -----------------------------------------------------------
+hypr = [
+    files.put(
+        name=f"Hyprland: {name}",
+        src=f"files/hypr/{name}",
+        dest=f"{home}/.config/hypr/{name}",
+        mode="644",
+    )
+    for name in (
+        "hyprland.lua", "monitors.lua", "looknfeel.lua", "layouts.lua", "bindings.lua",
+        "autostart.lua", "decorations.lua", "aerosnap.lua", "cursorzone.lua",
+    )
+]
+hypr.append(files.template(
+    name="Hyprland: input.lua (keyboard layout)",
+    src="templates/hypr/input.lua.j2",
+    dest=f"{home}/.config/hypr/input.lua",
+    mode="644",
+))
+
+server.shell(
+    name="Reload running Hyprland",
+    commands=[
+        'sig=$(ls -t "/run/user/$(id -u)/hypr" 2>/dev/null | head -1); '
+        '[ -n "$sig" ] && HYPRLAND_INSTANCE_SIGNATURE=$sig hyprctl reload >/dev/null || true'
+    ],
+    _if=any_changed(*hypr),
+)
+
+files.put(
+    name="Power button icon (red square, cream Debian swirl)",
+    src="files/waybar/power.png",
+    dest="/usr/local/share/debian-hypr/power.png",
+    mode="644",
+    _sudo=True,
+)
+
+# --- Bar, notifications, launcher, GTK, terminal, top tools ----------------------
+for src, dest in (
+    ("files/waybar/config.jsonc", ".config/waybar/config.jsonc"),
+    ("files/waybar/style.css", ".config/waybar/style.css"),
+    ("files/mako/config", ".config/mako/config"),
+    ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
+    ("files/gtk-3.0/settings.ini", ".config/gtk-3.0/settings.ini"),
+    ("files/terminator/config", ".config/terminator/config"),
+    ("files/htop/htoprc", ".config/htop/htoprc"),
+):
+    files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
+
+server.shell(
+    name="Reload waybar (picks up config changes)",
+    commands=["systemctl --user is-active -q waybar.service && systemctl --user reload-or-restart waybar.service || true"],
+)
+
+# btop writes its full config on first start; only enforce the sort order.
+server.shell(
+    name="btop sorts by memory",
+    commands=[
+        f'f={home}/.config/btop/btop.conf; mkdir -p "$(dirname "$f")"; '
+        '[ -f "$f" ] || cp /dev/null "$f"; '
+        'grep -q "^proc_sorting" "$f" && sed -i \'s/^proc_sorting = .*/proc_sorting = "memory"/\' "$f" '
+        '|| echo \'proc_sorting = "memory"\' >> "$f"'
+    ],
+)
+
+files.put(
+    name="XFCE-style app menu (waybar button, SUPER+A) + power menu",
+    src="files/bin/hypr-appmenu",
+    dest=f"{home}/.local/bin/hypr-appmenu",
+    mode="755",
+)
+
+
+files.put(
+    name="Layout switcher: hypr-layout dynamic|golden-h|golden-v|golden-spiral|next",
+    src="files/bin/hypr-layout",
+    dest=f"{home}/.local/bin/hypr-layout",
+    mode="755",
+)
+
+files.put(
+    name="Title bar style switcher: hypr-deco win311|mac",
+    src="files/bin/hypr-deco",
+    dest=f"{home}/.local/bin/hypr-deco",
+    mode="755",
+)
+
+# Terminator as the default for xdg-terminal-exec style launchers.
+files.put(
+    name="Default terminal: Terminator",
+    src="files/xdg-terminals.list",
+    dest=f"{home}/.config/xdg-terminals.list",
+    mode="644",
+)
