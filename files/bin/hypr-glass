@@ -7,7 +7,10 @@ opacity=0.82
 if [ "$(hyprctl getprop activewindow no_blur)" = "true" ]; then
   hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'no_blur', value = '0' })" >/dev/null
   hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'opacity', value = '$opacity' })" >/dev/null
+  msg="Glass: on"
 else
   hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'no_blur', value = '1' })" >/dev/null
   hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'opacity', value = '1' })" >/dev/null
+  msg="Glass: off"
 fi
+hyprctl notify -1 1500 "rgb(8bb4e0)" "$msg" >/dev/null

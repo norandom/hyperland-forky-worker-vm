@@ -5,3 +5,5 @@ if [ "$(hyprctl activewindow -j | jq -r .floating)" = "false" ]; then
   hyprctl dispatch "hl.dsp.window.float({ action = 'enable' })" >/dev/null
 fi
 hyprctl dispatch "hl.dsp.window.pin()" >/dev/null
+[ "$(hyprctl activewindow -j | jq -r .pinned)" = "true" ] && msg="Stay on top: on" || msg="Stay on top: off"
+hyprctl notify -1 1500 "rgb(8bb4e0)" "$msg" >/dev/null
