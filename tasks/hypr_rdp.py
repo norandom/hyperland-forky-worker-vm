@@ -13,31 +13,61 @@ ver = host.data.hypr_rdp_version
 stamp = "/usr/local/share/hypr-rdp/BUILD"
 src_dir = f"{home}/.cache/hypr-rdp-src"
 
-apt.packages(
-    name="hypr-rdp build + runtime deps",
-    packages=[
-        "cargo", "rustc", "clang", "libclang-dev", "cmake", "pkg-config", "make", "patch",
-        "libva-dev", "libpipewire-0.3-dev", "libxkbcommon-dev", "libwayland-dev",
-        "libgbm-dev", "libfuse3-dev", "libpulse-dev", "libssl-dev",
-        "jq", "fuse3", "pulseaudio-utils",
-    ],
-    no_recommends=True,
-    _sudo=True,
-)
+mode = host.data.hypr_rdp_source
+installed = False
 
-# --- Build only when the version or the patches change ------------------------------
-patches = sorted(Path("files/hypr-rdp").glob("*.patch"))
-want = f"{ver} " + hashlib.sha256(b"".join(p.read_bytes() for p in patches)).hexdigest()
-have = (host.get_fact(Command, command=f"cat {stamp} 2>/dev/null || true") or "").strip()
-
-for f in [*patches, Path("files/hypr-rdp/build.sh"), Path("files/hypr-rdp/hypr-rdp-cursor")]:
-    files.put(name=f"Build input: {f.name}", src=str(f), dest=f"{src_dir}/{f.name}", mode="755")
-
-if have != want:
+if mode == "release":
+    # --- Install the released .deb (built by CI with Dagger from files/hypr-rdp) ------
+    url = host.data.hypr_rdp_deb_url
+    deb = url.rsplit("/", 1)[1]
+    want_ver = deb.split("_")[1]
+    have_ver = (host.get_fact(Command, command="dpkg-query -W -f='${Version}' hypr-rdp-clearcodec 2>/dev/null || true") or "").strip()
+    if have_ver != want_ver:
+        server.shell(
+            name=f"hypr-rdp-clearcodec {want_ver} from the GitHub release (checksum verified)",
+            commands=[f"""set -e
+install -d -m 755 /var/cache/debian-hypr
+curl -fsSL -o /var/cache/debian-hypr/{deb} {url}
+echo "{host.data.hypr_rdp_deb_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}"""],
+            _sudo=True,
+        )
+        installed = True
+    # A from-source build in /usr/local/bin would shadow the package.
     server.shell(
-        name=f"Build + install hypr-rdp {ver} with patches (~15 min)",
-        commands=[f"{src_dir}/build.sh {ver} {host.data.hypr_rdp_sha256} {stamp}"],
+        name="Remove a previous from-source build (/usr/local/bin)",
+        commands=["rm -f /usr/local/bin/hypr-rdp /usr/local/bin/hypr-rdp-cursor /usr/local/share/hypr-rdp/BUILD"],
+        _sudo=True,
     )
+else:
+    apt.packages(
+        name="hypr-rdp build + runtime deps",
+        packages=[
+            "cargo", "rustc", "clang", "libclang-dev", "cmake", "pkg-config", "make", "patch",
+            "libva-dev", "libpipewire-0.3-dev", "libxkbcommon-dev", "libwayland-dev",
+            "libgbm-dev", "libfuse3-dev", "libpulse-dev", "libssl-dev",
+            "jq", "fuse3", "pulseaudio-utils",
+        ],
+        no_recommends=True,
+        _sudo=True,
+    )
+
+    # --- Build only when the version or the patches change ---------------------------
+    patches = sorted(Path("files/hypr-rdp").glob("*.patch"))
+    want = f"{ver} " + hashlib.sha256(b"".join(p.read_bytes() for p in patches)).hexdigest()
+    have = (host.get_fact(Command, command=f"cat {stamp} 2>/dev/null || true") or "").strip()
+
+    for f in [*patches, Path("files/hypr-rdp/build.sh"), Path("files/hypr-rdp/hypr-rdp-cursor")]:
+        files.put(name=f"Build input: {f.name}", src=str(f), dest=f"{src_dir}/{f.name}", mode="755")
+
+    if have != want:
+        server.shell(
+            name=f"Build + install hypr-rdp {ver} with patches (~15 min)",
+            commands=[f"{src_dir}/build.sh {ver} {host.data.hypr_rdp_sha256} {stamp}"],
+        )
+        installed = True
+
+apt.packages(name="Session helper tools", packages=["jq"], no_recommends=True, _sudo=True)
 
 # --- Config, password, helpers ------------------------------------------------------
 server.shell(
@@ -63,9 +93,12 @@ scripts = [
 ]
 
 units = [
+    files.template(name="User unit: hypr-rdp.service", src="templates/hypr-rdp/hypr-rdp.service.j2",
+                   dest=f"{home}/.config/systemd/user/hypr-rdp.service", mode="644"),
+] + [
     files.put(name=f"User unit: {name}", src=f"files/hypr-rdp/{name}",
               dest=f"{home}/.config/systemd/user/{name}", mode="644")
-    for name in ("hypr-rdp.service", "hypr-rdp-sessionwatch.service", "hypr-rdp-modecache.service")
+    for name in ("hypr-rdp-sessionwatch.service", "hypr-rdp-modecache.service")
 ]
 
 # Enable = WantedBy symlinks (works before the user manager ever ran).
@@ -91,5 +124,5 @@ server.shell(
         "systemctl --user is-active -q graphical-session.target 2>/dev/null && "
         "systemctl --user restart hypr-rdp.service hypr-rdp-sessionwatch.service hypr-rdp-modecache.service || true",
     ],
-    _if=lambda: cfg.did_change() or any(op.did_change() for op in scripts + units) or have != want,
+    _if=lambda: installed or cfg.did_change() or any(op.did_change() for op in scripts + units),
 )

@@ -11,8 +11,6 @@ apt.packages(
         # Chromium for MCP (chrome-devtools / playwright MCP servers use it)
         "chromium", "chromium-driver",
         "git", "atop",
-        # free ICC profiles, incl. Adobe RGB (1998) compatible (see rdp_icc_profile)
-        "icc-profiles-free",
         # Neovim + what LazyVim expects
         "neovim", "ripgrep", "fd-find", "fzf", "lazygit", "tree-sitter-cli", "gcc", "make", "unzip",
         # Node.js + npm (user-level globals via ~/.npmrc prefix, see user_tools)

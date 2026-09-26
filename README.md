@@ -51,7 +51,7 @@ Every run is idempotent.
    ```
    and from your machine: `ssh-copy-id alice@VM-IP`.
 4. **Deploy**: `TARGET_HOSTS=VM-IP TARGET_USER=alice uv run pyinfra inventory.py deploy.py`
-   (about 25 min, most of it building hypr-rdp).
+   (about 15 min; hypr-rdp comes as a prebuilt .deb from this repo's releases).
 5. **Reboot** once (kernel options, limits), then connect with RDP as `alice`.
    The password is generated on the VM: `ssh alice@VM-IP cat ~/.config/hypr-rdp/password`.
 
@@ -128,12 +128,6 @@ CPU, while RDP and terminals stay usable.
 * Soft-lockup watchdog off (false alarms when the host is busy); floppy,
   pcspkr and joydev blacklisted.
 
-**Colour.** The RDP output stays sRGB, which is what an RDP client assumes (RDP
-carries no colour profile). Free ICC profiles are installed (`icc-profiles-free`,
-including `compatibleWithAdobeRGB1998.icc`) for applications; `rdp_icc_profile`
-can put one on the output, but Adobe RGB there looks washed out on the client
-unless it applies the same profile.
-
 **Network and disk.** BBR + fq and larger TCP buffers (`tune_net`) help on
 WAN links; root filesystem `noatime,commit=60` (`tune_noatime`) cuts metadata
 writes. The virtual disk stays on the `none` I/O scheduler: the Proxmox host
@@ -156,8 +150,12 @@ supported by Royal TS), `capture-pacing.patch`.
 
 ### .deb via Dagger
 
-The patched hypr-rdp can be built as a Debian package in a clean forky
-container with [Dagger](https://dagger.io):
+pyinfra installs hypr-rdp from this repository's GitHub release
+(`hypr_rdp_source = "release"`, checksum in `group_data/all.py`); set it to
+`"build"` to compile on the host instead. The release is built by CI: pushing
+a tag `hypr-rdp-<version>` runs the Dagger module in `.dagger/`, which builds
+the patched hypr-rdp in a clean Debian forky container and publishes the .deb.
+Locally:
 
 ```bash
 dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-3_amd64.deb

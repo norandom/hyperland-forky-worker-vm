@@ -7,19 +7,19 @@ debian_suite = "forky"
 keyboard_layout = "de"
 keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwin"
 
-# hypr-rdp (built from source with the hypr-rdp-clearcodec patches)
+# hypr-rdp with the patches in files/hypr-rdp.
+#   "release": install the .deb built by CI (Dagger) from this repo's GitHub release
+#   "build":   compile on the host (needs the Rust toolchain there, ~10 min)
+hypr_rdp_source = "release"
+hypr_rdp_deb_url = ("https://github.com/norandom/hyperland-forky-worker-vm/releases/download/"
+                    "hypr-rdp-0.1.6-3/hypr-rdp-clearcodec_0.1.6-3_amd64.deb")
+hypr_rdp_deb_sha256 = "be531865fd2236ada117d31158e5985bb9dddb76690b03982c631206d2033b05"
 hypr_rdp_version = "0.1.6"
 hypr_rdp_sha256 = "6857d170da5d678211eb5318bb03c1bd3ff9503f5c26cf0ea05755fa63ff1d13"
 hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
 # RDP refresh: Hyprland output rate and hypr-rdp frame rate. Mouse movement CPU
 # without a GPU: 60 Hz 177 %, 30 Hz 140 %, 20 Hz 85 % (pointer stays smooth).
 rdp_refresh_hz = 20
-# Colour profile of the RDP output (Hyprland monitor "icc"). None = sRGB, which
-# is what an RDP client assumes: RDP carries no profile, so e.g. Adobe RGB here
-# makes colours look washed out on the Mac unless the client applies it too.
-# Free Adobe RGB (1998) compatible profile (icc-profiles-free, installed by apps):
-#   "/usr/share/color/icc/compatibleWithAdobeRGB1998.icc"
-rdp_icc_profile = None
 hypr_rdp_fps = 20
 hypr_rdp_bind = "0.0.0.0:3389"
 
