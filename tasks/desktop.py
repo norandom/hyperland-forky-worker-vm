@@ -101,6 +101,7 @@ for src, dest in (
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
     ("files/terminator/config", ".config/terminator/config"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
+    ("files/gtk-3.0/gtk.css", ".config/gtk-3.0/gtk.css"),  # slim Terminator tabs
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
 

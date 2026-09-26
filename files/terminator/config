@@ -1,4 +1,8 @@
 [global_config]
+  # Slim tmux-style tab bar (styled in ~/.config/gtk-3.0/gtk.css)
+  tab_position = bottom
+  close_button_on_tab = False
+  homogeneous_tabbar = False
 [keybindings]
 [profiles]
   [[default]]
