@@ -22,6 +22,8 @@ apt.packages(
         "multitail", "bat", "tree",
         # downloads: segmented HTTP/FTP/BitTorrent/metalink
         "aria2",
+        # TUIs: markdown viewer, HTTP client, network path, disk usage
+        "glow", "posting", "trippy", "gdu",
         # Image viewer (Xfce Ristretto) and a tabbed PDF viewer with annotations
         "ristretto", "qpdfview",
     ],
@@ -69,5 +71,22 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{deb} https://obdev.at/downloads/littlesnitch-linux/{deb}
 echo "{host.data.littlesnitch_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb})"""],
+        _sudo=True,
+    )
+
+# --- Single-binary tools from GitHub releases (pinned, checksum verified) -------------
+for name, (url, sha) in host.data.release_tools.items():
+    archive = url.rsplit("/", 1)[1]
+    server.shell(
+        name=f"{name} ({archive}, checksum verified)",
+        commands=[f"""[ "$(cat /usr/local/share/debian-hypr/{name}.sha256 2>/dev/null)" = "{sha}" ] || (set -e
+t=$(mktemp -d)
+curl -fsSL -o "$t/{archive}" {url}
+echo "{sha}  $t/{archive}" | sha256sum -c --quiet
+mkdir "$t/x"
+case {archive} in *.zip) unzip -q "$t/{archive}" -d "$t/x" ;; *) tar -xf "$t/{archive}" -C "$t/x" ;; esac
+install -m 755 "$(find "$t/x" -type f -name {name} | head -1)" /usr/local/bin/{name}
+install -d /usr/local/share/debian-hypr; echo "{sha}" > /usr/local/share/debian-hypr/{name}.sha256
+rm -rf "$t")"""],
         _sudo=True,
     )

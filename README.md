@@ -69,7 +69,7 @@ Every run is idempotent.
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
 | `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch |
-| `user_tools` | uv, pnpm, Aikido Safe Chain, LazyVim config |
+| `user_tools` | uv, pnpm, Aikido Safe Chain, LazyVim config, ccusage, euporie, pretty-mermaid skill |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
 | `themes` | terminal-matched themes for Neovim, btop, Claude Code; Chromium frame colour |
 | `autologin` | tty1 autologin → uwsm → Hyprland |
@@ -229,6 +229,15 @@ and hypr-rdp follows it without reconnecting.
 * **CLI tools**: ripgrep, fd, fzf (+ bat, tree for previews), multitail, aria2, btop,
   atop, lazygit, Neovim (LazyVim).
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
+* **TUIs**: `glow` (Markdown), `posting` (HTTP/API client), `trip` (trippy:
+  traceroute + ping), `gdu` (disk usage), `podman-tui` (containers; uses the
+  socket-activated user `podman.socket`), `zellij` (terminal workspaces), `upmd`
+  (run tasks and workflows from Markdown code blocks), `euporie-notebook`
+  (Jupyter notebooks in the terminal, with a Python kernel). podman-tui, zellij
+  and upmd come from their GitHub releases (pinned, checksum verified,
+  `release_tools`).
+* **AI agents**: `ccusage` (Claude Code token usage and cost) and the Claude Code
+  skill *pretty-mermaid* (Mermaid diagrams as SVG or terminal ASCII).
 * **Little Snitch for Linux** (obdev.at, `littlesnitch_version`; kernel 6.12+
   with BTF): network monitor and per-app rules. Web UI on `http://localhost:3031/`
   (menu: Little Snitch, opens in Chromium). Built for privacy, not security.

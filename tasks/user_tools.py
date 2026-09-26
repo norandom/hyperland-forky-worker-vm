@@ -1,4 +1,4 @@
-"""Per-user developer tools: uv, npm globals + pnpm, Aikido Safe Chain, Neovim config."""
+"""Per-user developer tools: uv, npm globals + pnpm, Aikido Safe Chain, Neovim config,\nccusage, euporie, Claude Code skills."""
 from pathlib import Path
 
 from pyinfra import host
@@ -52,4 +52,19 @@ server.shell(
     name="nvim: install plugins (headless LazyVim sync)",
     commands=[env + "timeout 900 nvim --headless '+Lazy! sync' '+Lazy! clean' +qa >/dev/null 2>&1 || true"],
     _if=lambda: any(op.did_change() for op in nvim),
+)
+
+# --- Agent / notebook tools ---------------------------------------------------------------
+server.shell(
+    name="ccusage (Claude Code token usage and cost, npm global)",
+    commands=[env + f"[ -x {bin_dir}/ccusage ] || npm install -g ccusage"],
+)
+server.shell(
+    name="euporie (Jupyter notebooks in the terminal, uv tool with a Python kernel)",
+    commands=[env + "uv tool list 2>/dev/null | grep -q '^euporie ' || uv tool install euporie --with ipykernel"],
+)
+server.shell(
+    name="Claude Code skill: pretty-mermaid (Mermaid -> SVG / terminal ASCII)",
+    commands=[env + f"[ -d {home}/.claude/skills/pretty-mermaid ] || "
+              "npx -y skills add imxv/pretty-mermaid-skills@pretty-mermaid -g -y"],
 )

@@ -64,3 +64,10 @@ if host.data.containers:
         commands=["systemctl --user daemon-reload"],
         _if=weight.did_change,
     )
+
+    # podman-tui talks to the API socket; socket-activated, so the podman
+    # service only runs while a client (podman-tui) is connected.
+    server.shell(
+        name="podman.socket (user, for podman-tui)",
+        commands=["systemctl --user is-enabled -q podman.socket || systemctl --user enable --now podman.socket"],
+    )

@@ -110,6 +110,16 @@ extra_fonts = {
         "842f8fbf80f57d867aeb1d2988140d3ea8b4718e5f687035b0a3b66756df3899"),
 }
 
+# Single-binary tools from GitHub releases -> /usr/local/bin: name -> (url, sha256)
+release_tools = {
+    "podman-tui": ("https://github.com/containers/podman-tui/releases/download/v2.0.0/podman-tui-release-linux_amd64.zip",
+                   "de1de10344a8ab636c64c2f982bdaa4e05696b642e2dd4692872f56b3254442f"),
+    "zellij": ("https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-x86_64-unknown-linux-musl.tar.gz",
+               "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
+    "upmd": ("https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
+             "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
+}
+
 # Little Snitch for Linux (obdev.at; needs kernel 6.12+ with BTF). Web UI:
 # http://localhost:3031/ (in Chromium). None = don't install.
 littlesnitch_version = "1.1.0"
