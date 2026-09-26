@@ -112,7 +112,7 @@ refreshes a full-screen copy each time. So:
 * `/tmp` is RAM-backed and capped at 1 GB (`tmp_size`), so a build or an agent
   can't fill half the memory with temp files.
 * The desktop itself uses about 350 MB: waybar/mako/fuzzel instead of a
-  full shell, swaybg for the wallpaper (about 15 MB; `wallpaper = None` saves it).
+  full shell, a plain background colour instead of a wallpaper image.
 
 **CPU priority.** Rootless containers get CPU weight 200
 (`container_cpu_weight`), the desktop and terminals 100. This only matters
@@ -190,8 +190,6 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   milky blur, e.g. to watch btop graphs through a terminal. Only glass windows are
   blurred; each one costs CPU while the content behind it changes (about 6 % extra
   Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
-* **Wallpaper** (`wallpaper`): Sea of Lanterns from Enlightenment's backgrounds,
-  drawn by swaybg; `None` for a plain colour.
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
 * **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,

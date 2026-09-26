@@ -29,7 +29,7 @@ hl.config({
     disable_hyprland_logo = true,
     disable_splash_rendering = true,
     force_default_wallpaper = 0,
-    -- Shown when no wallpaper is set (wallpaper = None in group_data).
+    -- The "wallpaper": a plain colour costs no memory (no wallpaper process).
     background_color = 0xff3a3a3a,
   },
   ecosystem = { no_update_news = true, no_donation_nag = true },
