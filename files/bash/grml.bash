@@ -58,6 +58,8 @@ __grml_prompt() {
   local user="$blue\u$off"; [ "$EUID" -eq 0 ] && user="$red\u$off"
   local code=""; [ "$rc" -ne 0 ] && code="$red$rc$off "
   local git=""; declare -F __git_ps1 >/dev/null && git="$yellow$(__git_ps1 ' (%s)')$off"
-  PS1="$code$user@\h $bold\w$off$git \\$ "
+  # Short tmux-style terminal/tab title: current directory name only
+  local title="\[\e]0;\W\a\]"
+  PS1="$title$code$user@\h $bold\w$off$git \\$ "
 }
 PROMPT_COMMAND="__grml_prompt${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
