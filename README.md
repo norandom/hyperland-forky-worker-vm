@@ -12,7 +12,7 @@ you use over RDP.
 * **For multitaskers** who want a purpose-built worker VM: terminals, AI
   agents, containers and a browser, nothing else.
 
-![Thin client desktop over RDP: top bar with app menu, layout mode, window list and power button; Windows 3.11 style title bar; btop in the cobalt terminal theme](docs/screenshot.png)
+![Thin client desktop over RDP: top bar with app menu, layout mode, window list, CPU/MEM/net, terminal theme dot, keyboard layout and power button; btop in the amber Fixedsys terminal theme; a cobalt terminal in glass mode, pinned on top, with btop showing through; Windows 3.11 style title bars with glass, stay-on-top, minimize and close buttons](docs/screenshot.png)
 
 It is explicitly **not** a laptop or desktop base OS: no display manager, no
 GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
@@ -183,9 +183,13 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | SUPER + left / right drag | move / resize |
 | SUPER + ß / ´ (+ SHIFT) | narrower / wider (shorter / taller) |
 
+* **Glass and stay on top** (title bar ▒ and ⊤, above): the cobalt terminal is
+  glass (82 % opaque, light milky blur) and pinned, so btop stays readable
+  behind it. Each click shows a short on/off notification.
 * **Layout modes** (`hypr-layout`): `dynamic` (floating; every app reopens
   where it was), `golden-h`, `golden-v`, `golden-spiral` (61.8 : 38.2 splits).
-  Floating windows scale with the RDP window size.
+  Floating windows scale with the RDP window size and never end up with their
+  title bar under the top bar (new, restored and moved windows are kept below it).
 * **Title bars** (`hypr-deco win311|mac`): Windows 3.11 (navy, ▒ ⊤ ⊟ ⊠) or macOS
   style (red/green/blue/grey). ▒ makes a window glass: 82 % opaque with a light
   milky blur, e.g. to watch btop graphs through a terminal. Only glass windows are
@@ -194,7 +198,8 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
 * **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
-  keyboard layout (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
+  terminal theme (● in the theme's colour, click to switch), keyboard layout
+  (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
 **Keyboard**: `keyboard_layout` / `keyboard_variant` / `keyboard_options` (default: German Apple
 layout, `altwin:swap_ralt_rwin`, so SUPER is the right Option key). hypr-rdp
@@ -215,8 +220,15 @@ and hypr-rdp follows it without reconnecting.
 * **Containers**: `docker`, `docker compose` and `docker-compose` run
   rootless podman without a daemon.
 * **Terminator themes**: `default` (cobalt), `navy`, `fixedsys` (amber on navy,
-  Fixedsys Core). SUPER+Y, `hypr-termtheme <name>|next` or right-click → Theme
-  switches all open terminals; new ones (SUPER+Return) use the last choice.
+  Fixedsys Core). The ● bar button (click next, right-click previous), SUPER+Y,
+  `hypr-termtheme <name>|next|prev` or right-click → Theme switches all open
+  terminals; new ones (SUPER+Return, app menu) use the last choice. Tabs are a
+  slim tmux-style line at the bottom; tab titles show just the directory.
+
+  ![Terminator themes default, navy and fixedsys side by side](docs/terminal-themes.png)
+* **CLI tools**: ripgrep, fd, fzf (+ bat, tree for previews), multitail, btop,
+  atop, lazygit, Neovim (LazyVim).
+* **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
 * **Little Snitch for Linux** (obdev.at, `littlesnitch_version`; kernel 6.12+
   with BTF): network monitor and per-app rules. Web UI on `http://localhost:3031/`
   (menu: Little Snitch, opens in Chromium). Built for privacy, not security.
