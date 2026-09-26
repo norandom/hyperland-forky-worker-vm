@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["cpu", "memory", "network", "pulseaudio", "tray", "custom/kbd", "custom/power"],
+  "modules-right": ["cpu", "memory", "network", "pulseaudio", "tray", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -19,6 +19,14 @@
     "format": " ",
     "tooltip-format": "Log out / reboot / shut down",
     "on-click": "$HOME/.local/bin/hypr-appmenu power"
+  },
+  "custom/termtheme": {
+    "exec": "printf '▣ %s\\n' \"$(cat $HOME/.local/state/terminator-profile 2>/dev/null || echo default)\"",
+    "interval": "once",
+    "signal": 10,
+    "tooltip-format": "Terminal theme (click: next, right-click: previous)",
+    "on-click": "$HOME/.local/bin/hypr-termtheme next",
+    "on-click-right": "$HOME/.local/bin/hypr-termtheme prev"
   },
   "custom/kbd": {
     "exec": "printf '⌨ %s\\n' $( (cat $HOME/.local/state/hypr-kbd 2>/dev/null || echo de) | tr a-z A-Z)",

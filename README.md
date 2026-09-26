@@ -172,7 +172,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | SUPER + E | file manager (Xfe) |
 | SUPER + G / title bar ▒ | glass window on / off (see-through, light milky blur) |
 | SUPER + P / title bar ⊤ | stay on top on / off |
-| SUPER + Y | next Terminator theme (also right-click → Theme) |
+| SUPER + Y, ▣ in the bar | next Terminator theme (bar: right-click = previous; in Terminator: right-click → Theme) |
 | SUPER + Space | launcher (search) |
 | SUPER + Escape, power button | log out, reboot, shut down |
 | SUPER + W / F / ALT + F | close / fullscreen / maximize |
