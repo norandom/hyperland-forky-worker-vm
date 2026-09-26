@@ -12,6 +12,8 @@ you use over RDP.
 * **For multitaskers** who want a purpose-built worker VM: terminals, AI
   agents, containers and a browser, nothing else.
 
+![Thin client desktop over RDP: top bar with app menu, layout mode, window list and power button; Windows 3.11 style title bar; btop in the cobalt terminal theme](docs/screenshot.png)
+
 It is explicitly **not** a laptop or desktop base OS: no display manager, no
 GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
 straight into Hyprland on tty1, and hypr-rdp serves that session.
