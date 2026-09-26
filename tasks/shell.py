@@ -59,6 +59,7 @@ palette = ";".join([
 ])
 props = {
     "/misc-show-unsafe-paste-dialog": ("bool", "true"),
+    "/misc-cursor-blinks": ("bool", "false"),
     "/color-use-theme": ("bool", "false"),
     "/color-background": ("string", "#0049b2"),
     "/color-foreground": ("string", "#fff8f0"),

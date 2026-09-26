@@ -1,0 +1,99 @@
+diff --git i/src/capture/wayland/ext.rs w/src/capture/wayland/ext.rs
+index ab8c1aa..e08b24c 100644
+--- i/src/capture/wayland/ext.rs
++++ w/src/capture/wayland/ext.rs
+@@ -255,6 +255,18 @@ pub(super) fn capture_loop_ext(
+     proc.set_pending_initial_resize(pending_initial_resize);
+     let mut frame_pacer = FramePacer::new(fps, Instant::now());
+ 
++    // hypr-rdp-clearcodec: capture request pacing (see the loop below).
++    let active_interval = std::time::Duration::from_secs_f64(1.0 / f64::from(fps.max(1)));
++    let idle_fps = std::env::var("HYPR_RDP_IDLE_CAPTURE_FPS")
++        .ok()
++        .and_then(|v| v.parse::<u32>().ok())
++        .unwrap_or(10)
++        .clamp(1, fps.max(1));
++    let idle_interval = std::time::Duration::from_secs_f64(1.0 / f64::from(idle_fps));
++    let mut unchanged_streak: u32 = 0;
++    let mut last_fingerprint: Option<u64> = None;
++    let mut last_request = Instant::now();
++
+     let buffers = [&buffer_0, &buffer_1];
+     let mmaps = [&mmap_0, &mmap_1];
+     let mut cap_idx: usize = 0;
+@@ -338,9 +350,35 @@ pub(super) fn capture_loop_ext(
+             }
+         }
+ 
+-        // Start NEXT capture immediately into the other buffer.
+-        // This ensures a capture request is always pending with the compositor,
+-        // so screen changes during encoding are never missed.
++        // hypr-rdp-clearcodec: pace capture *requests*, not only sends.
++        // Hyprland completes a pending capture on every frame it renders
++        // (e.g. each pointer motion with a software cursor) with a full-screen
++        // copy, and reports the whole screen as damaged. Requesting the next
++        // frame immediately made pointer movement cost 1-2 CPU cores without a
++        // GPU. Cap requests at `fps`, and at HYPR_RDP_IDLE_CAPTURE_FPS (10)
++        // while frames keep coming back unchanged; any change restores `fps`.
++        // Nothing is missed: the next capture always holds the current screen.
++        if !completed_failed {
++            let target = if unchanged_streak >= IDLE_AFTER_UNCHANGED_FRAMES {
++                idle_interval
++            } else {
++                active_interval
++            };
++            loop {
++                let elapsed = last_request.elapsed();
++                if elapsed >= target || state.should_stop() {
++                    break;
++                }
++                let remaining = (target - elapsed).as_millis().clamp(1, POLL_TIMEOUT_MS as u128) as i32;
++                poll_dispatch(event_queue, state, remaining)?;
++            }
++            if state.should_stop() {
++                break;
++            }
++        }
++        last_request = Instant::now();
++
++        // Start NEXT capture into the other buffer.
+         cap_idx = 1 - cap_idx;
+         state.frame_ready = false;
+         state.frame_failed = false;
+@@ -366,6 +404,13 @@ pub(super) fn capture_loop_ext(
+         // A fresh frame supersedes anything the pacer previously skipped.
+         deferred = None;
+         let data = mmaps[completed_idx].as_slice();
++        let fingerprint = frame_fingerprint(data);
++        unchanged_streak = if last_fingerprint == Some(fingerprint) {
++            unchanged_streak.saturating_add(1)
++        } else {
++            0
++        };
++        last_fingerprint = Some(fingerprint);
+         let snapshot = output_layout
+             .snapshot()
+             .context("output layout not initialized for capture scaling")?;
+@@ -511,3 +556,22 @@ mod tests {
+         );
+     }
+ }
++
++/// hypr-rdp-clearcodec: frames in a row without a visible change before
++/// capture requests drop to the idle rate.
++const IDLE_AFTER_UNCHANGED_FRAMES: u32 = 3;
++
++/// hypr-rdp-clearcodec: cheap whole-frame fingerprint (one pass, ~2 ms for
++/// 16 MB) to tell "pointer moved, nothing changed" from real screen updates.
++fn frame_fingerprint(data: &[u8]) -> u64 {
++    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
++    let mut chunks = data.chunks_exact(8);
++    for c in &mut chunks {
++        let v = u64::from_le_bytes([c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]]);
++        h = (h ^ v).wrapping_mul(0x0000_0100_0000_01b3).rotate_left(5);
++    }
++    for &b in chunks.remainder() {
++        h = (h ^ u64::from(b)).wrapping_mul(0x0000_0100_0000_01b3);
++    }
++    h
++}
