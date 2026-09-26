@@ -21,6 +21,8 @@ apt.packages(
         "xfe",
         # fonts, cursor/icons
         "fonts-jetbrains-mono", "fonts-dejavu-core", "adwaita-icon-theme",
+        # glyph fallback for emoji / symbols the Nerd Fonts lack (✅ ❌ ⚠ …)
+        "fonts-noto-color-emoji", "fonts-symbola",
         # audio (hypr-rdp redirects sound to the RDP client via pactl)
         "pipewire", "pipewire-pulse", "wireplumber", "pulseaudio-utils",
         # clipboard + RDP file transfer

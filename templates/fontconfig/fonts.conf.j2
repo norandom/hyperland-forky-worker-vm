@@ -18,6 +18,19 @@
 {% endif %}
     <edit name="embeddedbitmap" mode="assign"><bool>false</bool></edit>
   </match>
+  <!-- Noto Color Emoji is a bitmap (CBDT) font: keep its bitmaps -->
+  <match target="font">
+    <test name="family"><string>Noto Color Emoji</string></test>
+    <edit name="embeddedbitmap" mode="assign"><bool>true</bool></edit>
+  </match>
   <!-- Monospace = the Nerd Font (icons everywhere) -->
   <alias><family>monospace</family><prefer><family>JetBrainsMono Nerd Font</family></prefer></alias>
+  <!-- Fallback for every font (terminals included): colour emoji, then
+       Symbola for the remaining Unicode symbols -->
+  <match target="pattern">
+    <edit name="family" mode="append" binding="weak">
+      <string>Noto Color Emoji</string>
+      <string>Symbola</string>
+    </edit>
+  </match>
 </fontconfig>

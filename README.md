@@ -65,7 +65,7 @@ Every run is idempotent.
 | `tuning` | network, filesystem, kernel command line, limits, modules, SSH |
 | `services` | disables cups/avahi/bluetooth/ModemManager/power-profiles if present; qemu-guest-agent |
 | `containers` | rootless podman with `docker` / `docker compose` / `docker-compose` aliases |
-| `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; font rendering |
+| `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; emoji/symbol fallback (Noto Color Emoji, Symbola); font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
 | `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch |
@@ -197,7 +197,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
-* **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
+* **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume (speaker icon: click mutes, scroll or hover slider adjusts),
   terminal theme (● in the theme's colour, click to switch), keyboard layout
   (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 

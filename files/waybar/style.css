@@ -26,6 +26,14 @@ tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
 #custom-termtheme:hover { background: #f5ede0; }
 #custom-kbd:hover { background: #f5ede0; }
 #custom-layout:hover { background: #f5ede0; }
+/* Volume: speaker icon + slider (revealed on hover) */
+#pulseaudio { padding: 0 8px; font-size: 15px; }
+#pulseaudio:hover { background: #f5ede0; }
+#pulseaudio.muted { color: #c0605a; }
+#pulseaudio-slider { padding: 0 4px; }
+#pulseaudio-slider slider { min-height: 10px; min-width: 10px; background: #2b4570; border-radius: 5px; box-shadow: none; }
+#pulseaudio-slider trough { min-height: 4px; min-width: 90px; background: #ebe3d6; border-radius: 2px; }
+#pulseaudio-slider highlight { background: #4a90d9; border-radius: 2px; }
 #taskbar button { padding: 0 8px; color: #2b4570; border-bottom: 2px solid transparent; }
 #taskbar button:hover { background: #f5ede0; }
 #taskbar button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }

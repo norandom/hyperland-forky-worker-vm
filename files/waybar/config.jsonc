@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["cpu", "memory", "network", "pulseaudio", "tray", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": ["cpu", "memory", "network", "group/audio", "tray", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -62,6 +62,21 @@
     "format-disconnected": "offline",
     "tooltip-format": "{ifname} {ipaddr}"
   },
-  "pulseaudio": { "format": "VOL {volume}%", "format-muted": "muted" },
+  // Speaker icon; hover reveals the volume slider. Click = mute, scroll = ±5%.
+  "group/audio": {
+    "orientation": "horizontal",
+    "drawer": { "transition-duration": 250, "transition-left-to-right": false },
+    "modules": ["pulseaudio", "pulseaudio/slider"]
+  },
+  "pulseaudio": {
+    "format": "{icon}",
+    "format-muted": "󰝟",
+    "format-icons": { "default": ["󰕿", "󰖀", "󰕾"] },
+    "tooltip-format": "Volume {volume}% (click: mute, scroll: adjust, hover: slider)",
+    "scroll-step": 5,
+    "max-volume": 100,
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+  "pulseaudio/slider": { "min": 0, "max": 100, "orientation": "horizontal" },
   "tray": { "spacing": 8 }
 }
