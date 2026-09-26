@@ -1,0 +1,7 @@
+#!/bin/sh
+# Toggle "stay on top" for the active window (title bar button ⊤). Hyprland's
+# pin keeps a floating window above the others; tiled windows are floated first.
+if [ "$(hyprctl activewindow -j | jq -r .floating)" = "false" ]; then
+  hyprctl dispatch "hl.dsp.window.float({ action = 'enable' })" >/dev/null
+fi
+hyprctl dispatch "hl.dsp.window.pin()" >/dev/null

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Toggle "glass" on the active window (title bar button ▒): slightly transparent
+# with a light milky blur, so e.g. btop graphs show through. Blur is off for all
+# other windows (looknfeel.lua); a glass window costs extra CPU while the
+# content behind it changes.
+opacity=0.82
+if [ "$(hyprctl getprop activewindow no_blur)" = "true" ]; then
+  hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'no_blur', value = '0' })" >/dev/null
+  hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'opacity', value = '$opacity' })" >/dev/null
+else
+  hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'no_blur', value = '1' })" >/dev/null
+  hyprctl dispatch "hl.dsp.window.set_prop({ prop = 'opacity', value = '1' })" >/dev/null
+fi

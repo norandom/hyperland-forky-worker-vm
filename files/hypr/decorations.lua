@@ -20,6 +20,8 @@ end
 local maximize = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\" })'"
 local close = "hyprctl dispatch 'hl.dsp.window.close()'"
 local minimize = "hyprctl dispatch 'hl.dsp.window.move({ workspace = \"special:minimized\", follow = false })'"
+local glass = "$HOME/.local/bin/hypr-glass"   -- milky see-through on/off
+local pin = "$HOME/.local/bin/hypr-pin"       -- stay on top on/off
 
 if style == "win311" then
   -- Windows 3.11: navy title bar, white centred title, square buttons on the right.
@@ -40,12 +42,18 @@ if style == "win311" then
       },
     },
   })
-  -- First added = outermost: [⊟][⊠] like Windows' minimize / close.
+  -- First added = outermost: [▒][⊤][⊟][⊠] = glass, on top, minimize, close.
   hl.plugin.hyprbars.add_button({
     bg_color = "rgba(00000000)", fg_color = "rgb(ffffff)", size = 22, icon = "⊠", action = close,
   })
   hl.plugin.hyprbars.add_button({
     bg_color = "rgba(00000000)", fg_color = "rgb(ffffff)", size = 22, icon = "⊟", action = minimize,
+  })
+  hl.plugin.hyprbars.add_button({
+    bg_color = "rgba(00000000)", fg_color = "rgb(ffffff)", size = 22, icon = "⊤", action = pin,
+  })
+  hl.plugin.hyprbars.add_button({
+    bg_color = "rgba(00000000)", fg_color = "rgb(ffffff)", size = 22, icon = "▒", action = glass,
   })
 else
   -- macOS-like: cream bar, navy text, red/green buttons on the left.
@@ -69,5 +77,11 @@ else
   })
   hl.plugin.hyprbars.add_button({
     bg_color = "rgb(28c840)", fg_color = "rgb(003300)", size = 12, icon = "", action = maximize,
+  })
+  hl.plugin.hyprbars.add_button({
+    bg_color = "rgb(8bb4e0)", fg_color = "rgb(00347d)", size = 12, icon = "", action = glass,
+  })
+  hl.plugin.hyprbars.add_button({
+    bg_color = "rgb(a0a0a0)", fg_color = "rgb(333333)", size = 12, icon = "", action = pin,
   })
 end

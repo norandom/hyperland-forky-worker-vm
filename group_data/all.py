@@ -74,6 +74,9 @@ safe_chain_installer_sha256 = "03641bfdf4d5e3b5f0450120543579d578ed6354a8cff64bc
 decorations_style = "win311"
 # Window shadows "on"/"off" (initial; switch with hypr-shadow). CPU-drawn without a GPU.
 window_shadows = "off"
+# Wallpaper from files/wallpaper/<name>.jpg (swaybg), or None for the plain
+# background colour. Sea of Lanterns: from Enlightenment's backgrounds (BSD-2).
+wallpaper = "sea-of-lanterns"
 
 # --- System limits / VM hygiene -------------------------------------------------
 tmp_size = "1G"                 # /tmp is tmpfs (RAM); Debian default is 50% of RAM

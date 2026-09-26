@@ -16,7 +16,12 @@ hl.config({
   },
   decoration = {
     rounding = 0,
-    blur = { enabled = false },   -- software rendering: no blur
+    -- Light milky blur, but only for windows switched to glass (hypr-glass,
+    -- title bar button); the rule below turns it off for everything else.
+    blur = {
+      enabled = true, size = 2, passes = 1, noise = 0.02,
+      brightness = 1.2, contrast = 0.8, vibrancy = 0, new_optimizations = true,
+    },
     shadow = { enabled = false },
   },
   animations = { enabled = false },
@@ -24,11 +29,14 @@ hl.config({
     disable_hyprland_logo = true,
     disable_splash_rendering = true,
     force_default_wallpaper = 0,
-    -- The "wallpaper": a plain colour costs no memory (no wallpaper process).
+    -- Shown when no wallpaper is set (wallpaper = None in group_data).
     background_color = 0xff3a3a3a,
   },
   ecosystem = { no_update_news = true, no_donation_nag = true },
 })
+
+-- No blur by default; hypr-glass overrides this per window.
+hl.window_rule({ name = "no-blur-default", match = { class = ".*" }, no_blur = true })
 
 -- Floating vs tiling: see layouts.lua (layout modes, SUPER + L).
 

@@ -92,7 +92,7 @@ refreshes a full-screen copy each time. So:
   only the changed areas, no H.264 encoder load.
 * Terminal cursors don't blink and the bar updates every 5 s. Each blink or
   bar update is a full redraw plus capture.
-* No animations, blur or shadows by default; `MALLOC_ARENA_MAX=2` and
+* No animations, shadows or blur (except glass windows) by default; `MALLOC_ARENA_MAX=2` and
   `LP_NUM_THREADS=1` (`llvmpipe_threads`) keep memory and
   renderer overhead small: one llvmpipe thread halved the CPU of scrolling
   compared with 2 or 3 threads.
@@ -112,7 +112,7 @@ refreshes a full-screen copy each time. So:
 * `/tmp` is RAM-backed and capped at 1 GB (`tmp_size`), so a build or an agent
   can't fill half the memory with temp files.
 * The desktop itself uses about 350 MB: waybar/mako/fuzzel instead of a
-  full shell, a plain background colour instead of a wallpaper image.
+  full shell, swaybg for the wallpaper (about 20 MB; `wallpaper = None` saves it).
 
 **CPU priority.** Rootless containers get CPU weight 200
 (`container_cpu_weight`), the desktop and terminals 100. This only matters
@@ -169,6 +169,9 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 |---|---|
 | SUPER + Return / SUPER + SHIFT + Return | Terminator / xfce4-terminal |
 | SUPER + A, ☰ Apps, right-click on the desktop | application menu (categories) |
+| SUPER + E | file manager (Xfe) |
+| SUPER + G / title bar ▒ | glass window on / off (see-through, light milky blur) |
+| SUPER + P / title bar ⊤ | stay on top on / off |
 | SUPER + Space | launcher (search) |
 | SUPER + Escape, power button | log out, reboot, shut down |
 | SUPER + W / F / ALT + F | close / fullscreen / maximize |
@@ -182,8 +185,15 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 * **Layout modes** (`hypr-layout`): `dynamic` (floating; every app reopens
   where it was), `golden-h`, `golden-v`, `golden-spiral` (61.8 : 38.2 splits).
   Floating windows scale with the RDP window size.
-* **Title bars** (`hypr-deco win311|mac`): Windows 3.11 (navy, ⊟ ⊠) or macOS
-  style. Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
+* **Title bars** (`hypr-deco win311|mac`): Windows 3.11 (navy, ▒ ⊤ ⊟ ⊠) or macOS
+  style (red/green/blue/grey). ▒ makes a window glass: 82 % opaque with a light
+  milky blur, e.g. to watch btop graphs through a terminal. Only glass windows are
+  blurred; each one costs CPU while the content behind it changes (about 6 % extra
+  Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
+* **Wallpaper** (`wallpaper`): Sea of Lanterns from Enlightenment's backgrounds,
+  drawn by swaybg; `None` for a plain colour.
+* **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
+  tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
 * **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
   keyboard layout (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 

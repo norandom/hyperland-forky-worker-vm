@@ -4,6 +4,9 @@ local app = "uwsm app -- "
 
 hl.bind("SUPER + RETURN", exec(app .. "terminator"), { description = "Terminal" })
 hl.bind("SUPER + SHIFT + RETURN", exec(app .. "xfce4-terminal"), { description = "Terminal (paste review)" })
+hl.bind("SUPER + E", exec(app .. "xfe"), { description = "File manager" })
+hl.bind("SUPER + G", exec("$HOME/.local/bin/hypr-glass"), { description = "Glass window on/off" })
+hl.bind("SUPER + P", exec("$HOME/.local/bin/hypr-pin"), { description = "Stay on top on/off" })
 hl.bind("SUPER + SPACE", exec(app .. "fuzzel"), { description = "Launcher (search)" })
 hl.bind("SUPER + A", exec("$HOME/.local/bin/hypr-appmenu"), { description = "Application menu" })
 hl.bind("SUPER + ESCAPE", exec("$HOME/.local/bin/hypr-appmenu power"), { description = "Power menu" })

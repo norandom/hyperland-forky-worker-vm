@@ -16,7 +16,9 @@ apt.packages(
         # software rendering (no GPU in the VM)
         "libgl1-mesa-dri", "libegl-mesa0",
         # bar, notifications, launcher, terminal
-        "waybar", "mako-notifier", "fuzzel", "terminator",
+        "waybar", "mako-notifier", "fuzzel", "terminator", "swaybg",
+        # file manager: Xfe (FOX toolkit, few dependencies, tree + file list)
+        "xfe",
         # fonts, cursor/icons
         "fonts-jetbrains-mono", "fonts-dejavu-core", "adwaita-icon-theme",
         # audio (hypr-rdp redirects sound to the RDP client via pactl)
@@ -134,6 +136,58 @@ files.put(
     src="files/bin/hypr-layout",
     dest=f"{home}/.local/bin/hypr-layout",
     mode="755",
+)
+
+for script, what in (("hypr-glass", "glass window on|off"), ("hypr-pin", "stay on top on|off")):
+    files.put(
+        name=f"Title bar button: {script} ({what})",
+        src=f"files/bin/{script}",
+        dest=f"{home}/.local/bin/{script}",
+        mode="755",
+    )
+
+wallpaper = host.data.get("wallpaper")
+if wallpaper:
+    files.put(
+        name=f"Wallpaper: {wallpaper}",
+        src=f"files/wallpaper/{wallpaper}.jpg",
+        dest=f"/usr/local/share/debian-hypr/wallpapers/{wallpaper}.jpg",
+        mode="644",
+        create_remote_dir=True,
+        _sudo=True,
+    )
+    wp_link = files.link(
+        name="Wallpaper link (~/.config/hypr/wallpaper)",
+        path=f"{home}/.config/hypr/wallpaper",
+        target=f"/usr/local/share/debian-hypr/wallpapers/{wallpaper}.jpg",
+    )
+else:
+    wp_link = files.file(name="No wallpaper (plain colour)", path=f"{home}/.config/hypr/wallpaper", present=False)
+server.shell(
+    name="Restart swaybg (wallpaper changed)",
+    commands=[
+        "pkill -x swaybg || true",
+        f"[ -e {home}/.config/hypr/wallpaper ] && pgrep -x Hyprland >/dev/null && "
+        f"HYPRLAND_INSTANCE_SIGNATURE=$(ls -t /run/user/$(id -u)/hypr | head -1) "
+        f"hyprctl dispatch \"hl.dsp.exec_cmd('uwsm app -- swaybg -m fill -i {home}/.config/hypr/wallpaper')\" || true",
+    ],
+    _if=wp_link.did_change,
+)
+
+# Xfe: Windows 3.11 File Manager look (grey, navy selection), folder tree + list.
+# Seeded once; Xfe rewrites the file with the user's own changes afterwards.
+files.put(
+    name="Xfe seed config",
+    src="files/xfe/xferc",
+    dest="/usr/local/share/debian-hypr/xferc",
+    mode="644",
+    create_remote_dir=True,
+    _sudo=True,
+)
+server.shell(
+    name="Xfe: Windows 3.11 colours (once)",
+    commands=[f"mkdir -p {home}/.config/xfe && (grep -q '^basecolor' {home}/.config/xfe/xferc 2>/dev/null "
+              f"|| cp /usr/local/share/debian-hypr/xferc {home}/.config/xfe/xferc)"],
 )
 
 files.put(
