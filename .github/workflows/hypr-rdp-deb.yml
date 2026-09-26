@@ -22,7 +22,7 @@ jobs:
       - name: Build .deb (Dagger)
         env:
           DAGGER_NO_NAG: "1"
-        run: dagger call deb export --path=dist/ --allow-parent-dir-path
+        run: mkdir -p dist && dagger call deb export --path=dist/ --allow-parent-dir-path
 
       - name: Show package
         run: ls -la "$GITHUB_WORKSPACE/dist" && dpkg-deb --info "$GITHUB_WORKSPACE"/dist/*.deb
