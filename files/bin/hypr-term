@@ -1,0 +1,3 @@
+#!/bin/sh
+# Terminator with the theme chosen via hypr-termtheme.
+exec terminator -p "$(cat "$HOME/.local/state/terminator-profile" 2>/dev/null || echo default)" "$@"

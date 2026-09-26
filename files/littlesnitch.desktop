@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Little Snitch
+Comment=Network monitor (web UI on localhost:3031)
+Exec=chromium --app=http://localhost:3031/
+Icon=network-workgroup
+Categories=Network;System;

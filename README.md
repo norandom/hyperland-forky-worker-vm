@@ -65,10 +65,10 @@ Every run is idempotent.
 | `tuning` | network, filesystem, kernel command line, limits, modules, SSH |
 | `services` | disables cups/avahi/bluetooth/ModemManager/power-profiles if present; qemu-guest-agent |
 | `containers` | rootless podman with `docker` / `docker compose` / `docker-compose` aliases |
-| `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); font rendering |
+| `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
-| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal |
+| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch |
 | `user_tools` | uv, pnpm, Aikido Safe Chain, LazyVim config |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
 | `themes` | terminal-matched themes for Neovim, btop, Claude Code; Chromium frame colour |
@@ -172,6 +172,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | SUPER + E | file manager (Xfe) |
 | SUPER + G / title bar ▒ | glass window on / off (see-through, light milky blur) |
 | SUPER + P / title bar ⊤ | stay on top on / off |
+| SUPER + Y | next Terminator theme (also right-click → Theme) |
 | SUPER + Space | launcher (search) |
 | SUPER + Escape, power button | log out, reboot, shut down |
 | SUPER + W / F / ALT + F | close / fullscreen / maximize |
@@ -213,5 +214,11 @@ and hypr-rdp follows it without reconnecting.
   dialog first.
 * **Containers**: `docker`, `docker compose` and `docker-compose` run
   rootless podman without a daemon.
+* **Terminator themes**: `default` (cobalt), `navy`, `fixedsys` (amber on navy,
+  Fixedsys Core). SUPER+Y, `hypr-termtheme <name>|next` or right-click → Theme
+  switches all open terminals; new ones (SUPER+Return) use the last choice.
+* **Little Snitch for Linux** (obdev.at, `littlesnitch_version`; kernel 6.12+
+  with BTF): network monitor and per-app rules. Web UI on `http://localhost:3031/`
+  (menu: Little Snitch, opens in Chromium). Built for privacy, not security.
 * **Supply chain**: Aikido Safe Chain wraps npm, npx, pnpm, pip, uv and uvx
   and blocks packages younger than 48 hours.

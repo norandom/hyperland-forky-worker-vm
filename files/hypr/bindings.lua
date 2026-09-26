@@ -2,7 +2,8 @@
 local function exec(cmd) return hl.dsp.exec_cmd(cmd) end
 local app = "uwsm app -- "
 
-hl.bind("SUPER + RETURN", exec(app .. "terminator"), { description = "Terminal" })
+hl.bind("SUPER + RETURN", exec(app .. "$HOME/.local/bin/hypr-term"), { description = "Terminal" })
+hl.bind("SUPER + Y", exec("$HOME/.local/bin/hypr-termtheme next"), { description = "Next terminal theme" })
 hl.bind("SUPER + SHIFT + RETURN", exec(app .. "xfce4-terminal"), { description = "Terminal (paste review)" })
 hl.bind("SUPER + E", exec(app .. "xfe"), { description = "File manager" })
 hl.bind("SUPER + G", exec("$HOME/.local/bin/hypr-glass"), { description = "Glass window on/off" })

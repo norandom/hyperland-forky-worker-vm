@@ -1,6 +1,7 @@
 """Applications (system packages, no recommends)."""
 from io import StringIO
 
+from pyinfra import host
 from pyinfra.operations import apt, files, server
 
 apt.packages(
@@ -17,6 +18,10 @@ apt.packages(
         "nodejs", "npm",
         # Second terminal: multi-line paste opens an editable review dialog
         "xfce4-terminal",
+        # CLI: multitail, fzf helpers (bat previews, tree for directory previews)
+        "multitail", "bat", "tree",
+        # Image viewer (Xfce Ristretto) and a tabbed PDF viewer with annotations
+        "ristretto", "qpdfview",
     ],
     no_recommends=True,
     _sudo=True,
@@ -50,3 +55,17 @@ Signed-By: {keyring}
 )
 apt.update(name="apt update (GitHub CLI repo)", _sudo=True, _if=gh_repo.did_change)
 apt.packages(name="gh", packages=["gh"], no_recommends=True, _sudo=True)
+
+# --- Little Snitch for Linux (network monitor/firewall, web UI on :3031) --------------
+ls_ver = host.data.get("littlesnitch_version")
+if ls_ver:
+    deb = f"littlesnitch_{ls_ver}_amd64.deb"
+    server.shell(
+        name=f"Little Snitch {ls_ver} (checksum verified)",
+        commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' littlesnitch 2>/dev/null)" = "{ls_ver}" ] || (set -e
+install -d -m 755 /var/cache/debian-hypr
+curl -fsSL -o /var/cache/debian-hypr/{deb} https://obdev.at/downloads/littlesnitch-linux/{deb}
+echo "{host.data.littlesnitch_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb})"""],
+        _sudo=True,
+    )

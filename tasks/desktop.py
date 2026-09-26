@@ -111,6 +111,8 @@ for src, dest in (
     ("files/mako/config", ".config/mako/config"),
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
     ("files/terminator/config", ".config/terminator/config"),
+    ("files/terminator/plugins/theme_menu.py", ".config/terminator/plugins/theme_menu.py"),
+    ("files/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
     ("files/gtk-3.0/gtk.css", ".config/gtk-3.0/gtk.css"),  # slim Terminator tabs
 ):
@@ -147,7 +149,8 @@ files.put(
     mode="755",
 )
 
-for script, what in (("hypr-glass", "glass window on|off"), ("hypr-pin", "stay on top on|off")):
+for script, what in (("hypr-glass", "glass window on|off"), ("hypr-pin", "stay on top on|off"),
+                     ("hypr-termtheme", "Terminator theme switch"), ("hypr-term", "Terminator with that theme")):
     files.put(
         name=f"Title bar button: {script} ({what})",
         src=f"files/bin/{script}",

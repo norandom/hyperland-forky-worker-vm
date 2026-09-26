@@ -99,6 +99,21 @@ nerd_fonts = {
                  ["Light", "Regular", "Retina", "Medium", "SemiBold", "Bold"]),
 }
 terminal_font = "FiraCode Nerd Font"
+# Single-file fonts: name -> (url, sha256). Fixedsys Core is used by the
+# Terminator "fixedsys" profile; both are public domain (Fixedsys Excelsior).
+extra_fonts = {
+    "FixedsysCore-Regular.ttf": (
+        "https://raw.githubusercontent.com/delinx/Fixedsys-Core/cf4b8e99b1e7a357d7cbe5225323d8413b20f611/FixedsysCore-Regular.ttf",
+        "43941ca11fc5bb5650d27c70c673bf629ec1491b9695b1b4e8dacc99713509bd"),
+    "FSEX302.ttf": (
+        "https://github.com/kika/fixedsys/releases/download/v3.09.10/FSEX302.ttf",
+        "842f8fbf80f57d867aeb1d2988140d3ea8b4718e5f687035b0a3b66756df3899"),
+}
+
+# Little Snitch for Linux (obdev.at; needs kernel 6.12+ with BTF). Web UI:
+# http://localhost:3031/ (in Chromium). None = don't install.
+littlesnitch_version = "1.1.0"
+littlesnitch_sha256 = "1a4bce4703ada6f74a69aec0386a4e2c96f8ab9ea1ce89303bf2775d5d8d0f1d"
 
 # Font rendering: "rgb" = ClearType-like subpixel (RDP shown 1:1, RGB display),
 # "grayscale" = no colour fringes when the RDP client scales (Retina/HiDPI).
