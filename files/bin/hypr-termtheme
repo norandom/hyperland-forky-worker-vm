@@ -1,6 +1,6 @@
 #!/bin/sh
 # Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev
-# (SUPER+Y or the ▣ bar button cycle; right-click menu "Theme" in Terminator). New windows opened
+# (SUPER+Y or the ● bar button cycle; right-click menu "Theme" in Terminator). New windows opened
 # with SUPER+Return use the last choice (~/.local/state/terminator-profile).
 state="$HOME/.local/state/terminator-profile"
 profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.config/terminator/config")

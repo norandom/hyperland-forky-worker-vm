@@ -21,10 +21,10 @@
     "on-click": "$HOME/.local/bin/hypr-appmenu power"
   },
   "custom/termtheme": {
-    "exec": "printf '▣ %s\\n' \"$(cat $HOME/.local/state/terminator-profile 2>/dev/null || echo default)\"",
+    "exec": "t=$(cat $HOME/.local/state/terminator-profile 2>/dev/null || echo default); printf '{\"text\":\"●\",\"class\":\"%s\",\"tooltip\":\"Terminal theme: %s (click: next, right-click: previous)\"}\\n' \"$t\" \"$t\"",
+    "return-type": "json",
     "interval": "once",
     "signal": 10,
-    "tooltip-format": "Terminal theme (click: next, right-click: previous)",
     "on-click": "$HOME/.local/bin/hypr-termtheme next",
     "on-click-right": "$HOME/.local/bin/hypr-termtheme prev"
   },
