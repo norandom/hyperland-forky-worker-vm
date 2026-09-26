@@ -1,8 +1,8 @@
-"""Debian forky + Hyprland desktop for RDP, without Omarchy.
+"""Debian forky thin client: low-footprint Hyprland desktop over RDP (no GPU needed).
 
-    .venv/bin/pyinfra inventory.py deploy.py            # everything
-    .venv/bin/pyinfra inventory.py deploy.py --dry      # show changes only
-    .venv/bin/pyinfra inventory.py tasks/hypr_rdp.py    # one area
+    uv run pyinfra inventory.py deploy.py               # everything
+    uv run pyinfra inventory.py deploy.py --dry         # prepare only
+    uv run pyinfra inventory.py tasks/hypr_rdp.py       # one area
 """
 from pyinfra import local
 
@@ -21,6 +21,5 @@ for task in (
     "shell",          # Kali-style history, xfce4-terminal theme + paste dialog
     "themes",         # Omarchy theme files: btop, Claude Code, Chromium
     "autologin",      # tty1 autologin -> uwsm -> Hyprland
-    "grub_password",  # optional (GRUB_PASSWORD env var)
 ):
     local.include(f"tasks/{task}.py")

@@ -1,216 +1,198 @@
-# debian-hypr
+# Thin client Debian forky VM with minimal desktop
 
-A [pyinfra](https://pyinfra.com) deploy that turns a fresh, minimal **Debian
-forky** VM into the same Hyprland desktop as the Omarchy VM, **without
-Omarchy**. Same window behaviour, same look, the same RDP setup 1:1, and the
-same memory tuning, on a minimal footprint (no GNOME/KDE, no display manager,
-no recommends).
+A [pyinfra](https://pyinfra.com) deployment that turns a minimal **Debian forky**
+VM into a stripped-down **thin client**: a low-footprint Hyprland desktop that
+you use over RDP.
 
-Deploys over SSH like Ansible, from this machine:
+* **Optimized for remote VM deployments**: Proxmox/KVM guests with no GPU.
+  Nothing depends on graphics hardware; rendering, screen capture and the RDP
+  stream are tuned for software rendering.
+* **For Mac users** connecting with **Royal TS** or a similar RDP client
+  (Apple keyboard layout, client-drawn cursor, lossless text).
+* **For multitaskers** who want a purpose-built worker VM: terminals, AI
+  agents, containers and a browser, nothing else.
+
+It is explicitly **not** a laptop or desktop base OS: no display manager, no
+GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
+straight into Hyprland on tty1, and hypr-rdp serves that session.
+
+## Quick start
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # once
-.venv/bin/pyinfra inventory.py deploy.py            # everything
-.venv/bin/pyinfra inventory.py tasks/desktop.py     # one area
+TARGET_HOSTS=10.0.0.62 TARGET_USER=alice uv run pyinfra inventory.py deploy.py
+uv run pyinfra inventory.py tasks/desktop.py       # one area only
 ```
 
-Target requirements: SSH key login and passwordless sudo for the user in
-`inventory.py`. Settings: `group_data/all.py`. Every run is idempotent.
+[uv](https://docs.astral.sh/uv/) installs pyinfra from `pyproject.toml` /
+`uv.lock` on first run; nothing else is needed on the controlling machine.
+Every run is idempotent.
 
-## New VM (recipe)
+* `inventory.py` reads `TARGET_HOSTS` (comma-separated) and `TARGET_USER`. For
+  fixed hosts, copy it to `inventory.local.py` (git-ignored), set `USER` /
+  `HOSTS`, and run `uv run pyinfra inventory.local.py deploy.py`.
+* The SSH user is also the desktop user (autologin, Hyprland, hypr-rdp).
+* Settings for all hosts: `group_data/all.py`. Per-host overrides go into the
+  host data dict, e.g. `{"ssh_user": "alice", "decorations_style": "mac"}`.
+
+## New VM
 
 1. **Proxmox VM**: CPU type `host`, 3+ cores, 6+ GB RAM (ballooning min = max),
-   VirtIO SCSI disk with *SSD emulation* + *Discard*, Display *Standard VGA*,
+   VirtIO SCSI disk with *SSD emulation* + *Discard*, display *Standard VGA*,
    Options → *QEMU Guest Agent* enabled.
 2. **Install Debian forky** from the daily netinst ISO
    (`https://cdimage.debian.org/cdimage/daily-builds/daily/arch-latest/amd64/iso-cd/debian-testing-amd64-netinst.iso`).
-   In *Software selection* tick only **SSH server** + standard utilities (no desktop).
-   Create the user (e.g. `mc`); a root password is optional.
-3. **Prepare access** (once, on the new VM as root):
+   In *Software selection* tick only **SSH server** + standard utilities.
+3. **Access** (once, on the VM as root; replace `alice` with your user):
    ```bash
-   echo 'mc ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/zz-mc-nopasswd && chmod 440 /etc/sudoers.d/zz-mc-nopasswd
+   echo 'alice ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/zz-alice-nopasswd
+   chmod 440 /etc/sudoers.d/zz-alice-nopasswd
    ```
-   and from this machine: `ssh-copy-id mc@NEW-IP`.
-4. **Add it to `inventory.py`**: `("NEW-IP", {"ssh_user": "mc"})`. Per-host
-   overrides go into the host data dict, e.g. `{"ssh_user": "mc", "decorations_style": "mac"}`.
-5. **Deploy** (about 25 min, of which about 10 are the hypr-rdp build):
-   ```bash
-   .venv/bin/pyinfra inventory.py deploy.py --limit NEW-IP
-   ```
-6. **Reboot** once (kernel options, limits), then connect with RDP:
-   user `mc`, password from `ssh mc@NEW-IP cat ~/.config/hypr-rdp/password`.
+   and from your machine: `ssh-copy-id alice@VM-IP`.
+4. **Deploy**: `TARGET_HOSTS=VM-IP TARGET_USER=alice uv run pyinfra inventory.py deploy.py`
+   (about 25 min, most of it building hypr-rdp).
+5. **Reboot** once (kernel options, limits), then connect with RDP as `alice`.
+   The password is generated on the VM: `ssh alice@VM-IP cat ~/.config/hypr-rdp/password`.
 
-## What it does
+## What it sets up
 
 | Task | |
 |---|---|
-| `apt_forky` | deb822 sources for forky (+updates, security), no recommends/suggests, full upgrade when sources change |
-| `base` | purges desktop tasks, GNOME, KDE and display managers if present; a few base tools |
-| `memory` | zram (compute profile: **lz4, half of RAM**, priority 100, disk swap behind it) and Omarchy's reclaim sysctls with `swappiness=100` (` `page-cluster=0`, watermarks, `dirty_bytes`); earlyoom (never kills Hyprland/waybar/hypr-rdp, prefers browsers); journald/coredump limits |
-| `tuning` | from linux-mint-optimizer: BBR + fq, Fast Open, bigger TCP buffers; root fs `noatime,commit=60`; GRUB `mitigations=off audit=0`; SSH root login with password (all switches in `group_data/all.py`) |
-| `containers` | rootless podman (crun, overlay, netavark), `docker` / `docker compose` / `docker-compose` → podman / podman-compose (no daemon, no socket), docker.io short names, linger; containers get CPU weight 200 vs desktop/RDP/terminals 100 |
+| `apt_forky` | deb822 sources for forky (+updates, security), never install recommends, full upgrade |
+| `base` | purges desktop tasks, GNOME, KDE and display managers if present |
+| `memory` | zram swap, reclaim sysctls, earlyoom, journald/coredump limits |
+| `tuning` | network, filesystem, kernel command line, limits, modules, SSH |
 | `services` | disables cups/avahi/bluetooth/ModemManager/power-profiles if present; qemu-guest-agent |
-| `desktop` | Hyprland 0.56 + uwsm, **hyprbars from Debian's `hyprland-plugin-hyprbars`** (version-locked to Hyprland, no hyprpm), waybar, mako, fuzzel, Terminator, JetBrains Mono, Adwaita cursor, PipeWire |
-| `hypr_rdp` | builds **hypr-rdp 0.1.6 + the hypr-rdp-clearcodec patches** on the host (only when version/patches change), config, per-host password, session helpers, user units |
-| `apps` | LibreOffice Calc (GTK3), Chromium + chromedriver (for MCP), git, **gh** (GitHub's apt repo), atop, Neovim + LazyVim tools (ripgrep, fd, fzf, lazygit, tree-sitter), Node.js + npm, xfce4-terminal |
-| `user_tools` | for the user: **uv/uvx** (Astral installer), npm globals in `~/.local` + **pnpm**, **Aikido Safe Chain** (pinned installer, checksum-verified; wraps npm/npx/pnpm/pip/uv/uvx, 48 h minimum package age), **Omarchy's Neovim/LazyVim config** with the cream-blue theme (without Omarchy's `all-themes.lua` preload: one of its plugins, `gthelding/monokai-pro.nvim`, no longer exists and broke LazyVim's startup) |
-| `shell` | Kali-style history: 100k entries, timestamps, shared live between terminals, prefix + Up/Down search; xfce4-terminal in cobalt with the **paste review dialog** (multi-line pastes open an editable window first) |
-| `autologin` | tty1 autologin → `.profile` → `uwsm start hyprland.desktop` |
-| `grub_password` | optional, see below |
+| `containers` | rootless podman with `docker` / `docker compose` / `docker-compose` aliases |
+| `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); font rendering |
+| `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
+| `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
+| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal |
+| `user_tools` | uv, pnpm, Aikido Safe Chain, LazyVim config |
+| `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
+| `themes` | terminal-matched themes for Neovim, btop, Claude Code; Chromium frame colour |
+| `autologin` | tty1 autologin → uwsm → Hyprland |
 
-### Same as the Omarchy VM
+## Tuning, and why
 
-* **RDP:** ClearCodec (`hypr_rdp_codec`), 30 fps, compositor keymap. On
-  connect the console output goes off, Hyprland's cursor is hidden except in
-  resize zones, and off-screen windows are pulled back; the RDP size survives
-  `hyprctl reload`.
-* **Windows:** floating by default, snapping, drag-to-edge half/maximize
-  (`aerosnap.lua`), macOS-style title bar buttons, Right Option = Super (de layout).
-* **Look:** cream-blue-light for Hyprland, bar, notifications and launcher;
-  Terminator cobalt (default) and navy profiles; `#3a3a3a` background.
-* **Memory:** `MALLOC_ARENA_MAX=2`, `LP_NUM_THREADS=2`, no animations, blur or
-  shadows. The background is Hyprland's own colour: no wallpaper process at all.
+All values are switches in `group_data/all.py`.
 
-### Different on purpose
+**Rendering and RDP (no GPU).** Without a GPU, Hyprland draws everything on
+the CPU (llvmpipe). With a software cursor it redraws on every pointer motion,
+even with the cursor hidden, and while the screen is being shared it also
+refreshes a full-screen copy each time. So:
 
-* waybar / mako / fuzzel instead of Omarchy's quickshell shell (much lighter).
-* No lock screen or idle daemon (server VM, same as "stay awake").
-* hyprbars comes from the Debian package instead of hyprpm.
+* The RDP output runs at **20 Hz** (`rdp_refresh_hz`) and hypr-rdp sends 20
+  fps (`hypr_rdp_fps`). This caps the redraws caused by mouse movement. The
+  pointer itself is drawn by the RDP client, so it stays smooth; raise both to
+  30 if scrolling feels choppy.
+* hypr-rdp is patched to request frames at most at that rate, and less often
+  while nothing changes (capture pacing), and to use **ClearCodec**: lossless,
+  only the changed areas, no H.264 encoder load.
+* Terminal cursors don't blink and the bar updates every 5 s. Each blink or
+  bar update is a full redraw plus capture.
+* No animations, blur or shadows by default; `MALLOC_ARENA_MAX=2` and
+  `LP_NUM_THREADS=2` keep Hyprland's memory and software-renderer threads small.
+* The unused Proxmox console output is switched off while an RDP client is
+  connected, so only one screen is drawn.
 
-## Keys
+**Memory.** Agents and workloads sometimes need all of it.
+
+* **zram** (`zram_*`): compressed swap in RAM, **lz4**, half the RAM, with the
+  disk swap behind it. lz4 costs little CPU; numeric data compresses poorly
+  anyway, so zstd's better ratio isn't worth it here.
+* Reclaim sysctls tuned for zram (`vm_swappiness` 100, `page-cluster=0`,
+  watermarks, `dirty_bytes`): idle memory is compressed early instead of
+  starving the page cache, and writeback doesn't stall in big bursts.
+* **earlyoom** steps in before the kernel OOM killer and never picks the
+  desktop/RDP stack (Hyprland, waybar, hypr-rdp, PipeWire, sshd).
+* `/tmp` is RAM-backed and capped at 1 GB (`tmp_size`), so a build or an agent
+  can't fill half the memory with temp files.
+* The desktop itself uses about 350 MB: waybar/mako/fuzzel instead of a
+  full shell, a plain background colour instead of a wallpaper image.
+
+**CPU priority.** Rootless containers get CPU weight 200
+(`container_cpu_weight`), the desktop and terminals 100. This only matters
+when all cores are busy: then containerised jobs get about two thirds of the
+CPU, while RDP and terminals stay usable.
+
+**Kernel** (`tune_kernel_cmdline`, needs a reboot):
+
+* `mitigations=off audit=0`: no Spectre/Meltdown mitigations and no audit
+  subsystem; faster syscalls and context switches. Only for a VM that runs
+  nothing untrusted.
+* `cpuidle_haltpoll.force=1 cpuidle.governor=haltpoll`: idle vCPUs poll
+  briefly before halting, so the VM reacts faster to RDP input (costs a
+  little host CPU).
+* Soft-lockup watchdog off (false alarms when the host is busy); floppy,
+  pcspkr and joydev blacklisted.
+
+**Network and disk.** BBR + fq and larger TCP buffers (`tune_net`) help on
+WAN links; root filesystem `noatime,commit=60` (`tune_noatime`) cuts metadata
+writes. The virtual disk stays on the `none` I/O scheduler: the Proxmox host
+schedules the real disks.
+
+**Limits.** 65536 open files (`nofile_*`) and 1024 inotify instances: Node,
+Java, dev servers and agents run out of the defaults (1024 / 128).
+
+## RDP
+
+hypr-rdp 0.1.6 attaches to the running Hyprland session. On connect, the
+console output is switched off, Hyprland's own cursor is hidden (the client
+draws one; it reappears in window resize zones to show the resize arrow),
+off-screen windows are pulled back, and the RDP window size survives config
+reloads. On disconnect the console comes back.
+
+Patches (`files/hypr-rdp/`): `clearcodec.patch` (`hypr_rdp_codec =
+"clearcodec"`), `planar.patch` + `ironrdp-planar.patch` (legacy bitmaps, not
+supported by Royal TS), `capture-pacing.patch`.
+
+### .deb via Dagger
+
+The patched hypr-rdp can be built as a Debian package in a clean forky
+container with [Dagger](https://dagger.io):
+
+```bash
+dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-3_amd64.deb
+```
+
+## Desktop
 
 | Keys | |
 |---|---|
-| SUPER + Return | Terminator |
-| SUPER + SHIFT + Return | xfce4-terminal (paste review) |
-| SUPER + A / ☰ Apps | application menu (categories) |
-| SUPER + Escape / Power | log out, reboot, shut down |
+| SUPER + Return / SUPER + SHIFT + Return | Terminator / xfce4-terminal |
+| SUPER + A, ☰ Apps, right-click on the desktop | application menu (categories) |
 | SUPER + Space | launcher (search) |
-| SUPER + W | close |
-| SUPER + F / SUPER + ALT + F | fullscreen / maximize |
-| SUPER + T | toggle floating/tiling (one window) |
-| SUPER + L / ▦ in the bar | next layout mode |
-| SUPER + M | show/hide minimized windows |
-| right-click on the desktop | application menu at the cursor |
+| SUPER + Escape, power button | log out, reboot, shut down |
+| SUPER + W / F / ALT + F | close / fullscreen / maximize |
+| SUPER + T | toggle floating / tiling (one window) |
+| SUPER + L, ▦ in the bar | next layout mode |
+| SUPER + M | show / hide minimized windows |
 | SUPER + arrows, ALT + TAB | focus |
 | SUPER + left / right drag | move / resize |
 | SUPER + ß / ´ (+ SHIFT) | narrower / wider (shorter / taller) |
-| SUPER + SHIFT + M | log out |
 
-## GRUB password (optional)
+* **Layout modes** (`hypr-layout`): `dynamic` (floating; every app reopens
+  where it was), `golden-h`, `golden-v`, `golden-spiral` (61.8 : 38.2 splits).
+  Floating windows scale with the RDP window size.
+* **Title bars** (`hypr-deco win311|mac`): Windows 3.11 (navy, ⊟ ⊠) or macOS
+  style. Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
+* **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
+  power button. Drag a window to a screen edge for half / full size.
 
-```bash
-GRUB_PASSWORD='secret' .venv/bin/pyinfra inventory.py tasks/grub_password.py
-```
+**Keyboard**: `keyboard_layout` / `keyboard_options` (default: German Apple
+layout, `altwin:swap_ralt_rwin`, so SUPER is the right Option key). hypr-rdp
+uses Hyprland's keymap, so the mapping is the same over RDP.
 
-The PBKDF2 hash is computed locally, so only the hash reaches the host.
-Normal boot needs no password; editing entries or opening the GRUB console
-does (user `admin`, see `grub_superuser`).
+## Shell and tools
 
-## RDP password
-
-Generated once per host: `ssh mc@HOST cat ~/.config/hypr-rdp/password`.
-
-## Tuning from linux-mint-optimizer
-
-Applied (switches in `group_data/all.py`): journald/coredump limits, qemu-guest-agent,
-unneeded services off, network (BBR, fq, Fast Open, buffers), `noatime,commit=60`,
-kernel `mitigations=off audit=0` (reboot needed), SSH root login with password.
-
-Not applied, on purpose:
-
-* **Huge pages / THP**: left at Debian defaults.
-* **`swappiness=1`, dirty ratios, overcommit**: would undo the zram tuning.
-* **tuned `virtual-guest`**: its sysctls (swappiness 30, dirty ratio 30) fight the
-  zram settings, it switches THP to `always`, and it keeps a Python daemon
-  (~25 MB) running. Its CPU-governor/energy parts do nothing in a guest.
-* **irqbalance**: virtio devices use per-queue MSI-X interrupts that the kernel
-  already spreads across the vCPUs (managed affinity, which irqbalance can't move).
-* **I/O scheduler `mq-deadline`**: the virtual disk stays on `none`; the Proxmox
-  host schedules the real disks. Enable "SSD emulation" + "Discard" on the VM disk instead.
-* **`tcp_timestamps=0`, `randomize_va_space=1`, C-state limits, CPU governor**:
-  no gain in a KVM guest, or a security cost.
-
-## Compute profile
-
-Tuned-like, automatic, no change to how jobs are started (`group_data/all.py`):
-
-* **zram lz4, half of RAM, `swappiness=100`**: numeric data compresses poorly,
-  so zstd's better ratio isn't worth its CPU cost; the disk swap partition
-  catches overflow when agents need all the memory.
-* **CPU weight**: rootless containers (user manager `user.slice`) get weight 200;
-  Hyprland/hypr-rdp (`session.slice`) and terminals/agents (`app.slice`) 100.
-  Only matters when the CPU is saturated; RDP stays usable, and the quant
-  containers get ~2/3 of the CPU.
-* Thread counts (`OPENBLAS_NUM_THREADS` etc.) are application settings: set them
-  in the container/compose environment.
-
-## Layout modes
-
-`hypr-layout dynamic|golden-h|golden-v|golden-spiral|next` (SUPER + L, or ▦ in the bar):
-
-| Mode | |
-|---|---|
-| `dynamic` (default) | floating; every app reopens where it was last closed (stored as fractions of the screen) |
-| `golden-h` | master left 61.8 %, others stacked right |
-| `golden-v` | master top 61.8 %, others stacked below |
-| `golden-spiral` | each split 61.8 : 38.2, spiralling in |
-
-When the RDP screen changes size, floating windows are scaled and moved with
-it (and back when it grows again); tiled layouts adapt on their own.
-
-## Title bar styles
-
-`hypr-deco win311` (navy bar, ⊟ minimize / ⊠ close on the right) or `hypr-deco mac`
-(cream bar, red/green on the left). Minimized windows: SUPER + M.
-Initial style: `decorations_style` in `group_data/all.py`.
-
-Window shadows: `hypr-shadow on|off` (off by default: without a GPU they are
-drawn by the CPU). With `win311` a hard black drop shadow, otherwise a soft one.
-
-## Themes, fonts, rendering
-
-* Terminal tools match the terminal's **cobalt** palette (cream text, gold/sky
-  accents, transparent backgrounds so the navy profile fits too): Neovim
-  (LazyVim + aether), btop (`color_theme = "cobalt"`), Claude Code
-  (`~/.claude/themes/cobalt.json`, `theme = custom:cobalt`). Chromium keeps
-  the cream frame (managed policy).
-* **Nerd Fonts 3.5.1** (checksum verified): **FiraCode Nerd Font** in the terminals
-  (Terminator, xfce4-terminal; `terminal_font`), **JetBrainsMono Nerd Font** (the same
-  files as Omarchy's) for bar, launcher, notifications and title bars. Neovim icons need the glyphs.
-* **Font rendering** (`font_rendering`): `rgb` = ClearType-like subpixel +
-  hintslight (best when RoyalTS shows the session 1:1), `grayscale` = no colour
-  fringes when the client scales (Retina). hypr-rdp sends lossless ClearCodec
-  images, so text arrives exactly as rendered; it has no glyph-level features.
-
-## Shell
-
-* **grml-inspired bash** (`~/.config/bash/grml.bash`; grml's own config is zsh-only):
-  prompt `user@host dir (git) $` with red exit code / red root, `cd` keeps a
-  directory stack (`d`, `cd -2`), `..`/`...`, autocd, cd typo correction,
-  `**` globs, grml aliases (`l la ll lh da j`) and functions (`mkcd cdt bk sll ssearch`),
-  bash-completion.
-* **Kali-style history**: 100k entries, timestamps, shared live between
+* **grml-inspired bash** (grml's own config is zsh-only): prompt with git
+  branch and exit code, directory stack (`d`, `cd -2`), `..`, autocd, grml
+  aliases and helpers (`mkcd cdt bk sll`), bash-completion.
+* **Kali-style history**: 100k entries, timestamps, shared between
   terminals, prefix + Up/Down search.
-* **xfce4-terminal** (SUPER + SHIFT + Return): pasting text that contains a
-  line break opens an editable review dialog first (Ctrl+Shift+V, right-click
-  Paste or middle-click). Single-line pastes go straight in.
-
-## CPU without a GPU
-
-Measured with a 60 events/s virtual mouse, RDP client connected (1920x1080):
-
-| | Hyprland CPU |
-|---|---|
-| idle, blinking terminal cursor | 25-33 % |
-| idle now (no cursor blink, bar every 5 s) | 7-12 % |
-| mouse moving, output at 60 Hz | 177 % |
-| mouse moving, output at 20 Hz (default here) | 66 % |
-
-Why: with a software cursor Hyprland redraws on every pointer motion (even
-with the cursor hidden) and, while screen sharing is active, refreshes a
-full-screen mirror copy each time; hypr-rdp also got a full-screen copy per
-frame. Fixes: `rdp_refresh_hz` / `hypr_rdp_fps` = 20 (the pointer itself is
-drawn by the RDP client and stays smooth), the `capture-pacing.patch` in
-hypr-rdp (capture requests at most at `fps`, 10/s while unchanged), no
-blinking terminal cursors. Raise `rdp_refresh_hz` to 30 if scrolling feels choppy.
+* **xfce4-terminal**: pasting text with a line break opens an editable review
+  dialog first.
+* **Containers**: `docker`, `docker compose` and `docker-compose` run
+  rootless podman without a daemon.
+* **Supply chain**: Aikido Safe Chain wraps npm, npx, pnpm, pip, uv and uvx
+  and blocks packages younger than 48 hours.

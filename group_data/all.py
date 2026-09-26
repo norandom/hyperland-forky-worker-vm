@@ -1,8 +1,7 @@
 # Settings for every host. Override per host in inventory.py host data.
 
-# Desktop user (autologin, Hyprland session, hypr-rdp)
-desktop_user = "mc"
-desktop_home = "/home/mc"
+# The desktop user (autologin, Hyprland session, hypr-rdp) is the SSH user;
+# see inventory.py.
 
 debian_suite = "forky"
 keyboard_layout = "de"
@@ -25,9 +24,6 @@ disabled_units = [
     "bluetooth.service", "ModemManager.service", "power-profiles-daemon.service",
 ]
 
-# GRUB password: set GRUB_PASSWORD in your local environment to enable.
-# Booting stays unattended; editing entries / the console needs the password.
-grub_superuser = "admin"
 
 # --- Tuning from linux-mint-optimizer (advanced_performance) --------------------
 # Network: BBR + fq, TCP Fast Open, bigger buffers (not tcp_timestamps=0).
