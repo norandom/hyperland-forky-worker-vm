@@ -41,8 +41,15 @@ nvim = [
     files.put(name=f"nvim: {p}", src=f"files/nvim/{p}", dest=f"{home}/.config/nvim/{p}", mode="644")
     for p in sorted(str(f.relative_to("files/nvim")) for f in Path("files/nvim").rglob("*") if f.is_file())
 ]
+# Omarchy preloads every theme plugin for live theme switching; one of them
+# (gthelding/monokai-pro.nvim) no longer exists and breaks startup. Only the
+# Cream Blue (aether) theme is used here.
+removed = files.file(name="nvim: no all-themes preload", path=f"{home}/.config/nvim/lua/plugins/all-themes.lua",
+                     present=False)
+nvim.append(removed)
+
 server.shell(
     name="nvim: install plugins (headless LazyVim sync)",
-    commands=[env + "timeout 900 nvim --headless '+Lazy! sync' +qa >/dev/null 2>&1 || true"],
+    commands=[env + "timeout 900 nvim --headless '+Lazy! sync' '+Lazy! clean' +qa >/dev/null 2>&1 || true"],
     _if=lambda: any(op.did_change() for op in nvim),
 )

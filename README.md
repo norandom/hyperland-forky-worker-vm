@@ -53,7 +53,7 @@ Target requirements: SSH key login and passwordless sudo for the user in
 | `desktop` | Hyprland 0.56 + uwsm, **hyprbars from Debian's `hyprland-plugin-hyprbars`** (version-locked to Hyprland, no hyprpm), waybar, mako, fuzzel, Terminator, JetBrains Mono, Adwaita cursor, PipeWire |
 | `hypr_rdp` | builds **hypr-rdp 0.1.6 + the hypr-rdp-clearcodec patches** on the host (only when version/patches change), config, per-host password, session helpers, user units |
 | `apps` | LibreOffice Calc (GTK3), Chromium + chromedriver (for MCP), git, **gh** (GitHub's apt repo), atop, Neovim + LazyVim tools (ripgrep, fd, fzf, lazygit, tree-sitter), Node.js + npm, xfce4-terminal |
-| `user_tools` | for the user: **uv/uvx** (Astral installer), npm globals in `~/.local` + **pnpm**, **Aikido Safe Chain** (pinned installer, checksum-verified; wraps npm/npx/pnpm/pip/uv/uvx, 48 h minimum package age), **Omarchy's Neovim/LazyVim config** with the cream-blue theme |
+| `user_tools` | for the user: **uv/uvx** (Astral installer), npm globals in `~/.local` + **pnpm**, **Aikido Safe Chain** (pinned installer, checksum-verified; wraps npm/npx/pnpm/pip/uv/uvx, 48 h minimum package age), **Omarchy's Neovim/LazyVim config** with the cream-blue theme (without Omarchy's `all-themes.lua` preload: one of its plugins, `gthelding/monokai-pro.nvim`, no longer exists and broke LazyVim's startup) |
 | `shell` | Kali-style history: 100k entries, timestamps, shared live between terminals, prefix + Up/Down search; xfce4-terminal in cobalt with the **paste review dialog** (multi-line pastes open an editable window first) |
 | `autologin` | tty1 autologin → `.profile` → `uwsm start hyprland.desktop` |
 | `grub_password` | optional, see below |
