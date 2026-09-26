@@ -20,6 +20,8 @@ apt.packages(
         "xfce4-terminal",
         # CLI: multitail, fzf helpers (bat previews, tree for directory previews)
         "multitail", "bat", "tree",
+        # downloads: segmented HTTP/FTP/BitTorrent/metalink
+        "aria2",
         # Image viewer (Xfce Ristretto) and a tabbed PDF viewer with annotations
         "ristretto", "qpdfview",
     ],

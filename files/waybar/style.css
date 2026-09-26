@@ -22,6 +22,7 @@ tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
 #custom-termtheme { padding: 0 8px; font-size: 16px; color: #0049b2; }
 #custom-termtheme.navy { color: #1a2a3f; }
 #custom-termtheme.fixedsys { color: #ffa348; }
+#custom-termtheme.cream { color: #f5ede0; text-shadow: 0 0 1px #2b4570, 0 0 1px #2b4570; }
 #custom-termtheme:hover { background: #f5ede0; }
 #custom-kbd:hover { background: #f5ede0; }
 #custom-layout:hover { background: #f5ede0; }

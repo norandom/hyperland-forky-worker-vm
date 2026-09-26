@@ -220,13 +220,13 @@ and hypr-rdp follows it without reconnecting.
 * **Containers**: `docker`, `docker compose` and `docker-compose` run
   rootless podman without a daemon.
 * **Terminator themes**: `default` (cobalt), `navy`, `fixedsys` (amber on navy,
-  Fixedsys Core). The ● bar button (click next, right-click previous), SUPER+Y,
+  Fixedsys Core), `cream` (light: navy on cream). The ● bar button (click next, right-click previous), SUPER+Y,
   `hypr-termtheme <name>|next|prev` or right-click → Theme switches all open
   terminals; new ones (SUPER+Return, app menu) use the last choice. Tabs are a
   slim tmux-style line at the bottom; tab titles show just the directory.
 
   ![Terminator themes default, navy and fixedsys side by side](docs/terminal-themes.png)
-* **CLI tools**: ripgrep, fd, fzf (+ bat, tree for previews), multitail, btop,
+* **CLI tools**: ripgrep, fd, fzf (+ bat, tree for previews), multitail, aria2, btop,
   atop, lazygit, Neovim (LazyVim).
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
 * **Little Snitch for Linux** (obdev.at, `littlesnitch_version`; kernel 6.12+
