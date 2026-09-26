@@ -88,15 +88,24 @@ if mode == "dynamic" then
   end)
 
   hl.on("window.open", function(w)
-    if not (w and w.class and geom[w.class]) then return end
-    local g, sel = geom[w.class], addr_sel(w)
+    if not w then return end
+    local g, sel = w.class and geom[w.class], addr_sel(w)
     hl.timer(function()
       local win = w
       if not (win and win.floating and win.monitor) then return end
+      if not g then
+        -- new app: centred by Hyprland; keep its title bar below the top bar
+        local top = top_limit(win.monitor)
+        if win.at.y < top then
+          hl.dispatch(hl.dsp.window.move({ x = win.at.x, y = top, window = sel }))
+        end
+        return
+      end
       local mx, my, mw, mh = mon_box(win.monitor)
-      hl.dispatch(hl.dsp.window.resize({ x = math.floor(g[3] * mw), y = math.floor(g[4] * mh), window = sel }))
-      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw),
-                                       y = math.max(top_limit(win.monitor), math.floor(my + g[2] * mh)), window = sel }))
+      local y = math.max(top_limit(win.monitor), math.floor(my + g[2] * mh))
+      local h = math.min(math.floor(g[4] * mh), math.floor(my + mh - y))
+      hl.dispatch(hl.dsp.window.resize({ x = math.floor(g[3] * mw), y = h, window = sel }))
+      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw), y = y, window = sel }))
     end, { timeout = 80, type = "oneshot" })
   end)
 end
