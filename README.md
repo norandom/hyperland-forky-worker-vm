@@ -128,6 +128,12 @@ CPU, while RDP and terminals stay usable.
 * Soft-lockup watchdog off (false alarms when the host is busy); floppy,
   pcspkr and joydev blacklisted.
 
+**Colour.** The RDP output stays sRGB, which is what an RDP client assumes (RDP
+carries no colour profile). Free ICC profiles are installed (`icc-profiles-free`,
+including `compatibleWithAdobeRGB1998.icc`) for applications; `rdp_icc_profile`
+can put one on the output, but Adobe RGB there looks washed out on the client
+unless it applies the same profile.
+
 **Network and disk.** BBR + fq and larger TCP buffers (`tune_net`) help on
 WAN links; root filesystem `noatime,commit=60` (`tune_noatime`) cuts metadata
 writes. The virtual disk stays on the `none` I/O scheduler: the Proxmox host

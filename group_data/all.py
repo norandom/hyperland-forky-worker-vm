@@ -14,6 +14,12 @@ hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
 # RDP refresh: Hyprland output rate and hypr-rdp frame rate. Mouse movement CPU
 # without a GPU: 60 Hz 177 %, 30 Hz 140 %, 20 Hz 85 % (pointer stays smooth).
 rdp_refresh_hz = 20
+# Colour profile of the RDP output (Hyprland monitor "icc"). None = sRGB, which
+# is what an RDP client assumes: RDP carries no profile, so e.g. Adobe RGB here
+# makes colours look washed out on the Mac unless the client applies it too.
+# Free Adobe RGB (1998) compatible profile (icc-profiles-free, installed by apps):
+#   "/usr/share/color/icc/compatibleWithAdobeRGB1998.icc"
+rdp_icc_profile = None
 hypr_rdp_fps = 20
 hypr_rdp_bind = "0.0.0.0:3389"
 
