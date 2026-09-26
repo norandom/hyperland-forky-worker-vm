@@ -16,6 +16,14 @@ alias diff='diff --color=auto'
 alias ip='ip -color=auto'
 # Keyboard layout (Hyprland, live): US / German without dead keys
 alias kbus='hypr-kbd us' kbde='hypr-kbd de'
+# setxkbmap us / setxkbmap de: on Wayland switch Hyprland's layout instead
+setxkbmap() {
+  case "$*" in
+    us|"us -variant "*) hypr-kbd us ;;
+    de|"de nodeadkeys"|"de -variant nodeadkeys") hypr-kbd de ;;
+    *) command setxkbmap "$@" ;;
+  esac
+}
 
 # --- grml aliases -------------------------------------------------------------------
 alias l='ls -lF'

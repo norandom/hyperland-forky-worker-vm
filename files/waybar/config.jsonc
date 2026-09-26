@@ -24,7 +24,7 @@
     "exec": "printf '⌨ %s\\n' $( (cat $HOME/.local/state/hypr-kbd 2>/dev/null || echo de) | tr a-z A-Z)",
     "interval": "once",
     "signal": 9,
-    "tooltip-format": "Keyboard layout (click: switch US / DE; RDP reconnects)",
+    "tooltip-format": "Keyboard layout (click: switch US / DE)",
     "on-click": "$HOME/.local/bin/hypr-kbd toggle"
   },
   "custom/layout": {

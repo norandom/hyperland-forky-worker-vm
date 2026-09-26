@@ -1,16 +1,13 @@
 -- Managed by debian-hypr.
 -- Apple German keyboard via RoyalTS/RDP: Right Option acts as Super,
 -- Right Cmd becomes AltGr (@ = RightCmd+Q, EUR = RightCmd+E).
--- Layout chosen with hypr-kbd (us|de) survives reloads and reboots.
-local KB = { us = { "us", "" }, de = { "de", "nodeadkeys" } }
-local kb = { "{{ host.data.keyboard_layout }}", "" }
-local f = io.open(os.getenv("HOME") .. "/.local/state/hypr-kbd", "r")
-if f then kb = KB[(f:read("l") or ""):match("%a+")] or kb; f:close() end
-
+-- Both layouts live in one keymap ({{ host.data.keyboard_layout }}); hypr-kbd switches
+-- the active one. The choice (~/.local/state/hypr-kbd) is re-applied after
+-- every config load.
 hl.config({
   input = {
-    kb_layout = kb[1],
-    kb_variant = kb[2],
+    kb_layout = "{{ host.data.keyboard_layout }}",
+    kb_variant = "{{ host.data.keyboard_variant }}",
     kb_options = "{{ host.data.keyboard_options }}",
     follow_mouse = 1,
     sensitivity = 0,
@@ -19,3 +16,10 @@ hl.config({
     numlock_by_default = true,
   },
 })
+
+hl.timer(function()
+  local f = io.open(os.getenv("HOME") .. "/.local/state/hypr-kbd", "r")
+  if not f then return end
+  local k = (f:read("l") or ""):match("%a+"); f:close()
+  if k then hl.exec_cmd("$HOME/.local/bin/hypr-kbd " .. k .. " --quiet") end
+end, { timeout = 300, type = "oneshot" })

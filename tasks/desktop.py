@@ -80,6 +80,15 @@ server.shell(
     _if=any_changed(*hypr),
 )
 
+# A changed keymap drops hypr-rdp's virtual keyboard (RDP input dies until
+# hypr-rdp restarts; a connected client reconnects once). Layout switches
+# (hypr-kbd) don't change the keymap and need no restart.
+server.shell(
+    name="Restart hypr-rdp (keyboard config changed)",
+    commands=["sleep 1; systemctl --user -q is-active hypr-rdp && systemctl --user restart hypr-rdp || true"],
+    _if=hypr[-1].did_change,
+)
+
 files.put(
     name="Power button icon (red square, cream Debian swirl)",
     src="files/waybar/power.png",

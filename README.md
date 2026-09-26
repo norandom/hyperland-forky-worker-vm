@@ -195,12 +195,12 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 * **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume,
   keyboard layout (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
-**Keyboard**: `keyboard_layout` / `keyboard_options` (default: German Apple
+**Keyboard**: `keyboard_layout` / `keyboard_variant` / `keyboard_options` (default: German Apple
 layout, `altwin:swap_ralt_rwin`, so SUPER is the right Option key). hypr-rdp
-uses Hyprland's keymap, so the mapping is the same over RDP. Switch layouts with
-`kbus` / `kbde` (`hypr-kbd us|de`, German without dead keys) or the ⌨ bar button;
-the choice survives reloads and reboots. hypr-rdp only reads the keymap at
-start, so a connected RDP client reconnects once after a switch.
+uses Hyprland's keymap, so the mapping is the same over RDP. German (no dead keys)
+and US are loaded together: switch with `kbde` / `kbus`, `setxkbmap de|us`,
+`hypr-kbd de|us` or the ⌨ bar button. The choice survives reloads and reboots,
+and hypr-rdp follows it without reconnecting.
 
 ## Shell and tools
 

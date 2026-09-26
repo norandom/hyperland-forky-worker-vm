@@ -4,7 +4,11 @@
 # see inventory.py.
 
 debian_suite = "forky"
-keyboard_layout = "de"
+# Keyboard layouts loaded together; switch with hypr-kbd / kbde / kbus / setxkbmap
+# or the ⌨ bar button (first = default). Both stay in one keymap, so hypr-rdp
+# follows a switch without reconnecting.
+keyboard_layout = "de,us"
+keyboard_variant = "nodeadkeys,"
 keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwin"
 
 # hypr-rdp with the patches in files/hypr-rdp.
