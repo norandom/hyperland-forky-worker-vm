@@ -21,7 +21,10 @@ jobs:
         with:
           version: "0.21.9"
           verb: call
-          args: deb export --path=dist/ --allow-parent-dir-path
+          args: deb export --path=${{ github.workspace }}/dist/ --allow-parent-dir-path
+
+      - name: Show package
+        run: ls -la "$GITHUB_WORKSPACE/dist" && dpkg-deb --info "$GITHUB_WORKSPACE"/dist/*.deb
 
       - name: Keep as workflow artifact
         uses: actions/upload-artifact@v4
