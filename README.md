@@ -112,7 +112,7 @@ refreshes a full-screen copy each time. So:
 * `/tmp` is RAM-backed and capped at 1 GB (`tmp_size`), so a build or an agent
   can't fill half the memory with temp files.
 * The desktop itself uses about 350 MB: waybar/mako/fuzzel instead of a
-  full shell, swaybg for the wallpaper (about 20 MB; `wallpaper = None` saves it).
+  full shell, swaybg for the wallpaper (about 15 MB; `wallpaper = None` saves it).
 
 **CPU priority.** Rootless containers get CPU weight 200
 (`container_cpu_weight`), the desktop and terminals 100. This only matters
