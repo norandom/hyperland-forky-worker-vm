@@ -1,5 +1,5 @@
 /* Managed by debian-hypr. cream-blue-light. */
-* { font-family: "JetBrains Mono", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
+* { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
 #taskbar, #clock, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 6px; }
 #clock { font-weight: bold; }

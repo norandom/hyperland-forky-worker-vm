@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+<!-- Managed by debian-hypr. font_rendering = {{ host.data.font_rendering }} -->
+<fontconfig>
+  <match target="font">
+    <edit name="antialias" mode="assign"><bool>true</bool></edit>
+    <edit name="hinting" mode="assign"><bool>true</bool></edit>
+    <edit name="hintstyle" mode="assign"><const>hintslight</const></edit>
+{% if host.data.font_rendering == "rgb" %}
+    <!-- ClearType-like subpixel rendering: best when the RDP client shows
+         the session 1:1 on an RGB-stripe display (no scaling). -->
+    <edit name="rgba" mode="assign"><const>rgb</const></edit>
+    <edit name="lcdfilter" mode="assign"><const>lcddefault</const></edit>
+{% else %}
+    <!-- Grayscale antialiasing: no colour fringes when the client scales
+         (Retina / HiDPI, non-1:1 RDP windows). -->
+    <edit name="rgba" mode="assign"><const>none</const></edit>
+{% endif %}
+    <edit name="embeddedbitmap" mode="assign"><bool>false</bool></edit>
+  </match>
+  <!-- Monospace = the Nerd Font (icons everywhere) -->
+  <alias><family>monospace</family><prefer><family>JetBrainsMono Nerd Font</family></prefer></alias>
+</fontconfig>

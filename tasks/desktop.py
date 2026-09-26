@@ -78,13 +78,19 @@ files.put(
     _sudo=True,
 )
 
+files.template(
+    name="GTK 3 settings (theme, cursor, font rendering)",
+    src="templates/gtk-3.0/settings.ini.j2",
+    dest=f"{home}/.config/gtk-3.0/settings.ini",
+    mode="644",
+)
+
 # --- Bar, notifications, launcher, GTK, terminal, top tools ----------------------
 for src, dest in (
     ("files/waybar/config.jsonc", ".config/waybar/config.jsonc"),
     ("files/waybar/style.css", ".config/waybar/style.css"),
     ("files/mako/config", ".config/mako/config"),
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
-    ("files/gtk-3.0/settings.ini", ".config/gtk-3.0/settings.ini"),
     ("files/terminator/config", ".config/terminator/config"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
 ):

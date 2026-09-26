@@ -13,6 +13,7 @@ for task in (
     "tuning",         # Mint tuning: net/BBR, noatime, kernel cmdline, ssh (switches)
     "services",       # qemu-guest-agent, disable unneeded units
     "containers",     # rootless podman, docker/compose aliases
+    "fonts",          # JetBrainsMono Nerd Font (icon glyphs, as on Omarchy)
     "desktop",        # Hyprland, hyprbars, waybar, mako, fuzzel, Terminator, theme
     "hypr_rdp",       # patched hypr-rdp built from source + session helpers
     "apps",           # Calc, Chromium (MCP), gh, atop, Neovim, Node, xfce4-terminal

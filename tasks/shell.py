@@ -66,7 +66,7 @@ props = {
     "/color-cursor-use-default": ("bool", "false"),
     "/color-palette": ("string", palette),
     "/font-use-system": ("bool", "false"),
-    "/font-name": ("string", "JetBrains Mono 11"),
+    "/font-name": ("string", "JetBrainsMono Nerd Font 11"),
     "/misc-menubar-default": ("bool", "false"),
     "/scrolling-bar": ("string", "TERMINAL_SCROLLBAR_NONE"),
 }
@@ -76,6 +76,6 @@ cmds = [
     for p, (t, v) in props.items()
 ]
 server.shell(
-    name="xfce4-terminal: cobalt theme, JetBrains Mono, paste review dialog",
+    name="xfce4-terminal: cobalt theme, JetBrainsMono Nerd Font, paste review dialog",
     commands=[f"export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus; {c}" for c in cmds],
 )

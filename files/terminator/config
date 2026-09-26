@@ -3,7 +3,7 @@
 [profiles]
   [[default]]
     background_color = "#0049b2"
-    font = JetBrains Mono 13
+    font = JetBrainsMono Nerd Font 13
     foreground_color = "#fff8f0"
     show_titlebar = False
     scrollbar_position = hidden
@@ -13,7 +13,7 @@
     copy_on_selection = True
   [[navy]]
     background_color = "#1a2a3f"
-    font = JetBrains Mono 11
+    font = JetBrainsMono Nerd Font 11
     foreground_color = "#fff8f0"
     show_titlebar = False
     scrollbar_position = hidden

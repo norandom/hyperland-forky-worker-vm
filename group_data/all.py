@@ -74,3 +74,12 @@ nofile_hard = 524288
 inotify_max_user_instances = 1024   # file watchers; default 128
 soft_lockup_watchdog = False    # False: kernel.watchdog=0 (false alarms when the host is busy)
 blacklist_modules = ["floppy", "pcspkr", "joydev"]   # unused in the VM
+
+# JetBrainsMono Nerd Font (same release/files as Omarchy's ttf-jetbrains-mono-nerd-basic);
+# Neovim/LazyVim icons need the patched glyphs.
+nerd_font_version = "3.5.1"
+nerd_font_sha256 = "04d5e8f903693f9dd13e16f867e994834e681eb3c72c0d337a770dcda09010cf"
+
+# Font rendering: "rgb" = ClearType-like subpixel (RDP shown 1:1, RGB display),
+# "grayscale" = no colour fringes when the RDP client scales (Retina/HiDPI).
+font_rendering = "rgb"

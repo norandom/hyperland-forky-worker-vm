@@ -56,7 +56,7 @@ else
         bar_color = "rgb(ebe3d6)",
         ["col.text"] = "rgb(2b4570)",
         bar_text_size = 11,
-        bar_text_font = "JetBrains Mono",
+        bar_text_font = "JetBrainsMono Nerd Font",
         bar_text_align = "center",
         bar_buttons_alignment = "left",
         bar_padding = 10,

@@ -168,11 +168,19 @@ Initial style: `decorations_style` in `group_data/all.py`.
 Window shadows: `hypr-shadow on|off` (off by default: without a GPU they are
 drawn by the CPU). With `win311` a hard black drop shadow, otherwise a soft one.
 
-## Themes for CLI tools
+## Themes, fonts, rendering
 
-Omarchy's generated Cream Blue files, activated as Omarchy does: btop
-(`color_theme = "cream-blue"`), Claude Code (`~/.claude/themes/omarchy.json`,
-`theme = custom:omarchy`), Chromium frame colour (managed policy), Neovim (LazyVim, aether).
+* Terminal tools match the terminal's **cobalt** palette (cream text, gold/sky
+  accents, transparent backgrounds so the navy profile fits too): Neovim
+  (LazyVim + aether), btop (`color_theme = "cobalt"`), Claude Code
+  (`~/.claude/themes/cobalt.json`, `theme = custom:cobalt`). Chromium keeps
+  the cream frame (managed policy).
+* **JetBrainsMono Nerd Font 3.5.1** (the same files as Omarchy's, checksum
+  verified): terminals, bar, launcher, notifications, title bars; Neovim icons need it.
+* **Font rendering** (`font_rendering`): `rgb` = ClearType-like subpixel +
+  hintslight (best when RoyalTS shows the session 1:1), `grayscale` = no colour
+  fringes when the client scales (Retina). hypr-rdp sends lossless ClearCodec
+  images, so text arrives exactly as rendered; it has no glyph-level features.
 
 ## Shell
 
