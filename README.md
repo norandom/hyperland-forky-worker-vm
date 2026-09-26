@@ -165,6 +165,15 @@ it (and back when it grows again); tiled layouts adapt on their own.
 (cream bar, red/green on the left). Minimized windows: SUPER + M.
 Initial style: `decorations_style` in `group_data/all.py`.
 
+Window shadows: `hypr-shadow on|off` (off by default: without a GPU they are
+drawn by the CPU). With `win311` a hard black drop shadow, otherwise a soft one.
+
+## Themes for CLI tools
+
+Omarchy's generated Cream Blue files, activated as Omarchy does: btop
+(`color_theme = "cream-blue"`), Claude Code (`~/.claude/themes/omarchy.json`,
+`theme = custom:omarchy`), Chromium frame colour (managed policy), Neovim (LazyVim, aether).
+
 ## Shell
 
 * **grml-inspired bash** (`~/.config/bash/grml.bash`; grml's own config is zsh-only):

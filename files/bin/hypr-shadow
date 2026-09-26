@@ -1,0 +1,8 @@
+#!/bin/bash
+# Window shadows on/off (style follows hypr-deco):  hypr-shadow on | off   (no argument: show)
+f="$HOME/.config/hypr/window-shadows"
+case "${1:-}" in
+  on|off) echo "$1" > "$f"; hyprctl reload >/dev/null && echo "window shadows: $1" ;;
+  "") cat "$f" 2>/dev/null || echo off ;;
+  *) echo "usage: hypr-shadow on|off" >&2; exit 1 ;;
+esac

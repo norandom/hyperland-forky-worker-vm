@@ -18,6 +18,7 @@ for task in (
     "apps",           # Calc, Chromium (MCP), gh, atop, Neovim, Node, xfce4-terminal
     "user_tools",     # uv, npm globals + pnpm, Aikido Safe Chain, Omarchy nvim config
     "shell",          # Kali-style history, xfce4-terminal theme + paste dialog
+    "themes",         # Omarchy theme files: btop, Claude Code, Chromium
     "autologin",      # tty1 autologin -> uwsm -> Hyprland
     "grub_password",  # optional (GRUB_PASSWORD env var)
 ):

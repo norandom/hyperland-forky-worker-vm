@@ -39,3 +39,29 @@ if rdp_flag then
   rdp_flag:close()
   hl.config({ cursor = { invisible = true } })
 end
+
+-- Window shadows: off by default (software rendering draws them on the CPU).
+-- Switch: hypr-shadow on|off. The look follows the title bar style (hypr-deco).
+do
+  local HOME = os.getenv("HOME") or ""
+  local function first(path, default)
+    local f = io.open(path, "r")
+    if not f then return default end
+    local v = (f:read("*l") or ""):match("^%s*(%S+)") or default
+    f:close()
+    return v
+  end
+  if first(HOME .. "/.config/hypr/window-shadows", "off") == "on" then
+    if first(HOME .. "/.config/hypr/decorations-style", "mac") == "win311" then
+      -- Windows 3.11: hard black drop shadow, bottom right
+      hl.config({ decoration = { shadow = {
+        enabled = true, sharp = true, range = 0, offset = "4 4", color = "rgba(000000aa)",
+      } } })
+    else
+      -- soft, subtle shadow
+      hl.config({ decoration = { shadow = {
+        enabled = true, sharp = false, range = 14, render_power = 3, offset = "0 3", color = "rgba(1a2a3f33)",
+      } } })
+    end
+  end
+end

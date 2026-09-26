@@ -32,6 +32,11 @@ server.shell(
 )
 
 server.shell(
+    name=f"Window shadows (set once to {host.data.window_shadows}; switch with hypr-shadow)",
+    commands=[f"[ -s {home}/.config/hypr/window-shadows ] || echo {host.data.window_shadows} > {home}/.config/hypr/window-shadows"],
+)
+
+server.shell(
     name="Layout mode (set once to dynamic; switch with SUPER+L / hypr-layout)",
     commands=[f"[ -s {home}/.config/hypr/layout-mode ] || echo dynamic > {home}/.config/hypr/layout-mode"],
 )
@@ -113,6 +118,13 @@ files.put(
     name="Layout switcher: hypr-layout dynamic|golden-h|golden-v|golden-spiral|next",
     src="files/bin/hypr-layout",
     dest=f"{home}/.local/bin/hypr-layout",
+    mode="755",
+)
+
+files.put(
+    name="Window shadow switch: hypr-shadow on|off",
+    src="files/bin/hypr-shadow",
+    dest=f"{home}/.local/bin/hypr-shadow",
     mode="755",
 )
 

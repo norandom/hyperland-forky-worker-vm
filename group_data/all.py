@@ -64,6 +64,8 @@ safe_chain_installer_sha256 = "03641bfdf4d5e3b5f0450120543579d578ed6354a8cff64bc
 # Title bars: "mac" (cream, red/green circles left) or "win311" (navy, ⊟ ⊠ right).
 # Only sets the initial style; switch any time on the host: hypr-deco win311|mac
 decorations_style = "win311"
+# Window shadows "on"/"off" (initial; switch with hypr-shadow). CPU-drawn without a GPU.
+window_shadows = "off"
 
 # --- System limits / VM hygiene -------------------------------------------------
 tmp_size = "1G"                 # /tmp is tmpfs (RAM); Debian default is 50% of RAM
