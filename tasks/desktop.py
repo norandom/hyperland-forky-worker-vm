@@ -114,10 +114,15 @@ for src, dest in (
     ("files/terminator/config", ".config/terminator/config"),
     ("files/terminator/plugins/theme_menu.py", ".config/terminator/plugins/theme_menu.py"),
     ("files/applications/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
+    ("files/applications/x3270.desktop", ".local/share/applications/x3270.desktop"),  # GUI, keypad
+    ("files/applications/nedit.desktop", ".local/share/applications/nedit.desktop"),
     # Debian's terminator.desktop fails uwsm's validation (menu launch fails)
     ("files/applications/terminator.desktop", ".local/share/applications/terminator.desktop"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
     ("files/gtk-3.0/gtk.css", ".config/gtk-3.0/gtk.css"),  # slim Terminator tabs
+    # X resources: Windows 3.11 look for NEdit and xpdf (Xwayland has no xrdb)
+    ("files/x11/Xdefaults", ".Xdefaults"),
+    ("files/x11/x3270pro", ".x3270pro"),  # x3270: built-in keypad, key sizes
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
 
@@ -159,7 +164,8 @@ files.put(
 )
 
 for script, what in (("hypr-glass", "glass window on|off"), ("hypr-pin", "stay on top on|off"),
-                     ("hypr-termtheme", "Terminator theme switch")):
+                     ("hypr-termtheme", "Terminator theme switch"),
+                     ("hypr-xfonts", "Fixedsys on the Xwayland font path")):
     files.put(
         name=f"Title bar button: {script} ({what})",
         src=f"files/bin/{script}",

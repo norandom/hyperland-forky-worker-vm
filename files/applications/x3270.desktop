@@ -1,0 +1,12 @@
+[Desktop Entry]
+# debian-hypr: Debian's entry runs x3270a, which needs xrdb + Xft.dpi (absent: it exits).
+# x3270 itself: GUI with the 3270 keypad built in (~/.x3270pro).
+Type=Application
+Name=IBM 3270 Terminal
+GenericName=3270 terminal (x3270)
+Comment=IBM mainframe terminal (z/OS, z/VM, Linux on Z) with PF/PA keypad
+Exec=x3270
+Icon=x3270
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=3270;mainframe;tn3270;ibm;zos;

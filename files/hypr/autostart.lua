@@ -5,4 +5,6 @@ hl.on("hyprland.start", function()
   -- hyprbars is loaded after the first config pass; reload once so
   -- decorations.lua can configure it.
   hl.exec_cmd("sleep 1 && hyprctl reload")
+  -- Fixedsys as core X fonts for NEdit (Xwayland font path)
+  hl.exec_cmd("$HOME/.local/bin/hypr-xfonts")
 end)

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Put the Fixedsys fonts on Xwayland's core font path (NEdit draws text with core
+# X fonts; Xwayland only has its built-in "fixed"). Run at session start.
+dir=/usr/local/share/fonts/x11-core
+[ -f "$dir/fonts.dir" ] || exit 0
+i=0
+until xset q >/dev/null 2>&1; do i=$((i+1)); [ $i -gt 40 ] && exit 1; sleep 0.5; done
+xset q | grep -q "$dir" || xset +fp "$dir"
+xset fp rehash

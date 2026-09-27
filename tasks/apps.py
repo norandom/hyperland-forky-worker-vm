@@ -34,6 +34,11 @@ apt.packages(
         "glow", "posting", "trippy", "gdu",
         # Image viewer (Xfce Ristretto) and a tabbed PDF viewer with annotations
         "ristretto", "qpdfview",
+        # Classic X11 tools in the Windows 3.11 look (~/.Xdefaults): NEdit (Motif editor),
+        # xpdf; x3270 / c3270 (IBM 3270 terminal for mainframes, Linux on Z)
+        "nedit", "xpdf", "x3270", "c3270",
+        # xset (core font path for NEdit's Fixedsys, see fonts + hypr-xfonts)
+        "x11-xserver-utils",
     ],
     no_recommends=True,
     _sudo=True,

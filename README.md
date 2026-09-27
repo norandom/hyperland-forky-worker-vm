@@ -279,7 +279,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   slim tmux-style line at the bottom; tab titles show just the directory. The
   tab bar takes the theme's font (Fixedsys Core for `fixedsys`) and colours.
   Terminal apps switch along: Claude Code (`~/.claude/themes`, live) and btop
-  (reloads its config) get a matching theme; Neovim starts with Berg light for
+  (reloads its config) and Sublime Text (colour scheme + the theme's font, e.g.
+  Fixedsys Core) get a matching theme; Neovim starts with Berg light for
   `cream` and Berg dark otherwise.
 
   ![The four Terminator themes (default/cobalt, navy, fixedsys, cream), each running Claude Code and btop in the matching theme](docs/terminal-themes.png)
@@ -311,6 +312,18 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   `~/.config/rclone/rclone.conf` on the host (rclone refreshes it); it isn't
   part of the private data.
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
+* **Classic X11 tools in the Windows 3.11 look**: Xfe's own Xfw (editor), Xfi
+  (images), Xfa (archives), Xfp (packages); NEdit (Motif editor with syntax
+  highlighting, text in Fixedsys; Latin-1 only, UTF-8 shows as garbage) and xpdf,
+  coloured through `~/.Xdefaults` (Xwayland has no xrdb). NEdit draws its text with
+  core X fonts, so `hypr-xfonts` puts Fixedsys on Xwayland's font path at session start.
+* **Mainframes**: x3270 (menu: System → IBM 3270 Terminal) with the 3270 keypad
+  built in (PF1-24, PA1-3, Clear, Enter, Attn, SysReq, ...), e.g. for z/OS, z/VM or
+  Linux on Z consoles; c3270 is the same in a terminal. The dynamic layout leaves
+  x3270's size alone (it sizes itself from the 3270 screen).
+* **App menu**: categories first, then every application; typing an app name
+  finds it directly. All text editors (Sublime Text, Typora, NEdit, Xfw, Neovim,
+  Vim) are grouped under *Editors*.
 * **TUIs**: `glow` (Markdown), `posting` (HTTP/API client), `trip` (trippy:
   traceroute + ping), `gdu` (disk usage), `podman-tui` (containers; uses the
   socket-activated user `podman.socket`), `zellij` (terminal workspaces), `upmd`
@@ -325,3 +338,42 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   (menu: Little Snitch, opens in Chromium). Built for privacy, not security.
 * **Supply chain**: Aikido Safe Chain wraps npm, npx, pnpm, pip, uv and uvx
   and blocks packages younger than 48 hours.
+
+## Software
+
+The projects this setup installs or builds on, with their home pages.
+
+**Desktop and RDP**
+- [Hyprland](https://hyprland.org) (compositor) with [hyprbars](https://github.com/hyprwm/hyprland-plugins) (title bars), started by [uwsm](https://github.com/Vladimir-csp/uwsm)
+- [hypr-rdp](https://github.com/MuNeNICK/hypr-rdp) (RDP server, patched here) on [IronRDP](https://github.com/Devolutions/IronRDP)
+- [Waybar](https://github.com/Alexays/Waybar) (top bar), [mako](https://github.com/emersion/mako) (notifications), [fuzzel](https://codeberg.org/dnkl/fuzzel) (launcher, app menu)
+- [PipeWire](https://pipewire.org) (audio, redirected to the RDP client)
+- [Royal TS](https://www.royalapps.com) (RDP client used on the Mac); ideas from [Omarchy](https://omarchy.org)
+
+**Terminals and shell**
+- [Terminator](https://gnome-terminator.org), [xfce4-terminal](https://docs.xfce.org/apps/xfce4-terminal/start), [zellij](https://zellij.dev)
+- [Neovim](https://neovim.io) with [nvim-simple](https://github.com/norandom/nvim-simple)
+- [uutils coreutils](https://uutils.github.io) (Rust coreutils)
+- [ripgrep](https://github.com/BurntSushi/ripgrep), [fd](https://github.com/sharkdp/fd), [fzf](https://github.com/junegunn/fzf), [bat](https://github.com/sharkdp/bat), [lazygit](https://github.com/jesseduffield/lazygit), [multitail](https://www.vanheusden.com/multitail/), [aria2](https://aria2.github.io), [GitHub CLI](https://cli.github.com)
+- [btop](https://github.com/aristocratos/btop), [atop](https://www.atoptool.nl), [gdu](https://github.com/dundee/gdu), [trippy](https://trippy.rs), [glow](https://github.com/charmbracelet/glow), [posting](https://posting.sh), [upmd](https://github.com/rezigned/upmd), [euporie](https://github.com/joouha/euporie)
+- [x3270 / c3270](https://x3270.bgp.nu) (IBM 3270 terminal)
+
+**Applications**
+- [Sublime Text](https://www.sublimetext.com), [Typora](https://typora.io), [Obsidian](https://obsidian.md), [NEdit](https://sourceforge.net/projects/nedit/), [Xfe](https://sourceforge.net/projects/xfe/) (file manager, with Xfw, Xfi, Xfa, Xfp)
+- [LibreOffice](https://www.libreoffice.org) (Calc, Writer), [Meld](https://meldmerge.org), [xpdf](http://www.xpdfreader.com), [qpdfview](https://launchpad.net/qpdfview), [Ristretto](https://docs.xfce.org/apps/ristretto/start)
+- [Vivaldi](https://vivaldi.com), [Chromium](https://www.chromium.org)
+- [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org)
+
+**Containers, security, agents**
+- [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
+- [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
+- [Claude Code](https://claude.com/claude-code), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
+
+**Fonts**
+- [Nerd Fonts](https://www.nerdfonts.com): [JetBrains Mono](https://www.jetbrains.com/lp/mono/), [Fira Code](https://github.com/tonsky/FiraCode)
+- [Fixedsys Core](https://github.com/delinx/Fixedsys-Core), [Fixedsys Excelsior](https://github.com/kika/fixedsys)
+- [Noto Color Emoji](https://github.com/googlefonts/noto-emoji), [Symbola](https://dn-works.com/ufas/)
+
+**Deployment**
+- [pyinfra](https://pyinfra.com), [uv](https://docs.astral.sh/uv/), [Dagger](https://dagger.io) (hypr-rdp .deb in CI)
+- [age](https://age-encryption.org) via [pyrage](https://github.com/woodruffw/pyrage) (private data)

@@ -1,0 +1,11 @@
+[Desktop Entry]
+# debian-hypr: clean name, listed with the other text editors
+Type=Application
+Name=NEdit
+GenericName=Text Editor
+Comment=Motif text editor with syntax highlighting (Windows 3.11 look, Fixedsys)
+Exec=nedit-nc %F
+Icon=nedit
+Terminal=false
+MimeType=text/plain;
+Categories=Utility;TextEditor;

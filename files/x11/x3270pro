@@ -1,0 +1,13 @@
+! Managed by debian-hypr. x3270 profile (read after x3270's built-in defaults,
+! which override ~/.Xdefaults for these). Green-on-black 3270 screen as shipped.
+! 3270 keypad (PF1-24, PA1-3, Clear, Enter, Attn, SysReq, ...) built into the
+! window, below the screen:
+x3270.keypadOn:              true
+x3270.keypad:                integral
+! Keys large enough for the two-line label bitmaps ("Erase EOF", "Cursor Select");
+! the PF/PA rows set where the arrow block starts, so they grow with them.
+x3270.keypad.keyWidth:       64
+x3270.keypad.largeKeyWidth:  64
+x3270.keypad.keyHeight:      30
+x3270.keypad.pfWidth:        44
+x3270.keypad.paWidth:        48

@@ -41,6 +41,8 @@ end
 -- --- dynamic: remember geometry per application class ------------------------------
 -- Stored as fractions of the monitor, so it survives RDP resolution changes.
 local geom = {}
+-- Apps that size themselves (fixed character grid): never remembered or resized.
+local OWN_SIZE = { X3270 = true }
 do
   local f = io.open(GEOM_FILE, "r")
   if f then
@@ -81,7 +83,7 @@ end
 
 if mode == "dynamic" then
   hl.on("window.close", function(w)
-    if not (w and w.floating and w.class and w.class ~= "" and w.monitor) then return end
+    if not (w and w.floating and w.class and w.class ~= "" and w.monitor) or OWN_SIZE[w.class] then return end
     local mx, my, mw, mh = mon_box(w.monitor)
     geom[w.class] = { (w.at.x - mx) / mw, (w.at.y - my) / mh, w.size.x / mw, w.size.y / mh }
     save_geom()
@@ -89,6 +91,7 @@ if mode == "dynamic" then
 
   hl.on("window.open", function(w)
     if not w then return end
+    if w.class and OWN_SIZE[w.class] then return end
     local g, sel = w.class and geom[w.class], addr_sel(w)
     hl.timer(function()
       local win = w
@@ -157,7 +160,7 @@ local function remember_open_windows()
   if mode ~= "dynamic" then return end
   for _, w in ipairs(hl.get_windows() or {}) do
     local g = snap[w.address]
-    if g and w.class and w.class ~= "" and not w.class:find("%s") then
+    if g and w.class and w.class ~= "" and not w.class:find("%s") and not OWN_SIZE[w.class] then
       local cur = geom[w.class]
       local new = { g[2], g[3], g[4], g[5] }
       if not cur or math.abs(cur[1] - new[1]) + math.abs(cur[2] - new[2])

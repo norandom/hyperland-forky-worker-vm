@@ -1,0 +1,111 @@
+{
+  "name": "debian-hypr Fixedsys (amber)",
+  "author": "debian-hypr (matches the Terminator profile)",
+  "globals": {
+    "background": "#1f233c",
+    "foreground": "#ffa348",
+    "caret": "#ffa348",
+    "selection": "#3a4066",
+    "selection_border": "#3a4066",
+    "line_highlight": "#2a2f4c",
+    "gutter": "#1f233c",
+    "gutter_foreground": "#b07838",
+    "line_diff_added": "#8ae234",
+    "line_diff_modified": "#ffd8a8",
+    "line_diff_deleted": "#ef2929",
+    "find_highlight": "#ffd8a8",
+    "find_highlight_foreground": "#1f233c",
+    "invisibles": "#b07838",
+    "brackets_foreground": "#ffd8a8",
+    "bracket_contents_foreground": "#ffd8a8",
+    "tags_foreground": "#ffd8a8",
+    "minimap_border": "#2a2f4c",
+    "active_guide": "#b07838",
+    "guide": "#2a2f4c"
+  },
+  "rules": [
+    {
+      "name": "Comment",
+      "scope": "comment, punctuation.definition.comment",
+      "foreground": "#b07838",
+      "font_style": "italic"
+    },
+    {
+      "name": "String",
+      "scope": "string",
+      "foreground": "#8ae234"
+    },
+    {
+      "name": "Number, constant",
+      "scope": "constant.numeric, constant.language, constant.character",
+      "foreground": "#fce94f"
+    },
+    {
+      "name": "Keyword, storage",
+      "scope": "keyword, storage.type, storage.modifier",
+      "foreground": "#ffc07a"
+    },
+    {
+      "name": "Operator",
+      "scope": "keyword.operator",
+      "foreground": "#ffa348"
+    },
+    {
+      "name": "Function",
+      "scope": "entity.name.function, support.function, variable.function",
+      "foreground": "#729fcf"
+    },
+    {
+      "name": "Type, class",
+      "scope": "entity.name.type, entity.name.class, support.type, support.class",
+      "foreground": "#ad7fa8"
+    },
+    {
+      "name": "Tag, heading",
+      "scope": "entity.name.tag, markup.heading",
+      "foreground": "#ffc07a",
+      "font_style": "bold"
+    },
+    {
+      "name": "Attribute",
+      "scope": "entity.other.attribute-name",
+      "foreground": "#729fcf"
+    },
+    {
+      "name": "Variable",
+      "scope": "variable.parameter, variable.other.readwrite",
+      "foreground": "#ffa348"
+    },
+    {
+      "name": "Markup link",
+      "scope": "markup.underline.link, string.other.link",
+      "foreground": "#729fcf"
+    },
+    {
+      "name": "Markup bold/italic",
+      "scope": "markup.bold",
+      "font_style": "bold"
+    },
+    {
+      "name": "Markup italic",
+      "scope": "markup.italic",
+      "font_style": "italic"
+    },
+    {
+      "name": "Inserted",
+      "scope": "markup.inserted",
+      "foreground": "#8ae234"
+    },
+    {
+      "name": "Deleted",
+      "scope": "markup.deleted",
+      "foreground": "#ef2929"
+    },
+    {
+      "name": "Invalid",
+      "scope": "invalid",
+      "foreground": "#1f233c",
+      "background": "#ef2929"
+    }
+  ]
+}

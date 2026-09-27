@@ -1,0 +1,48 @@
+! Managed by debian-hypr. X resources for classic X toolkit apps under Xwayland
+! (read from ~/.Xdefaults: no xrdb in this session). Windows 3.11 palette as Xfe
+! (files/xfe/xferc): grey #c0c0c0, white text areas, navy #000080 selection.
+! x3270 keeps its own green-on-black 3270 look; its settings are in ~/.x3270pro.
+
+! --- NEdit (Motif, Xft fonts) ---------------------------------------------------
+NEdit*background:            #c0c0c0
+NEdit*foreground:            #000000
+NEdit*XmText*background:     #ffffff
+NEdit*XmTextField*background: #ffffff
+NEdit*XmList*background:     #ffffff
+NEdit*topShadowColor:        #ffffff
+NEdit*bottomShadowColor:     #808080
+NEdit*highlightColor:        #000000
+NEdit*selectColor:           #000080
+NEdit*defaultRT.fontName:    DejaVu Sans
+NEdit*defaultRT.fontSize:    9
+NEdit*fixedRT.fontName:      Fixedsys Excelsior
+NEdit*fixedRT.fontSize:      12
+! Editor text: core X font (NEdit 5.7 draws text without Xft); Fixedsys is on
+! Xwayland's font path via hypr-xfonts (session start).
+nedit.textFont:              -misc-fixedsys excelsior-medium-r-normal--16-*-*-*-*-*-iso8859-1
+nedit.boldHighlightFont:     -misc-fixedsys excelsior-medium-r-normal--16-*-*-*-*-*-iso8859-1
+nedit.italicHighlightFont:   -misc-fixedsys excelsior-medium-r-normal--16-*-*-*-*-*-iso8859-1
+nedit.boldItalicHighlightFont: -misc-fixedsys excelsior-medium-r-normal--16-*-*-*-*-*-iso8859-1
+nedit.textFgColor:           #000000
+nedit.textBgColor:           #ffffff
+nedit.selectFgColor:         #ffffff
+nedit.selectBgColor:         #000080
+nedit.hiliteFgColor:         #ffffff
+nedit.hiliteBgColor:         #808080
+nedit.lineNoFgColor:         #808080
+nedit.cursorFgColor:         #000000
+nedit.statisticsLine:        true
+
+! --- xpdf (Motif) ----------------------------------------------------------------
+Xpdf*background:             #c0c0c0
+Xpdf*foreground:             #000000
+Xpdf*XmTextField*background: #ffffff
+Xpdf*XmList*background:      #ffffff
+Xpdf*topShadowColor:         #ffffff
+Xpdf*bottomShadowColor:      #808080
+Xpdf*selectColor:            #000080
+Xpdf*matteColor:             #808080
+Xpdf*renderTable:            xpdfRT
+Xpdf*xpdfRT.fontType:        FONT_IS_XFT
+Xpdf*xpdfRT.fontName:        DejaVu Sans
+Xpdf*xpdfRT.fontSize:        9

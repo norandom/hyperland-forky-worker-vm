@@ -2,7 +2,7 @@
 # Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev|apply
 # (SUPER+Y or the ● bar button cycle; right-click menu "Theme" in Terminator). New windows opened
 # with SUPER+Return use the last choice (~/.local/state/terminator-profile).
-# Terminal apps follow: Claude Code theme, btop theme, Neovim colorscheme (next start).
+# Apps follow: Claude Code theme, btop theme, Sublime Text scheme + font, Neovim colorscheme (next start).
 # "apply" only re-applies the app themes for the current profile.
 state="$HOME/.local/state/terminator-profile"
 profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.config/terminator/config")
@@ -31,6 +31,35 @@ btop="$HOME/.config/btop/btop.conf"
 if [ -f "$btop" ]; then
   sed -i "s|^color_theme = .*|color_theme = \"$app\"|" "$btop"
   pkill -USR2 -x btop 2>/dev/null   # btop reloads its config
+fi
+# Sublime Text: matching colour scheme + the profile's font (Preferences reload live)
+if command -v subl >/dev/null && command -v python3 >/dev/null; then
+  font=$(awk -v p="[[$new]]" '$1 == p {f=1; next} /^  \[\[/ {f=0} f && $1 == "font" {sub(/^[^=]*= */, ""); print; exit}' \
+    "$HOME/.config/terminator/config")
+  python3 - "$HOME/.config/sublime-text/Packages/User/Preferences.sublime-settings" "$app" "$font" <<'EOF'
+import json, os, re, sys
+path, scheme, font = sys.argv[1:]
+try:
+    text = open(path).read()
+except FileNotFoundError:
+    text = "{}"
+try:
+    prefs = json.loads(text)
+except ValueError:  # Sublime allows comments and trailing commas
+    try:
+        prefs = json.loads(re.sub(r",(\s*[}\]])", r"\1", re.sub(r"^\s*//.*$", "", text, flags=re.M)))
+    except ValueError:
+        sys.exit(0)  # leave a file we can't parse alone
+prefs["color_scheme"] = f"debian-hypr-{scheme}.sublime-color-scheme"
+prefs.setdefault("theme", "Adaptive.sublime-theme")
+face, _, size = font.rpartition(" ")
+if face and size.isdigit():
+    prefs["font_face"], prefs["font_size"] = face, int(size)
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w") as f:
+    json.dump(prefs, f, indent=4)
+    f.write("\n")
+EOF
 fi
 [ "$1" = apply ] && exit 0
 

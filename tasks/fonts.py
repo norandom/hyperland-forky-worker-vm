@@ -32,7 +32,22 @@ fc-cache -f /usr/local/share/fonts/extra >/dev/null)"""],
         _sudo=True,
     )
 
-from pyinfra.operations import files  # noqa: E402
+from pyinfra.operations import apt, files  # noqa: E402
+
+# Fixedsys as core X fonts (NEdit draws its text with core fonts): own directory
+# with fonts.dir; hypr-xfonts adds it to Xwayland's font path at session start.
+core = "/usr/local/share/fonts/x11-core"
+apt.packages(name="mkfontscale / mkfontdir", packages=["xfonts-utils"], no_recommends=True, _sudo=True)
+server.shell(
+    name="Fixedsys as core X fonts (fonts.dir for Xwayland)",
+    commands=[f"""install -d -m 755 {core}
+for f in FSEX302.ttf FixedsysCore-Regular.ttf; do
+  cmp -s /usr/local/share/fonts/extra/$f {core}/$f || cp /usr/local/share/fonts/extra/$f {core}/$f
+done
+cd {core} && [ fonts.dir -nt FSEX302.ttf ] && [ fonts.dir -nt FixedsysCore-Regular.ttf ] || \
+  {{ mkfontscale && mkfontdir; }}"""],
+    _sudo=True,
+)
 
 fc = files.template(
     name=f"fontconfig: hintslight, {host.data.font_rendering} antialiasing, monospace = Nerd Font",

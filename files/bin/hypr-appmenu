@@ -1,6 +1,6 @@
 #!/bin/bash
 # XFCE-style application menu with fuzzel (no extra toolkit):
-#   hypr-appmenu              categories -> applications (top-left)
+#   hypr-appmenu              categories -> applications, or type an app name (top-left)
 #   hypr-appmenu --at X Y     same, opened at X/Y (desktop right-click)
 #   hypr-appmenu power        log out / reboot / shut down
 set -u
@@ -48,6 +48,9 @@ entries() {
           if (hidden || name == "" || (type != "" && type != "Application")) exit
           cat = "Other"; n = split(cats, a, ";")
           for (i = 1; i <= n; i++) if (a[i] in m) { cat = m[a[i]]; break }
+          # all text editors together, whatever else they are tagged with
+          for (i = 1; i <= n; i++) if (a[i] == "TextEditor") cat = "Editors"
+          if (id == "typora.desktop") cat = "Editors"   # Markdown editor, tagged WordProcessor
           printf "%s\t%s\t%s\n", cat, name, id
         }' "$f"
     done
@@ -55,12 +58,16 @@ entries() {
 }
 
 list=$(entries)
-all="All applications (search)"
-cat=$( { echo "$all"; cut -f1 <<<"$list" | sort -u; } | menu --prompt 'Apps > ' ) || exit 0
-
-if [ "$cat" = "$all" ]; then
-  exec uwsm app -- fuzzel
-fi
+# Top level: the categories, then every application ("Name · Category"), so
+# typing an app name finds it right away. Output: "cat <Category>" or "app <id>".
+pick=$( { cut -f1 <<<"$list" | sort -u | awk '{ printf "▸ %s\tcat %s\n", $0, $0 }'
+          awk -F'\t' '{ printf "%s · %s\tapp %s\n", $2, $1, $3 }' <<<"$list" | sort -f; } |
+        menu --prompt 'Apps > ' --with-nth=1 --accept-nth=2) || exit 0
+case "$pick" in
+  app\ *) exec uwsm app -- "${pick#app }" ;;
+  cat\ *) cat=${pick#cat } ;;
+  *) exit 0 ;;
+esac
 
 id=$(awk -F'\t' -v c="$cat" '$1 == c { print $2 "\t" $3 }' <<<"$list" | sort -f |
      menu --prompt "$cat > " --with-nth=1 --accept-nth=2) || exit 0

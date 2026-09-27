@@ -1,0 +1,111 @@
+{
+  "name": "debian-hypr Cream (cream-blue light)",
+  "author": "debian-hypr (matches the Terminator profile)",
+  "globals": {
+    "background": "#fff8f0",
+    "foreground": "#2b4570",
+    "caret": "#2b4570",
+    "selection": "#d5dfeb",
+    "selection_border": "#d5dfeb",
+    "line_highlight": "#f5ede0",
+    "gutter": "#fff8f0",
+    "gutter_foreground": "#7b96b4",
+    "line_diff_added": "#3a8e4f",
+    "line_diff_modified": "#3a5a8a",
+    "line_diff_deleted": "#a0403a",
+    "find_highlight": "#3a5a8a",
+    "find_highlight_foreground": "#fff8f0",
+    "invisibles": "#7b96b4",
+    "brackets_foreground": "#3a5a8a",
+    "bracket_contents_foreground": "#3a5a8a",
+    "tags_foreground": "#3a5a8a",
+    "minimap_border": "#f5ede0",
+    "active_guide": "#7b96b4",
+    "guide": "#f5ede0"
+  },
+  "rules": [
+    {
+      "name": "Comment",
+      "scope": "comment, punctuation.definition.comment",
+      "foreground": "#5b7fa5",
+      "font_style": "italic"
+    },
+    {
+      "name": "String",
+      "scope": "string",
+      "foreground": "#3a8e4f"
+    },
+    {
+      "name": "Number, constant",
+      "scope": "constant.numeric, constant.language, constant.character",
+      "foreground": "#a87a2f"
+    },
+    {
+      "name": "Keyword, storage",
+      "scope": "keyword, storage.type, storage.modifier",
+      "foreground": "#3a5a8a"
+    },
+    {
+      "name": "Operator",
+      "scope": "keyword.operator",
+      "foreground": "#2b4570"
+    },
+    {
+      "name": "Function",
+      "scope": "entity.name.function, support.function, variable.function",
+      "foreground": "#7a5aaf"
+    },
+    {
+      "name": "Type, class",
+      "scope": "entity.name.type, entity.name.class, support.type, support.class",
+      "foreground": "#4a90d9"
+    },
+    {
+      "name": "Tag, heading",
+      "scope": "entity.name.tag, markup.heading",
+      "foreground": "#3a5a8a",
+      "font_style": "bold"
+    },
+    {
+      "name": "Attribute",
+      "scope": "entity.other.attribute-name",
+      "foreground": "#7a5aaf"
+    },
+    {
+      "name": "Variable",
+      "scope": "variable.parameter, variable.other.readwrite",
+      "foreground": "#2b4570"
+    },
+    {
+      "name": "Markup link",
+      "scope": "markup.underline.link, string.other.link",
+      "foreground": "#7a5aaf"
+    },
+    {
+      "name": "Markup bold/italic",
+      "scope": "markup.bold",
+      "font_style": "bold"
+    },
+    {
+      "name": "Markup italic",
+      "scope": "markup.italic",
+      "font_style": "italic"
+    },
+    {
+      "name": "Inserted",
+      "scope": "markup.inserted",
+      "foreground": "#3a8e4f"
+    },
+    {
+      "name": "Deleted",
+      "scope": "markup.deleted",
+      "foreground": "#a0403a"
+    },
+    {
+      "name": "Invalid",
+      "scope": "invalid",
+      "foreground": "#fff8f0",
+      "background": "#a0403a"
+    }
+  ]
+}
