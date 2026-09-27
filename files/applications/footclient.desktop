@@ -1,0 +1,5 @@
+[Desktop Entry]
+# debian-hypr: hidden (foot server mode is not used)
+Type=Application
+Name=footclient
+NoDisplay=true

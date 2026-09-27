@@ -1,0 +1,6 @@
+#!/bin/sh
+# Start a command through Hyprland, like a keybinding does. For waybar clicks:
+# processes waybar starts itself are killed when waybar reloads (every deploy).
+#   hypr-launch uwsm app -- xfe
+esc=$(printf '%s' "$*" | sed 's/\\/\\\\/g; s/"/\\"/g')
+exec hyprctl dispatch "hl.dsp.exec_cmd(\"$esc\")" >/dev/null

@@ -73,3 +73,15 @@ do
     end
   end
 end
+
+-- Night filter (hypr-nightmode, the rabbit in the bar): a config reload resets the
+-- screen shader, so re-apply the chosen one here.
+do
+  local f = io.open(os.getenv("HOME") .. "/.local/state/hypr-nightmode", "r")
+  if f then
+    local mode = (f:read("l") or ""):match("%a+"); f:close()
+    if mode == "green" or mode == "dark" then
+      hl.config({ decoration = { screen_shader = os.getenv("HOME") .. "/.config/hypr/shaders/night-" .. mode .. ".glsl" } })
+    end
+  end
+end

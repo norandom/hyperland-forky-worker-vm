@@ -13,11 +13,19 @@ you use over RDP.
 * **For multitaskers** who want a purpose-built worker VM: terminals, AI
   agents, containers and a browser, nothing else.
 
-![Thin client desktop over RDP: top bar with app menu, launchers for Xfe, Terminator and Vivaldi, layout mode, window list, clock, CPU/MEM/net, speaker icon, terminal theme dot, keyboard layout and power button; btop in the amber fixedsys theme with Fixedsys Core tabs; Claude Code in its matching cobalt theme as a glass window, pinned on top, with btop showing through; Windows 3.11 style title bars](docs/screenshot.png)
+![Thin client desktop over RDP: Hacker News in Chromium as the main window; btop in Terminator's fixedsys theme (amber on navy, Berkeley Mono); Claude Code in Ghostty's cobalt theme explaining the night filter; top bar with app menu, launchers, window list, clock, AI quota, CPU/MEM/net, volume, night-filter rabbit, theme dot, keyboard layout and power button; Windows 3.11 style title bars](docs/screenshot.png)
 
 It is explicitly **not** a laptop or desktop base OS: no display manager, no
 GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
 straight into Hyprland on tty1, and hypr-rdp serves that session.
+
+### Gallery
+
+| Golden-spiral layout, navy + cream themes | Terminal themes |
+|---|---|
+| ![Golden-spiral layout: Hacker News at 61.8 %, Ghostty in the navy theme rendering the README with glow, Terminator in the light cream theme listing the repo's scripts with uutils ls](docs/layout-golden.png) | ![The four Terminator themes (default/cobalt, navy, fixedsys, cream), each running Claude Code and btop in the matching theme](docs/terminal-themes.png) |
+| **Night filter: green** (rabbit green) | **Night filter: dark** (rabbit white) |
+| ![The hero screen through the green night filter: soft mint, glare capped, blue cut](docs/night-green.png) | ![The hero screen through the dark night filter: dimmer, colours mostly kept](docs/night-dark.png) |
 
 ## Quick start
 
@@ -229,6 +237,36 @@ and US are loaded together: switch with `kbde` / `kbus`, `setxkbmap de|us`,
 `hypr-kbd de|us` or the ⌨ bar button. The choice survives reloads and reboots,
 and hypr-rdp follows it without reconnecting.
 
+## Follow the white rabbit…
+
+The rabbit 󰤇 in the top bar is a night filter for the whole screen, browser
+included (`hypr-nightmode`, a Hyprland screen shader on the GPU). Click cycles,
+right-click turns it off:
+
+| Rabbit | Mode |
+|---|---|
+| black | off |
+| green | **green**: the mint of the computer screens in *The Matrix*, for night use |
+| white | **dark**: simply dimmer, colours mostly kept |
+
+The filters work in OKLab, a colour space built around human perception, so they
+can change lightness and colour independently:
+
+* **Lightness contrast stays** (that is what keeps text readable); only the
+  brightest white is capped (green: 76 %, dark: 62 % perceived lightness), which
+  takes away the glare.
+* **Colours are reduced, not removed**: green keeps 35 % of the original
+  colourfulness, tinted towards the film's mint (`#91F2D6`, measured from a
+  still); links, warnings and images stay distinguishable. Dark keeps 80 %.
+* **Blue is cut** in green mode (blue at most 80 % of green): night vision and
+  melatonin react most to blue, while green reads with the least light (the eye
+  is most sensitive around 555 nm).
+
+The mode survives config reloads. The numbers are at the top of
+`files/hypr/shaders/night-*.glsl`. The shader runs on the GPU; without one
+(llvmpipe) it costs CPU on every frame. hypr-rdp captures the filtered screen, so
+the RDP client sees it.
+
 ## Private data: fonts and licenses
 
 Proprietary fonts and license keys can't go into a public repo, so they're kept
@@ -273,7 +311,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
 * **Containers**: `docker`, `docker compose` and `docker-compose` run
   rootless podman without a daemon.
 * **Terminator themes**: `default` (cobalt), `navy`, `fixedsys` (amber on navy,
-  Fixedsys Core), `cream` (light: navy on cream). The ● bar button (click next, right-click previous), SUPER+Y,
+  Berkeley Mono from the private data; the default monospace without it), `cream`
+  (light: navy on cream). The ● bar button (click next, right-click previous), SUPER+Y,
   `hypr-termtheme <name>|next|prev` or right-click → Theme switches all open
   terminals; new ones (SUPER+Return, app menu) use the last choice. Tabs are a
   slim tmux-style line at the bottom; tab titles show just the directory. The
@@ -312,6 +351,19 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   `~/.config/rclone/rclone.conf` on the host (rclone refreshes it); it isn't
   part of the private data.
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
+* **More terminals**: Ghostty (Debian forky build from
+  [mkasberg/ghostty-ubuntu](https://github.com/mkasberg/ghostty-ubuntu), pinned) and foot.
+  Both follow the Terminator theme: `hypr-termtheme` copies the matching theme
+  file (colours + font, generated from the Terminator profiles) and running Ghostty
+  windows reload it live; foot picks it up for new windows. Ghostty keeps its Linux
+  keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
+  Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
+  instead of the tall Adwaita toolbar.
+* **AI quota in the bar**: `Cl 90%  Co 60%` = weekly quota left for Claude and Codex
+  (green / yellow / red; tooltip: every window and its reset time; click: refresh).
+  Claude via Anthropic's OAuth usage endpoint with Claude Code's own login, Codex via
+  `codex app-server`; ported from [shiftynick/omarchy-agent-quota-bar](https://github.com/shiftynick/omarchy-agent-quota-bar)
+  (an Omarchy shell widget). Codex CLI is installed (npm); run `codex login` once.
 * **Classic X11 tools in the Windows 3.11 look**: Xfe's own Xfw (editor), Xfi
   (images), Xfa (archives), Xfp (packages); NEdit (Motif editor with syntax
   highlighting, text in Fixedsys; Latin-1 only, UTF-8 shows as garbage) and xpdf,
@@ -351,7 +403,7 @@ The projects this setup installs or builds on, with their home pages.
 - [Royal TS](https://www.royalapps.com) (RDP client used on the Mac); ideas from [Omarchy](https://omarchy.org)
 
 **Terminals and shell**
-- [Terminator](https://gnome-terminator.org), [xfce4-terminal](https://docs.xfce.org/apps/xfce4-terminal/start), [zellij](https://zellij.dev)
+- [Terminator](https://gnome-terminator.org), [Ghostty](https://ghostty.org), [foot](https://codeberg.org/dnkl/foot), [xfce4-terminal](https://docs.xfce.org/apps/xfce4-terminal/start), [zellij](https://zellij.dev)
 - [Neovim](https://neovim.io) with [nvim-simple](https://github.com/norandom/nvim-simple)
 - [uutils coreutils](https://uutils.github.io) (Rust coreutils)
 - [ripgrep](https://github.com/BurntSushi/ripgrep), [fd](https://github.com/sharkdp/fd), [fzf](https://github.com/junegunn/fzf), [bat](https://github.com/sharkdp/bat), [lazygit](https://github.com/jesseduffield/lazygit), [multitail](https://www.vanheusden.com/multitail/), [aria2](https://aria2.github.io), [GitHub CLI](https://cli.github.com)
@@ -367,9 +419,10 @@ The projects this setup installs or builds on, with their home pages.
 **Containers, security, agents**
 - [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
 - [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
-- [Claude Code](https://claude.com/claude-code), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
+- [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
 
 **Fonts**
+- [Berkeley Mono](https://usgraphics.com/products/berkeley-mono) (commercial; private data only)
 - [Nerd Fonts](https://www.nerdfonts.com): [JetBrains Mono](https://www.jetbrains.com/lp/mono/), [Fira Code](https://github.com/tonsky/FiraCode)
 - [Fixedsys Core](https://github.com/delinx/Fixedsys-Core), [Fixedsys Excelsior](https://github.com/kika/fixedsys)
 - [Noto Color Emoji](https://github.com/googlefonts/noto-emoji), [Symbola](https://dn-works.com/ufas/)

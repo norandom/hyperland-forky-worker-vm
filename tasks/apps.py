@@ -22,8 +22,9 @@ apt.packages(
         "rust-coreutils",
         # Node.js + npm (user-level globals via ~/.npmrc prefix, see user_tools)
         "nodejs", "npm",
-        # Second terminal: multi-line paste opens an editable review dialog
-        "xfce4-terminal",
+        # More terminals: xfce4-terminal (multi-line paste opens a review dialog), foot
+        # (Wayland-native, light); ghostty comes as a .deb below
+        "xfce4-terminal", "foot",
         # CLI: multitail, fzf helpers (bat previews, tree for directory previews)
         "multitail", "bat", "tree",
         # downloads: segmented HTTP/FTP/BitTorrent/metalink; sync (rclone: release_tools)
@@ -100,6 +101,19 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{obs_deb} https://github.com/obsidianmd/obsidian-releases/releases/download/v{obs_ver}/{obs_deb}
 echo "{obs_sha}  /var/cache/debian-hypr/{obs_deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{obs_deb})"""],
+    _sudo=True,
+)
+
+# Ghostty: Debian forky build from mkasberg/ghostty-ubuntu (pinned, checksum verified)
+g_ver, g_deb_ver, g_sha = host.data.ghostty_version, host.data.ghostty_deb_version, host.data.ghostty_sha256
+g_deb = f"ghostty_{g_ver}_amd64_forky.deb"
+server.shell(
+    name=f"Ghostty {g_deb_ver} (checksum verified)",
+    commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' ghostty 2>/dev/null)" = "{g_deb_ver}" ] || (set -e
+install -d -m 755 /var/cache/debian-hypr
+curl -fsSL -o /var/cache/debian-hypr/{g_deb} https://github.com/mkasberg/ghostty-ubuntu/releases/download/{host.data.ghostty_release}/{g_deb}
+echo "{g_sha}  /var/cache/debian-hypr/{g_deb}" | sha256sum -c --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{g_deb})"""],
     _sudo=True,
 )
 

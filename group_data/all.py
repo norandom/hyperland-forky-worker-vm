@@ -144,6 +144,11 @@ nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
 # Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
 obsidian_version = "1.13.7"
 obsidian_sha256 = "17dc33b49cb3e785ecc27edd2ea0c79e40207798b554fd2886e36ebee7af9ae0"
+# Ghostty .deb for Debian forky from github.com/mkasberg/ghostty-ubuntu (sha256 = GitHub's asset digest)
+ghostty_release = "1.3.1-0-ppa2"
+ghostty_version = "1.3.1-0.ppa2"
+ghostty_deb_version = "1.3.1-0~ppa2"
+ghostty_sha256 = "d4f9207423ea7957344430a729b52edb13aff620fb27fe69434ed1d8dc80f880"
 
 # Rust coreutils (uutils, Debian's rust-coreutils) first in PATH for the desktop
 # user's shells and the Hyprland session. System services and root keep GNU coreutils.

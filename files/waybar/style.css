@@ -1,7 +1,7 @@
 /* Managed by debian-hypr. cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray { padding: 0 6px; }
+#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray { padding: 0 6px; }
 #cpu.warning, #memory.warning { color: #a87a2f; }
 #cpu.critical, #memory.critical { color: #c0605a; }
 #clock { font-weight: bold; }
@@ -30,6 +30,12 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #f5ede0; }
 #custom-layout { padding: 0 8px; color: #2b4570; }
 #custom-kbd { padding: 0 8px; color: #2b4570; }
+/* Night filter rabbit: black = off, mint = green filter, white (on navy) = dark */
+#custom-nightmode { padding: 0 8px; font-size: 15px; color: #1a2a3f; }
+#custom-nightmode.green { color: #3a8e6f; }
+#custom-nightmode.dark { color: #fff8f0; background: #1a2a3f; }
+#custom-nightmode:hover { background: #f5ede0; }
+#custom-nightmode.dark:hover { background: #2b4570; }
 /* Terminator theme button: a dot in the theme's colour */
 #custom-termtheme { padding: 0 8px; font-size: 16px; color: #0049b2; }
 #custom-termtheme.navy { color: #1a2a3f; }

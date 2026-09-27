@@ -1,0 +1,26 @@
+# Managed by debian-hypr. Ghostty theme = Terminator profile "default"
+# (generated from files/terminator/config; hypr-termtheme switches it).
+background = #0049b2
+foreground = #fff8f0
+cursor-color = #fff8f0
+selection-background = #1453af
+selection-foreground = #fff8f0
+palette = 0=#00347d
+palette = 1=#e87a74
+palette = 2=#7ac48a
+palette = 3=#f1dc9a
+palette = 4=#8bb4e0
+palette = 5=#b89cd9
+palette = 6=#6f88a7
+palette = 7=#e8dfc9
+palette = 8=#1453af
+palette = 9=#e87a74
+palette = 10=#7ac48a
+palette = 11=#ffe9a8
+palette = 12=#8bb4e0
+palette = 13=#d29acb
+palette = 14=#8bb4e0
+palette = 15=#fff8f0
+font-family = FiraCode Nerd Font
+font-size = 13
+gtk-custom-css = themes/cobalt.css

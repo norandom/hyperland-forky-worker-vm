@@ -18,6 +18,17 @@ for t in themes:
               dest=f"{home}/.config/sublime-text/Packages/User/debian-hypr-{t}.sublime-color-scheme",
               mode="644", create_remote_dir=True)
 
+# Ghostty + foot themes (hypr-termtheme copies the current one to ghostty/theme, foot/theme.ini)
+for t in themes:
+    files.put(name=f"Ghostty theme ({t})", src=f"files/ghostty/themes/{t}",
+              dest=f"{home}/.config/ghostty/themes/{t}", mode="644", create_remote_dir=True)
+    files.put(name=f"Ghostty tab bar ({t})", src=f"files/ghostty/themes/{t}.css",
+              dest=f"{home}/.config/ghostty/themes/{t}.css", mode="644", create_remote_dir=True)
+    files.put(name=f"foot theme ({t})", src=f"files/foot/themes/{t}.ini",
+              dest=f"{home}/.config/foot/themes/{t}.ini", mode="644", create_remote_dir=True)
+# Ghostty's old config name (the base config is config.ghostty now)
+files.file(name="Ghostty: remove old ~/.config/ghostty/config", path=f"{home}/.config/ghostty/config", present=False)
+
 # btop.conf needs a color_theme line for hypr-termtheme to rewrite (btop writes the rest).
 server.shell(
     name="btop: color_theme line present",
@@ -26,7 +37,7 @@ grep -q '^color_theme' "$f" || echo 'color_theme = "cobalt"' >> "$f\""""],
 )
 # Claude Code (settings.json "theme", hot-reloaded), btop and Sublime Text follow the current terminal profile.
 server.shell(
-    name="Claude Code, btop, Sublime Text use the current terminal profile's theme (hypr-termtheme apply)",
+    name="Claude Code, btop, Ghostty, foot, Sublime Text use the current terminal profile's theme (hypr-termtheme apply)",
     commands=[f"{home}/.local/bin/hypr-termtheme apply"],
 )
 

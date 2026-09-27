@@ -1,0 +1,33 @@
+#!/bin/sh
+# Night filter for the whole screen (Hyprland screen shader, browser included):
+#   hypr-nightmode next|off|green|dark|apply|status
+#   off   = normal (rabbit black), green = mint night filter (rabbit green),
+#   dark  = simply darker (rabbit white). The bar rabbit cycles off -> green -> dark.
+# The choice is kept in ~/.local/state/hypr-nightmode; hyprland.lua re-applies it
+# after config reloads.
+state="$HOME/.local/state/hypr-nightmode"
+shaders="$HOME/.config/hypr/shaders"
+cur=$(cat "$state" 2>/dev/null || echo off)
+
+case "${1:-status}" in
+  status)
+    case "$cur" in
+      green) tip="Night filter: green (click: dark)" ;;
+      dark)  tip="Night filter: dark (click: off)" ;;
+      *)     cur=off; tip="Follow the white rabbit… (click: green night filter, again: dark)" ;;
+    esac
+    printf '{"text":"\363\260\244\207","class":"%s","tooltip":"%s"}\n' "$cur" "$tip"
+    exit 0 ;;
+  next) case "$cur" in off) new=green ;; green) new=dark ;; *) new=off ;; esac ;;
+  off|green|dark) new=$1 ;;
+  apply) new=$cur ;;
+  *) echo "usage: hypr-nightmode next|off|green|dark|apply|status" >&2; exit 2 ;;
+esac
+
+mkdir -p "${state%/*}" && echo "$new" > "$state"
+case "$new" in
+  off) path="" ;;
+  *) path="$shaders/night-$new.glsl" ;;
+esac
+hyprctl dispatch "(function() hl.config({ decoration = { screen_shader = '$path' } }) return hl.dsp.no_op() end)()" >/dev/null
+pkill -RTMIN+12 -x waybar 2>/dev/null

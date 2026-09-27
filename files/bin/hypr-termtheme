@@ -2,7 +2,7 @@
 # Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev|apply
 # (SUPER+Y or the ● bar button cycle; right-click menu "Theme" in Terminator). New windows opened
 # with SUPER+Return use the last choice (~/.local/state/terminator-profile).
-# Apps follow: Claude Code theme, btop theme, Sublime Text scheme + font, Neovim colorscheme (next start).
+# Apps follow: Claude Code, btop, Ghostty, foot (new windows), Sublime Text scheme + font, Neovim (next start).
 # "apply" only re-applies the app themes for the current profile.
 state="$HOME/.local/state/terminator-profile"
 profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.config/terminator/config")
@@ -32,6 +32,13 @@ if [ -f "$btop" ]; then
   sed -i "s|^color_theme = .*|color_theme = \"$app\"|" "$btop"
   pkill -USR2 -x btop 2>/dev/null   # btop reloads its config
 fi
+# Ghostty (running windows reload on SIGUSR2) and foot (new windows): theme file per profile
+if [ -f "$HOME/.config/ghostty/themes/$app" ]; then
+  cp "$HOME/.config/ghostty/themes/$app" "$HOME/.config/ghostty/theme"
+  pkill -USR2 -x ghostty 2>/dev/null
+fi
+[ -f "$HOME/.config/foot/themes/$app.ini" ] && cp "$HOME/.config/foot/themes/$app.ini" "$HOME/.config/foot/theme.ini"
+
 # Sublime Text: matching colour scheme + the profile's font (Preferences reload live)
 if command -v subl >/dev/null && command -v python3 >/dev/null; then
   font=$(awk -v p="[[$new]]" '$1 == p {f=1; next} /^  \[\[/ {f=0} f && $1 == "font" {sub(/^[^=]*= */, ""); print; exit}' \

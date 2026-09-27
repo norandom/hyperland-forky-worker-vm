@@ -1,0 +1,39 @@
+# Managed by debian-hypr. Ghostty base config: behaviour only. Colours and font
+# come from the current theme (~/.config/ghostty/theme, one of themes/*), which
+# hypr-termtheme switches together with Terminator (SUPER+Y, the ● bar button).
+# Based on the author's older macOS config; Ghostty's Linux keybindings apply
+# (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits, Ctrl+Shift+C / V copy / paste);
+# Super belongs to Hyprland.
+config-file = ?theme
+
+# Tabs: slim, flat, only as wide as their titles; the colours come with the theme
+# (themes/*.css, the same as Terminator's tab line)
+gtk-wide-tabs = false
+gtk-toolbar-style = flat
+resize-overlay = never
+
+window-padding-x = 4
+window-padding-y = 2
+window-padding-balance = true
+window-padding-color = background
+
+cursor-style = block
+cursor-style-blink = false
+mouse-hide-while-typing = true
+
+# 50 MB of scrollback (the value is in bytes) for long agent / build output
+scrollback-limit = 50000000
+
+copy-on-select = true
+clipboard-read = allow
+clipboard-write = allow
+clipboard-paste-protection = false
+clipboard-trim-trailing-spaces = true
+
+shell-integration = detect
+shell-integration-features = cursor,sudo,title
+
+confirm-close-surface = false
+# No "Reloaded the configuration" pop-up when hypr-termtheme switches the theme
+app-notifications = no-config-reload
+window-inherit-working-directory = true

@@ -107,8 +107,9 @@ files.template(
 )
 
 # --- Bar, notifications, launcher, GTK, terminal, top tools ----------------------
+bar = [files.put(name="Config: ~/.config/waybar/style.css", src="files/waybar/style.css",
+                 dest=f"{home}/.config/waybar/style.css", mode="644")]
 for src, dest in (
-    ("files/waybar/style.css", ".config/waybar/style.css"),
     ("files/mako/config", ".config/mako/config"),
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
     ("files/terminator/config", ".config/terminator/config"),
@@ -116,6 +117,8 @@ for src, dest in (
     ("files/applications/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
     ("files/applications/x3270.desktop", ".local/share/applications/x3270.desktop"),  # GUI, keypad
     ("files/applications/nedit.desktop", ".local/share/applications/nedit.desktop"),
+    ("files/applications/foot-server.desktop", ".local/share/applications/foot-server.desktop"),  # hidden
+    ("files/applications/footclient.desktop", ".local/share/applications/footclient.desktop"),  # hidden
     # Debian's terminator.desktop fails uwsm's validation (menu launch fails)
     ("files/applications/terminator.desktop", ".local/share/applications/terminator.desktop"),
     ("files/htop/htoprc", ".config/htop/htoprc"),
@@ -123,19 +126,36 @@ for src, dest in (
     # X resources: Windows 3.11 look for NEdit and xpdf (Xwayland has no xrdb)
     ("files/x11/Xdefaults", ".Xdefaults"),
     ("files/x11/x3270pro", ".x3270pro"),  # x3270: built-in keypad, key sizes
+    ("files/ghostty/config.ghostty", ".config/ghostty/config.ghostty"),  # theme: hypr-termtheme
+    ("files/foot/foot.ini", ".config/foot/foot.ini"),
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
 
-files.template(name=f"Config: ~/.config/waybar/config.jsonc (bar graphs {'on' if host.data.bar_graphs else 'off'})",
-               src="templates/waybar/config.jsonc.j2", dest=f"{home}/.config/waybar/config.jsonc", mode="644")
+bar.append(files.template(name=f"Config: ~/.config/waybar/config.jsonc (bar graphs {'on' if host.data.bar_graphs else 'off'})",
+               src="templates/waybar/config.jsonc.j2", dest=f"{home}/.config/waybar/config.jsonc", mode="644"))
 
-files.put(name="Bar: hypr-sparkline (CPU / MEM / net with a history graph)", src="files/bin/hypr-sparkline",
-          dest=f"{home}/.local/bin/hypr-sparkline", mode="755")
+bar.append(files.put(name="Bar: hypr-launch (start apps via Hyprland, not as waybar children)", src="files/bin/hypr-launch",
+          dest=f"{home}/.local/bin/hypr-launch", mode="755"))
 
+bar.append(files.put(name="Bar: hypr-nightmode (night filter: off / green / dark)", src="files/bin/hypr-nightmode",
+                     dest=f"{home}/.local/bin/hypr-nightmode", mode="755"))
+for shader in ("night-green.glsl", "night-dark.glsl"):
+    files.put(name=f"Night filter shader: {shader}", src=f"files/hypr/shaders/{shader}",
+              dest=f"{home}/.config/hypr/shaders/{shader}", mode="644", create_remote_dir=True)
+
+bar.append(files.put(name="Bar: hypr-agent-quota (Claude / Codex quota left)", src="files/bin/hypr-agent-quota",
+          dest=f"{home}/.local/bin/hypr-agent-quota", mode="755"))
+
+bar.append(files.put(name="Bar: hypr-sparkline (CPU / MEM / net with a history graph)", src="files/bin/hypr-sparkline",
+          dest=f"{home}/.local/bin/hypr-sparkline", mode="755"))
+
+# Only when the bar changed: a reload also kills whatever waybar itself started.
 server.shell(
-    name="Reload waybar (picks up config changes)",
+    name="Reload waybar (bar config changed)",
     commands=["systemctl --user is-active -q waybar.service && systemctl --user reload-or-restart waybar.service || true"],
+    _if=any_changed(*bar),
 )
+
 
 # btop writes its full config on first start; only enforce the sort order.
 server.shell(

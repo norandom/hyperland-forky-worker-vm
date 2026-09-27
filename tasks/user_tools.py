@@ -95,6 +95,10 @@ WantedBy=default.target
 
 # --- Agent / notebook tools ---------------------------------------------------------------
 server.shell(
+    name="Codex CLI (npm global; log in once with: codex login)",
+    commands=[env + f"[ -x {bin_dir}/codex ] || npm install -g @openai/codex"],
+)
+server.shell(
     name="ccusage (Claude Code token usage and cost, npm global)",
     commands=[env + f"[ -x {bin_dir}/ccusage ] || npm install -g ccusage"],
 )

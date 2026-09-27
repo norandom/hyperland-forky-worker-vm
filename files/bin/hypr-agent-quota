@@ -1,0 +1,163 @@
+#!/usr/bin/python3
+"""Waybar module: AI agent quota left, e.g. "Cl 90% Co 5%" (weekly windows).
+
+Ported from shiftynick/omarchy-agent-quota-bar (Omarchy shell widget) and the
+collectors in basecamp/omarchy (omarchy-agent-usage-claude / -codex):
+  Claude: Anthropic's OAuth usage endpoint, with Claude Code's own login token
+          (~/.claude/.credentials.json); the token goes nowhere else.
+  Codex:  `codex app-server` JSON-RPC (account/rateLimits/read), if codex is installed.
+Colours: green above 50 % left, yellow above 20 %, red at 20 % or below.
+A failed check keeps the last good reading (shown in italics) until its window resets.
+Prints one waybar JSON line and exits (waybar "interval"; "signal" to refresh).
+"""
+import datetime as dt
+import json
+import os
+import shutil
+import subprocess
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "hypr-agent-quota.json"
+GREEN, YELLOW, RED = "#3a8e4f", "#a87a2f", "#a0403a"
+USAGE_ENDPOINT = "https://api.anthropic.com/api/oauth/usage"
+
+
+def utilization(v):
+    try:
+        return float(str(v).strip().replace("%", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def reset_iso(v):
+    if v in (None, ""):
+        return ""
+    s = str(v)
+    if s.isdigit():
+        n = int(s)
+        return dt.datetime.fromtimestamp(n / 1000 if n > 1e12 else n, dt.timezone.utc).isoformat()
+    return s
+
+
+def claude():
+    try:
+        login = json.loads((Path.home() / ".claude/.credentials.json").read_text())["claudeAiOauth"]
+        token = login["accessToken"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    req = urllib.request.Request(USAGE_ENDPOINT, headers={
+        "Authorization": "Bearer " + token, "anthropic-beta": "oauth-2025-04-20", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        p = json.loads(r.read().decode("utf-8", "replace"))
+    buckets = [("Session (5h)", p.get("five_hour")), ("Weekly", p.get("seven_day_oauth_apps") or p.get("seven_day"))]
+    raw = [utilization(b.get("utilization")) for _, b in buckets if isinstance(b, dict)]
+    scoped = [e for e in (p.get("limits") or []) if isinstance(e, dict)]
+    raw += [utilization(e.get("percent")) for e in scoped]
+    scale = 100.0 if any(v is not None and v >= 1 for v in raw) else 1.0   # percent vs fraction payloads
+    out = []
+    for label, b in buckets:
+        if isinstance(b, dict) and utilization(b.get("utilization")) is not None:
+            out.append({"label": label, "used": utilization(b["utilization"]) / scale, "resets": reset_iso(b.get("resets_at"))})
+    for e in scoped:   # model-scoped weeklies, e.g. "Fable Weekly"
+        model = (e.get("scope") or {}).get("model") or {}
+        name = model.get("display_name") or model.get("id")
+        if name and utilization(e.get("percent")) is not None:
+            kind = str(e.get("kind") or "").lower()
+            window = "Weekly" if ("week" in kind or "day" in kind) else "Session" if ("hour" in kind or "session" in kind) else ""
+            out.append({"label": f"{name} {window}".strip(), "used": utilization(e["percent"]) / scale,
+                        "resets": reset_iso(e.get("resets_at"))})
+    return out or None
+
+
+def codex():
+    exe = shutil.which("codex") or str(Path.home() / ".local/bin/codex")
+    if not os.access(exe, os.X_OK) or not (Path.home() / ".codex").exists():
+        return None
+    proc = subprocess.Popen([exe, "-s", "read-only", "-a", "on-request", "app-server"], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    try:
+        def call(i, method, params=None):
+            proc.stdin.write(json.dumps({"id": i, "method": method, "params": params or {}}) + "\n")
+            proc.stdin.flush()
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    raise RuntimeError("codex app-server closed")
+                msg = json.loads(line)
+                if msg.get("id") == i:
+                    return msg.get("result") or {}
+        call(1, "initialize", {"clientInfo": {"name": "hypr-agent-quota", "version": "1"}})
+        proc.stdin.write(json.dumps({"method": "initialized", "params": {}}) + "\n")
+        proc.stdin.flush()
+        limits = call(2, "account/rateLimits/read").get("rateLimits") or {}
+    finally:
+        proc.kill()
+    out = []
+    for w in (limits.get("primary"), limits.get("secondary")):
+        if isinstance(w, dict) and w.get("usedPercent") is not None:
+            mins = int(w.get("windowDurationMins") or 0)
+            label = "Weekly" if mins == 10080 else f"Session ({mins // 60}h)" if mins and mins % 60 == 0 else "Limit"
+            out.append({"label": label, "used": float(w["usedPercent"]) / 100, "resets": reset_iso(w.get("resetsAt"))})
+    return out or None
+
+
+def still_open(limits, now):
+    for l in limits:
+        try:
+            if l["resets"] and dt.datetime.fromisoformat(l["resets"].replace("Z", "+00:00")) < now:
+                return False
+        except ValueError:
+            pass
+    return True
+
+
+def main():
+    now = dt.datetime.now(dt.timezone.utc)
+    try:
+        cache = json.loads(CACHE.read_text())
+    except (OSError, ValueError):
+        cache = {}
+    agents, parts, tip = (("claude", "Cl", "Claude", claude), ("codex", "Co", "Codex", codex)), [], []
+    for key, short, name, probe in agents:
+        stale = False
+        try:
+            limits = probe()
+        except (OSError, ValueError, RuntimeError, urllib.error.URLError, subprocess.SubprocessError):
+            limits = None
+            stale = True
+        if limits:
+            cache[key] = limits
+        elif stale and cache.get(key) and still_open(cache[key], now):
+            limits = cache[key]          # last good reading
+        else:
+            stale = False
+            cache.pop(key, None)
+            continue
+        weekly = next((l for l in limits if l["label"] == "Weekly"), limits[-1])
+        left = max(0, round(100 * (1 - weekly["used"])))
+        colour = GREEN if left > 50 else YELLOW if left > 20 else RED
+        text = f"{short} {left}%"
+        parts.append(f"<span color='{colour}'>{'<i>' + text + '</i>' if stale else text}</span>")
+        tip.append(name + (" (last good reading)" if stale else ""))
+        for l in limits:
+            when = ""
+            if l["resets"]:
+                try:
+                    when = "  resets " + dt.datetime.fromisoformat(l["resets"].replace("Z", "+00:00")).astimezone().strftime("%a %H:%M")
+                except ValueError:
+                    pass
+            tip.append(f"  {l['label']}: {max(0, round(100 * (1 - l['used'])))}% left{when}")
+    try:
+        CACHE.parent.mkdir(parents=True, exist_ok=True)
+        CACHE.write_text(json.dumps(cache))
+    except OSError:
+        pass
+    if not parts:
+        print(json.dumps({"text": "", "tooltip": "No agent logged in (claude / codex login)", "class": "empty"}))
+        return
+    print(json.dumps({"text": "  ".join(parts), "tooltip": "\n".join(tip) + "\n\nClick: refresh"}))
+
+
+main()
