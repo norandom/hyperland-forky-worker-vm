@@ -122,6 +122,9 @@ for src, dest in (
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
 
+files.put(name="Bar: hypr-sparkline (CPU / MEM / net with a history graph)", src="files/bin/hypr-sparkline",
+          dest=f"{home}/.local/bin/hypr-sparkline", mode="755")
+
 server.shell(
     name="Reload waybar (picks up config changes)",
     commands=["systemctl --user is-active -q waybar.service && systemctl --user reload-or-restart waybar.service || true"],

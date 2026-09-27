@@ -1,11 +1,12 @@
 /* Managed by debian-hypr. cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#taskbar, #clock, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 6px; }
+#taskbar, #clock, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray { padding: 0 6px; }
 #clock { font-weight: bold; }
-#cpu.warning, #memory.warning { color: #a87a2f; }
-#cpu.critical, #memory.critical { color: #c0605a; }
-tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
+/* Tooltips: navy with cream text. GTK draws the text in a label, so it needs its
+   own colour; weight 600 survives the popup's (transparent) text rendering. */
+tooltip { background-color: #2b4570; border: 1px solid #1a2a3f; border-radius: 0; }
+tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; font-weight: 600; padding: 2px 4px; }
 #custom-menu { padding: 0 10px; background: #2b4570; color: #fff8f0; font-weight: bold; }
 #custom-menu:hover { background: #4a90d9; }
 #custom-power {
@@ -34,6 +35,8 @@ tooltip { background: #f5ede0; color: #2b4570; border: 1px solid #d9d0c0; }
 #custom-termtheme.cream { color: #f5ede0; text-shadow: 0 0 1px #2b4570, 0 0 1px #2b4570; }
 #custom-termtheme:hover { background: #f5ede0; }
 #custom-kbd:hover { background: #f5ede0; }
+/* SUPER badge while one-shot Super is armed */
+#submap { padding: 0 8px; background: #2b4570; color: #fff8f0; font-weight: bold; }
 #custom-layout:hover { background: #f5ede0; }
 /* Volume: speaker icon + slider (revealed on hover) */
 #pulseaudio { padding: 0 8px; font-size: 15px; }

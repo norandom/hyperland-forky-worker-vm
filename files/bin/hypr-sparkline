@@ -1,0 +1,61 @@
+#!/bin/bash
+# Waybar module with a history graph: hypr-sparkline cpu|mem|net [interval] [samples]
+# Prints one JSON line per interval: current value plus a sparkline (▁..█) of the
+# last samples. Reads /proc and /sys only; one small bash loop per bar module.
+what=${1:-cpu} interval=${2:-5} n=${3:-10}
+bars=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+hist=()
+
+push() { hist+=("$1"); [ ${#hist[@]} -gt "$n" ] && hist=("${hist[@]:1}"); }
+
+# sparkline of hist scaled to max ($1: fixed max, e.g. 100; empty = max of the window, at least 64 KiB/s)
+spark() {
+  local max=$1 v s="" i
+  if [ -z "$max" ]; then max=65536; for v in "${hist[@]}"; do [ "$v" -gt "$max" ] && max=$v; done; fi
+  for v in "${hist[@]}"; do
+    i=$(( v * 7 / max )); [ $i -gt 7 ] && i=7; [ $i -lt 0 ] && i=0
+    s+=${bars[$i]}
+  done
+  printf '%s' "$s"
+}
+
+human() {  # bytes/s -> 1.2M / 340K / 12B
+  awk -v b="$1" 'BEGIN { if (b >= 1048576) printf "%.1fM", b/1048576; else if (b >= 1024) printf "%.0fK", b/1024; else printf "%dB", b }'
+}
+
+iface() { awk '$2 == "00000000" { print $1; exit }' /proc/net/route; }
+
+emit() { printf '{"text":"%s","tooltip":"%s"}\n' "$1" "$2"; }
+
+case $what in
+  cpu)
+    read -r _ u nn s idle io irq sirq st _ < /proc/stat; pt=$((u+nn+s+idle+io+irq+sirq+st)); pi=$((idle+io))
+    while sleep "$interval"; do
+      read -r _ u nn s idle io irq sirq st _ < /proc/stat; t=$((u+nn+s+idle+io+irq+sirq+st)); i=$((idle+io))
+      dt=$((t-pt)); pct=$(( dt > 0 ? (100 * (dt - (i-pi)) + dt/2) / dt : 0 )); pt=$t; pi=$i
+      push "$pct"
+      emit "CPU <span color='#4a90d9'>$(spark 100)</span> ${pct}%" "CPU ${pct}% (last $((n*interval)) s; click: btop)"
+    done ;;
+  mem)
+    while :; do
+      read -r total avail < <(awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{print t, a}' /proc/meminfo)
+      pct=$(( (100 * (total - avail) + total/2) / total ))
+      used=$(awk -v k=$((total-avail)) -v t="$total" 'BEGIN{printf "%.1f / %.1f GiB", k/1048576, t/1048576}')
+      push "$pct"
+      emit "MEM <span color='#5a9e6f'>$(spark 100)</span> ${pct}%" "$used used"
+      sleep "$interval"
+    done ;;
+  net)
+    dev=$(iface); rx0=$(cat /sys/class/net/"$dev"/statistics/rx_bytes 2>/dev/null || echo 0)
+    tx0=$(cat /sys/class/net/"$dev"/statistics/tx_bytes 2>/dev/null || echo 0)
+    while sleep "$interval"; do
+      dev=$(iface)
+      if [ -z "$dev" ]; then emit "offline" "no default route"; continue; fi
+      rx=$(cat /sys/class/net/"$dev"/statistics/rx_bytes); tx=$(cat /sys/class/net/"$dev"/statistics/tx_bytes)
+      down=$(( (rx - rx0) / interval )); up=$(( (tx - tx0) / interval )); rx0=$rx; tx0=$tx
+      [ $down -lt 0 ] && down=0; [ $up -lt 0 ] && up=0
+      push $((down + up))
+      ip=$(ip -4 -o addr show "$dev" 2>/dev/null | awk '{print $4; exit}')
+      emit "<span color='#7a5aaf'>$(spark)</span> ↓$(human $down) ↑$(human $up)" "$dev $ip (graph: down + up, scaled to the last $((n*interval)) s)"
+    done ;;
+esac

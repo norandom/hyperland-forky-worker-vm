@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["cpu", "memory", "network", "group/audio", "tray", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": ["custom/cpu", "custom/mem", "custom/net", "group/audio", "tray", "hyprland/submap", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -32,6 +32,8 @@
     "on-click": "$HOME/.local/bin/hypr-termtheme next",
     "on-click-right": "$HOME/.local/bin/hypr-termtheme prev"
   },
+  // SUPER badge while one-shot Super (SHIFT + Print) is armed
+  "hyprland/submap": { "format": "SUPER", "tooltip": false },
   "custom/kbd": {
     "exec": "printf '⌨ %s\\n' $( (cat $HOME/.local/state/hypr-kbd 2>/dev/null || echo de) | tr a-z A-Z)",
     "interval": "once",
@@ -58,14 +60,11 @@
     "ignore-list": ["fuzzel"]
   },
   "clock": { "format": "{:%A %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
-  "cpu": { "interval": 5, "format": "CPU {usage}%", "on-click": "uwsm app -- terminator -x btop" },
-  "memory": { "interval": 5, "format": "MEM {percentage}%", "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used" },
-  "network": {
-    "interval": 5,
-    "format": "↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
-    "format-disconnected": "offline",
-    "tooltip-format": "{ifname} {ipaddr}"
-  },
+  // CPU / memory / network with a sparkline of the last 50 s (hypr-sparkline, every 5 s)
+  "custom/cpu": { "exec": "$HOME/.local/bin/hypr-sparkline cpu", "return-type": "json",
+                  "on-click": "uwsm app -- terminator -x btop" },
+  "custom/mem": { "exec": "$HOME/.local/bin/hypr-sparkline mem", "return-type": "json" },
+  "custom/net": { "exec": "$HOME/.local/bin/hypr-sparkline net", "return-type": "json" },
   // Speaker icon; hover reveals the volume slider. Click = mute, scroll = ±5%.
   "group/audio": {
     "orientation": "horizontal",

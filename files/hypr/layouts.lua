@@ -102,10 +102,26 @@ if mode == "dynamic" then
         return
       end
       local mx, my, mw, mh = mon_box(win.monitor)
+      local x = math.floor(mx + g[1] * mw)
       local y = math.max(top_limit(win.monitor), math.floor(my + g[2] * mh))
+      -- Cascade: another window of the same app already at that spot would hide
+      -- the new one exactly (looks as if it closed at once); step 32 px down/right.
+      for _ = 1, 10 do
+        local taken = false
+        for _, o in ipairs(hl.get_windows() or {}) do
+          if o.address ~= win.address and o.class == win.class and o.mapped
+            and math.abs(o.at.x - x) < 16 and math.abs(o.at.y - y) < 16 then
+            taken = true
+            break
+          end
+        end
+        if not taken then break end
+        x, y = x + 32, y + 32
+      end
       local h = math.min(math.floor(g[4] * mh), math.floor(my + mh - y))
-      hl.dispatch(hl.dsp.window.resize({ x = math.floor(g[3] * mw), y = h, window = sel }))
-      hl.dispatch(hl.dsp.window.move({ x = math.floor(mx + g[1] * mw), y = y, window = sel }))
+      local wd = math.min(math.floor(g[3] * mw), math.floor(mx + mw - x))
+      hl.dispatch(hl.dsp.window.resize({ x = wd, y = h, window = sel }))
+      hl.dispatch(hl.dsp.window.move({ x = x, y = y, window = sel }))
     end, { timeout = 80, type = "oneshot" })
   end)
 end

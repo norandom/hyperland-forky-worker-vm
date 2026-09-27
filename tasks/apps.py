@@ -8,8 +8,11 @@ from pyinfra.operations import apt, files, server
 apt.packages(
     name="Office, browser, tools",
     packages=[
-        # LibreOffice Calc with the GTK3 (native Wayland) UI
-        "libreoffice-calc", "libreoffice-gtk3", "fonts-crosextra-carlito",
+        # LibreOffice Calc + Writer with the GTK3 (native Wayland) UI; UI in English
+        # (built in) or German; spelling, hyphenation, thesaurus for de + en-US
+        "libreoffice-calc", "libreoffice-writer", "libreoffice-gtk3", "fonts-crosextra-carlito",
+        "libreoffice-l10n-de", "hunspell-de-de", "hunspell-en-us", "hyphen-de", "hyphen-en-us",
+        "mythes-de", "mythes-en-us",
         # Chromium for MCP (chrome-devtools / playwright MCP servers use it)
         "chromium", "chromium-driver",
         "git", "atop",

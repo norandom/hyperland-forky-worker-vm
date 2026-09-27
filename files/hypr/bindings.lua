@@ -1,6 +1,17 @@
--- Managed by debian-hypr. SUPER = Right Option on the Apple keyboard.
+-- Managed by debian-hypr. SUPER = Right Option on the Apple keyboard;
+-- SHIFT + Print = one-shot Super (keyboards without a free Super key).
 local function exec(cmd) return hl.dsp.exec_cmd(cmd) end
 local app = "uwsm app -- "
+
+-- Every SUPER binding below is also recorded for the one-shot "super" submap
+-- (end of file): keyboards without a free Super key use SHIFT + Print instead.
+local super_binds = {}
+local bind = hl.bind
+hl.bind = function(keys, action, opts)
+  bind(keys, action, opts)
+  local rest = keys:match("^SUPER %+ (.+)$")
+  if rest then super_binds[#super_binds + 1] = { rest, action, opts } end
+end
 
 hl.bind("SUPER + RETURN", exec(app .. "hypr-term"), { description = "Terminal" })
 hl.bind("SUPER + Y", exec("$HOME/.local/bin/hypr-termtheme next"), { description = "Next terminal theme" })
@@ -69,3 +80,18 @@ hl.bind("mouse:273", function()
     hl.exec_cmd("$HOME/.local/bin/hypr-appmenu --at " .. x .. " " .. y)
   end
 end, { non_consuming = true, description = "Desktop menu (right-click)" })
+
+hl.bind = bind
+
+-- One-shot Super (GPD Pocket & co.: Windows key taken by Windows, no Right Option):
+-- SHIFT + Print, or the ❖ bar button, then the key (or mouse drag) that would
+-- follow SUPER. The submap resets after that one action; Escape or any other key
+-- cancels. The bar shows "SUPER" while it is armed (hyprland/submap).
+hl.define_submap("super", "reset", function()
+  for _, b in ipairs(super_binds) do
+    bind(b[1], b[2], b[3])
+  end
+  bind("ESCAPE", hl.dsp.submap("reset"), { description = "Cancel one-shot Super" })
+  bind("catchall", hl.dsp.submap("reset"), { description = "Cancel one-shot Super" })
+end)
+hl.bind("SHIFT + Print", hl.dsp.submap("super"), { description = "One-shot Super (next key)" })

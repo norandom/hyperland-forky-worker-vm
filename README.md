@@ -69,7 +69,7 @@ Every run is idempotent.
 | `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; emoji/symbol fallback (Noto Color Emoji, Symbola); font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
-| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch, Rust coreutils |
+| `apps` | LibreOffice Calc + Writer (UI English/German, spelling de + en-US), Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch, Rust coreutils |
 | `user_tools` | uv, pnpm, Aikido Safe Chain, Neovim config (nvim-simple), rclone mounts (OneDrive), ccusage, euporie, pretty-mermaid skill |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
 | `themes` | btop and Claude Code themes for each Terminator theme; Chromium frame colour |
@@ -188,6 +188,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | Keys | |
 |---|---|
 | SUPER + Return / SUPER + SHIFT + Return | Terminator / xfce4-terminal |
+| SHIFT + PrtSc, then the key | one-shot Super, for keyboards without a free Super key (e.g. GPD Pocket: Windows key stays with Windows); SUPER badge in the bar while armed, Esc cancels |
 | SUPER + A, ☰ Apps, right-click on the desktop | application menu (categories) |
 | SUPER + E | file manager (Xfe) |
 | SUPER + G / title bar ▒ | glass window on / off (see-through, light milky blur) |
@@ -217,7 +218,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
-* **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net, volume (speaker icon: click mutes, scroll or hover slider adjusts),
+* **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net with a graph of the last 50 s (`hypr-sparkline`, every 5 s), volume (speaker icon: click mutes, scroll or hover slider adjusts),
   terminal theme (● in the theme's colour, click to switch), keyboard layout
   (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
