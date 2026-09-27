@@ -11,8 +11,8 @@ hl.config({
     },
     resize_on_border = true,
     layout = "dwindle",
-    -- Magnetic snapping for floating windows.
-    snap = { enabled = true, window_gap = 40, monitor_gap = 50, respect_gaps = false },
+    -- Magnetic snapping for floating windows: gentle (pulls only within 10-12 px).
+    snap = { enabled = true, window_gap = 10, monitor_gap = 12, respect_gaps = false },
   },
   decoration = {
     rounding = 0,

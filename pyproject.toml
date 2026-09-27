@@ -3,7 +3,10 @@ name = "hyperland-forky-worker-vm"
 version = "0.1.0"
 description = "Debian forky thin client: low-footprint Hyprland desktop over RDP, for remote VMs without a GPU"
 requires-python = ">=3.11"
-dependencies = ["pyinfra==3.10.0"]
+dependencies = [
+    "pyinfra==3.10.0",
+    "pyrage==1.4.0",
+]
 
 [tool.uv]
 package = false

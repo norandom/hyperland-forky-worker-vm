@@ -23,6 +23,7 @@ hypr_rdp_sha256 = "6857d170da5d678211eb5318bb03c1bd3ff9503f5c26cf0ea05755fa63ff1
 hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
 # RDP refresh: Hyprland output rate and hypr-rdp frame rate. Mouse movement CPU
 # without a GPU: 60 Hz 177 %, 30 Hz 140 %, 20 Hz 85 % (pointer stays smooth).
+# With a VirGL GPU (Proxmox virtio-gl): Hyprland 13-15 % at 20, 30 or 60 Hz.
 rdp_refresh_hz = 20
 hypr_rdp_fps = 20
 # llvmpipe rasterizer threads for Hyprland and GL clients. Measured at 3198x1264@20:
@@ -88,7 +89,7 @@ soft_lockup_watchdog = False    # False: kernel.watchdog=0 (false alarms when th
 blacklist_modules = ["floppy", "pcspkr", "joydev"]   # unused in the VM
 
 # JetBrainsMono Nerd Font (same release/files as Omarchy's ttf-jetbrains-mono-nerd-basic);
-# Neovim/LazyVim icons need the patched glyphs.
+# Neovim (devicons) and the bar need the patched glyphs.
 nerd_font_version = "3.5.1"
 # Nerd Fonts release archives: name -> (sha256, font files to install)
 nerd_fonts = {
@@ -118,7 +119,15 @@ release_tools = {
                "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
     "upmd": ("https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
              "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
+    # rclone (not in forky right now); sha256 from downloads.rclone.org/v1.75.1/SHA256SUMS
+    "rclone": ("https://github.com/rclone/rclone/releases/download/v1.75.1/rclone-v1.75.1-linux-amd64.zip",
+               "982b5aa772841168f8e380f139e9e787b2a105403e32b94da8676a0e1c0a13ab"),
 }
+
+# rclone FUSE mounts (systemd user services): remote name -> folder in $HOME.
+# Set up the remote once on the host (rclone config, name "onedrive", type
+# "onedrive", personal); until then the service is skipped.
+rclone_mounts = {"onedrive": "OneDrive"}
 
 # Little Snitch for Linux (obdev.at; needs kernel 6.12+ with BTF). Web UI:
 # http://localhost:3031/ (in Chromium). None = don't install.
@@ -128,3 +137,14 @@ littlesnitch_sha256 = "1a4bce4703ada6f74a69aec0386a4e2c96f8ab9ea1ce89303bf2775d5
 # Font rendering: "rgb" = ClearType-like subpixel (RDP shown 1:1, RGB display),
 # "grayscale" = no colour fringes when the RDP client scales (Retina/HiDPI).
 font_rendering = "rgb"
+
+# --- Applications ------------------------------------------------------------------
+# Neovim config: github.com/norandom/nvim-simple at this commit (replaces LazyVim)
+nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
+# Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
+obsidian_version = "1.13.7"
+obsidian_sha256 = "17dc33b49cb3e785ecc27edd2ea0c79e40207798b554fd2886e36ebee7af9ae0"
+
+# Rust coreutils (uutils, Debian's rust-coreutils) first in PATH for the desktop
+# user's shells and the Hyprland session. System services and root keep GNU coreutils.
+uutils_coreutils = True

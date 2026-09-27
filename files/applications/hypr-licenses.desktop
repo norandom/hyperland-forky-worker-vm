@@ -1,0 +1,8 @@
+[Desktop Entry]
+# debian-hypr: license keys (private data) -> clipboard
+Name=Licenses
+Comment=Copy a license key to the clipboard
+Exec=hypr-licenses
+Icon=dialog-password
+Type=Application
+Categories=Settings;

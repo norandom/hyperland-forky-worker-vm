@@ -204,9 +204,11 @@ files.put(
     mode="755",
 )
 
+uutils_path = ('export PATH="/usr/lib/cargo/bin/coreutils:$PATH"\n'
+               if host.data.uutils_coreutils else "")
 files.put(
-    name="Hyprland session env (llvmpipe threads)",
-    src=StringIO(f"# Managed by debian-hypr\nexport LP_NUM_THREADS={host.data.llvmpipe_threads}\n"),
+    name="Hyprland session env (llvmpipe threads, uutils in PATH)",
+    src=StringIO(f"# Managed by debian-hypr\nexport LP_NUM_THREADS={host.data.llvmpipe_threads}\n{uutils_path}"),
     dest=f"{home}/.config/uwsm/env-hyprland",
     mode="644",
 )

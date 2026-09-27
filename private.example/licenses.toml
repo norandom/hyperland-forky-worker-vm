@@ -1,0 +1,23 @@
+# Copy private.example/ to private/, fill in your own keys, then
+#   uv run python privdata.py seal
+# Sections are free-form: every field is available via hypr-licenses
+# (bar / app menu "Licenses": pick one, it is copied to the clipboard).
+# Known sections are also installed where the app expects them.
+
+# Sublime Text: the whole license block, installed as
+# ~/.config/sublime-text/Local/License.sublime_license
+[sublime-text]
+key = """
+----- BEGIN LICENSE -----
+...
+------ END LICENSE ------
+"""
+
+# Typora: activate in Typora (Help > My License) with these two values.
+[typora]
+email = "you@example.com"
+key = "XXXXXX-XXXXXX-XXXXXX-XXXXXX"
+
+# Anything else, e.g. an Obsidian Catalyst/Sync account note:
+# [obsidian]
+# email = "you@example.com"

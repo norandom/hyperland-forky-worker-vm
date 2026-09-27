@@ -1,8 +1,8 @@
-"""Per-user developer tools: uv, npm globals + pnpm, Aikido Safe Chain, Neovim config,\nccusage, euporie, Claude Code skills."""
-from pathlib import Path
+"""Per-user developer tools: uv, npm globals + pnpm, Aikido Safe Chain, Neovim (nvim-simple),\nccusage, euporie, Claude Code skills."""
+from io import StringIO
 
 from pyinfra import host
-from pyinfra.operations import files, server
+from pyinfra.operations import files, server, systemd
 
 home = host.data.desktop_home
 bin_dir = f"{home}/.local/bin"
@@ -36,23 +36,62 @@ sh "$t"
 rm -f "$t")"""],
 )
 
-# --- Neovim: Omarchy's LazyVim config, cream-blue theme ------------------------------------
-nvim = [
-    files.put(name=f"nvim: {p}", src=f"files/nvim/{p}", dest=f"{home}/.config/nvim/{p}", mode="644")
-    for p in sorted(str(f.relative_to("files/nvim")) for f in Path("files/nvim").rglob("*") if f.is_file())
-]
-# Omarchy preloads every theme plugin for live theme switching; one of them
-# (gthelding/monokai-pro.nvim) no longer exists and breaks startup. Only the
-# Cream Blue (aether) theme is used here.
-removed = files.file(name="nvim: no all-themes preload", path=f"{home}/.config/nvim/lua/plugins/all-themes.lua",
-                     present=False)
-nvim.append(removed)
-
+# --- Neovim: nvim-simple (CUA keys, menu bar, Berg theme), pinned --------------------------
+# github.com/norandom/nvim-simple at host.data.nvim_simple_commit; its vim-plug plugins
+# (quickui, airline, nerdtree, devicons) are installed headless on first deploy.
+rev = host.data.nvim_simple_commit
+cfg = f"{home}/.config/nvim"
 server.shell(
-    name="nvim: install plugins (headless LazyVim sync)",
-    commands=[env + "timeout 900 nvim --headless '+Lazy! sync' '+Lazy! clean' +qa >/dev/null 2>&1 || true"],
-    _if=lambda: any(op.did_change() for op in nvim),
+    name=f"nvim: nvim-simple {rev[:7]} (old LazyVim config moved to ~/.config/nvim.lazyvim)",
+    commands=[f"""[ "$(cat {cfg}/.nvim-simple 2>/dev/null)" = "{rev}" ] && exit 0; set -e
+if [ -e {cfg}/lazyvim.json ]; then
+  rm -rf {cfg}.lazyvim; mv {cfg} {cfg}.lazyvim
+  rm -rf {home}/.local/share/nvim/lazy {home}/.local/share/nvim/mason {home}/.local/share/nvim/snacks \
+         {home}/.local/state/nvim/lazy {home}/.cache/nvim
+fi
+t=$(mktemp -d)
+git -C "$t" init -q && git -C "$t" fetch -q --depth 1 https://github.com/norandom/nvim-simple.git {rev}
+git -C "$t" checkout -q FETCH_HEAD
+mkdir -p {cfg}; cp -r "$t"/nvim/. {cfg}/
+echo {rev} > {cfg}/.nvim-simple; rm -rf "$t\""""],
 )
+files.put(name="nvim: Berg light for the cream terminal theme (dark otherwise)",
+          src="files/nvim/plugin/debian-hypr-theme.lua", dest=f"{cfg}/plugin/debian-hypr-theme.lua", mode="644")
+server.shell(
+    name="nvim: install plugins (headless PlugInstall)",
+    commands=[env + f"[ -d {cfg}/plugged/vim-quickui ] || "
+              "timeout 600 nvim --headless +PlugInstall +qall >/dev/null 2>&1 || true"],
+)
+
+# --- rclone mounts (e.g. OneDrive personal) as systemd user services ----------------------
+for remote, folder in host.data.rclone_mounts.items():
+    unit = files.put(
+        name=f"rclone mount {remote}: -> ~/{folder} (user service)",
+        src=StringIO(f"""# Managed by debian-hypr
+[Unit]
+Description=rclone mount {remote}: on ~/{folder}
+After=network-online.target
+
+[Service]
+Type=notify
+# Skipped until the remote exists (rclone config)
+ExecCondition=/bin/sh -c '/usr/local/bin/rclone listremotes | grep -qx {remote}:'
+ExecStartPre=/bin/mkdir -p %h/{folder}
+ExecStart=/usr/local/bin/rclone mount {remote}: %h/{folder} --vfs-cache-mode full --vfs-cache-max-size 2G --dir-cache-time 5m
+ExecStop=/bin/fusermount3 -uz %h/{folder}
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target
+"""),
+        dest=f"{home}/.config/systemd/user/rclone-{remote}.service",
+        mode="644",
+    )
+    server.shell(name=f"rclone-{remote}: systemd user daemon-reload", commands=["systemctl --user daemon-reload"],
+                 _if=unit.did_change)
+    systemd.service(name=f"rclone-{remote}.service enabled", service=f"rclone-{remote}.service",
+                    user_mode=True, enabled=True, running=True)
 
 # --- Agent / notebook tools ---------------------------------------------------------------
 server.shell(

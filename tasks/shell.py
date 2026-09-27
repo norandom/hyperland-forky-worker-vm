@@ -18,6 +18,17 @@ files.block(
     try_prevent_shell_expansion=True,
 )
 
+# --- Rust coreutils (uutils) before GNU coreutils in interactive shells ------------------
+uutils = "/usr/lib/cargo/bin/coreutils"
+files.block(
+    name="bash: uutils (Rust coreutils) first in PATH",
+    path=f"{home}/.bashrc",
+    marker="# {mark} debian-hypr: uutils",
+    content=f'case ":$PATH:" in *:{uutils}:*) ;; *) [ -d {uutils} ] && PATH="{uutils}:$PATH" ;; esac',
+    present=host.data.uutils_coreutils,
+    try_prevent_shell_expansion=True,
+)
+
 # --- Kali-like history -------------------------------------------------------------------
 files.block(
     name="bash: large, shared, timestamped history (Kali-style)",

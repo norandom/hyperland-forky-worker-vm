@@ -1,5 +1,5 @@
 # Managed by debian-hypr. Matches the terminal's cobalt profile
-# (cream-blue-cobalt). Empty main_bg = terminal background (cobalt or navy).
+# (cream-blue-cobalt). Empty main_bg = terminal background.
 theme[main_bg]=""
 theme[main_fg]="#fff8f0"
 theme[title]="#f1dc9a"

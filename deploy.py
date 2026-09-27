@@ -16,10 +16,11 @@ for task in (
     "fonts",          # JetBrainsMono Nerd Font (icon glyphs, as on Omarchy)
     "desktop",        # Hyprland, hyprbars, waybar, mako, fuzzel, Terminator, theme
     "hypr_rdp",       # patched hypr-rdp built from source + session helpers
-    "apps",           # Calc, Chromium (MCP), gh, atop, Neovim, Node, xfce4-terminal
-    "user_tools",     # uv, npm globals + pnpm, Aikido Safe Chain, Omarchy nvim config
+    "apps",           # Calc, Chromium, Vivaldi, Sublime, Typora, Obsidian, Meld, rclone, gh, Neovim, uutils
+    "user_tools",     # uv, npm globals + pnpm, Aikido Safe Chain, nvim-simple
     "shell",          # Kali-style history, xfce4-terminal theme + paste dialog
-    "themes",         # Omarchy theme files: btop, Claude Code, Chromium
+    "themes",         # btop + Claude Code themes per Terminator profile; Chromium frame
+    "private",        # private data (private/ or private.tar.age): fonts, license keys
     "autologin",      # tty1 autologin -> uwsm -> Hyprland
 ):
     local.include(f"tasks/{task}.py")

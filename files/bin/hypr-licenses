@@ -1,0 +1,54 @@
+#!/usr/bin/python3
+"""License keys from ~/.local/share/licenses/licenses.toml (deployed from private data).
+
+    hypr-licenses                   pick an entry in a menu, copy it to the clipboard
+    hypr-licenses list              list entries (values hidden)
+    hypr-licenses <app> [field]     copy one value (default field: key)
+    hypr-licenses show <app>        print an app's fields
+Copies are marked sensitive (clipboard managers skip them).
+"""
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+FILE = Path.home() / ".local/share/licenses/licenses.toml"
+
+
+def notify(msg):
+    subprocess.run(["hyprctl", "notify", "-1", "2500", "rgb(8bb4e0)", msg], capture_output=True)
+
+
+def copy(app, field, value):
+    subprocess.run(["wl-copy", "--sensitive"], input=value.strip().encode(), check=True)
+    notify(f"Copied {app} {field}")
+
+
+def main():
+    if not FILE.exists():
+        notify("No licenses deployed (private data, see README)")
+        sys.exit(f"{FILE} missing: add licenses.toml to the private data and deploy")
+    lic = tomllib.loads(FILE.read_text())
+    entries = [(a, f) for a, fields in lic.items() for f in fields]
+    args = sys.argv[1:]
+    if args[:1] == ["list"]:
+        for a, f in entries:
+            print(f"{a}\t{f}")
+    elif args[:1] == ["show"] and len(args) == 2:
+        for f, v in lic.get(args[1], {}).items():
+            print(f"{f}: {v}")
+    elif args:
+        app, field = args[0], args[1] if len(args) > 1 else "key"
+        if field not in lic.get(app, {}):
+            sys.exit(f"no {app} {field}; entries: " + ", ".join(f"{a} {f}" for a, f in entries))
+        copy(app, field, lic[app][field])
+    else:
+        menu = "\n".join(f"{a}  {f}" for a, f in entries)
+        r = subprocess.run(["fuzzel", "--dmenu", "--prompt", "License > ", "--lines", str(min(len(entries), 15))],
+                           input=menu.encode(), capture_output=True)
+        if r.returncode == 0 and r.stdout.strip():
+            app, field = r.stdout.decode().split()
+            copy(app, field, lic[app][field])
+
+
+main()

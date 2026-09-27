@@ -4,7 +4,8 @@ A [pyinfra](https://pyinfra.com) deployment that turns a minimal **Debian forky*
 VM into a stripped-down **thin client**: a low-footprint Hyprland desktop that
 you use over RDP.
 
-* **Optimized for remote VM deployments**: Proxmox/KVM guests with no GPU.
+* **Optimized for remote VM deployments**: Proxmox/KVM guests with no GPU,
+  or with a VirGL GPU (virtio-gl, the host's iGPU) when the host has one.
   Nothing depends on graphics hardware; rendering, screen capture and the RDP
   stream are tuned for software rendering.
 * **For Mac users** connecting with **Royal TS** or a similar RDP client
@@ -12,7 +13,7 @@ you use over RDP.
 * **For multitaskers** who want a purpose-built worker VM: terminals, AI
   agents, containers and a browser, nothing else.
 
-![Thin client desktop over RDP: top bar with app menu, layout mode, window list, CPU/MEM/net, terminal theme dot, keyboard layout and power button; btop in the amber Fixedsys terminal theme; a cobalt terminal in glass mode, pinned on top, with btop showing through; Windows 3.11 style title bars with glass, stay-on-top, minimize and close buttons](docs/screenshot.png)
+![Thin client desktop over RDP: top bar with app menu, launchers for Xfe, Terminator and Vivaldi, layout mode, window list, clock, CPU/MEM/net, speaker icon, terminal theme dot, keyboard layout and power button; btop in the amber fixedsys theme with Fixedsys Core tabs; Claude Code in its matching cobalt theme as a glass window, pinned on top, with btop showing through; Windows 3.11 style title bars](docs/screenshot.png)
 
 It is explicitly **not** a laptop or desktop base OS: no display manager, no
 GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
@@ -39,8 +40,8 @@ Every run is idempotent.
 ## New VM
 
 1. **Proxmox VM**: CPU type `host`, 3+ cores, 6+ GB RAM (ballooning min = max),
-   VirtIO SCSI disk with *SSD emulation* + *Discard*, display *Standard VGA*,
-   Options → *QEMU Guest Agent* enabled.
+   VirtIO SCSI disk with *SSD emulation* + *Discard*, display *Standard VGA*
+   (or *VirGL GPU* if the host has a GPU, see below), Options → *QEMU Guest Agent* enabled.
 2. **Install Debian forky** from the daily netinst ISO
    (`https://cdimage.debian.org/cdimage/daily-builds/daily/arch-latest/amd64/iso-cd/debian-testing-amd64-netinst.iso`).
    In *Software selection* tick only **SSH server** + standard utilities.
@@ -68,15 +69,34 @@ Every run is idempotent.
 | `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; emoji/symbol fallback (Noto Color Emoji, Symbola); font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
-| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch |
-| `user_tools` | uv, pnpm, Aikido Safe Chain, LazyVim config, ccusage, euporie, pretty-mermaid skill |
+| `apps` | LibreOffice Calc, Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch, Rust coreutils |
+| `user_tools` | uv, pnpm, Aikido Safe Chain, Neovim config (nvim-simple), rclone mounts (OneDrive), ccusage, euporie, pretty-mermaid skill |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
-| `themes` | terminal-matched themes for Neovim, btop, Claude Code; Chromium frame colour |
+| `themes` | btop and Claude Code themes for each Terminator theme; Chromium frame colour |
+| `private` | your private data (encrypted in the repo): proprietary fonts, license keys |
 | `autologin` | tty1 autologin → uwsm → Hyprland |
 
 ## Tuning, and why
 
 All values are switches in `group_data/all.py`.
+
+**Rendering with a VirGL GPU.** With Proxmox display *VirGL GPU* (virtio-gl;
+the host needs `libgl1 libegl1`), Hyprland renders through the host's GPU
+(here an Intel UHD 630) and nothing else changes; it picks up the GPU by itself.
+Measured on a 3-core VM at 3198x1264, Hyprland + hypr-rdp CPU (100 % = one core),
+hypr-rdp at 20 fps:
+
+| Hyprland refresh | idle | mouse moving | terminal scrolling |
+|---|---|---|---|
+| 20 Hz | 18 % | 31 % | 23 % |
+| 30 Hz | 20 % | 30 % | 19 % |
+| 60 Hz | 21 % | 32 % | 21 % |
+
+Hyprland alone takes 13–15 % while the mouse moves, at any refresh rate
+(llvmpipe: 85 % at 20 Hz, 177 % at 60 Hz). The rest is hypr-rdp capturing and
+encoding (ClearCodec, on the CPU). The software-rendering limits below don't
+hurt with a GPU; `rdp_refresh_hz` can go up to 60. Raising `hypr_rdp_fps`
+costs encoder CPU instead.
 
 **Rendering and RDP (no GPU).** Without a GPU, Hyprland draws everything on
 the CPU (llvmpipe). With a software cursor it redraws on every pointer motion,
@@ -197,7 +217,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
-* **Top bar**: app menu, layout mode, window list, clock, CPU/MEM/net, volume (speaker icon: click mutes, scroll or hover slider adjusts),
+* **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net, volume (speaker icon: click mutes, scroll or hover slider adjusts),
   terminal theme (● in the theme's colour, click to switch), keyboard layout
   (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
@@ -207,6 +227,38 @@ uses Hyprland's keymap, so the mapping is the same over RDP. German (no dead key
 and US are loaded together: switch with `kbde` / `kbus`, `setxkbmap de|us`,
 `hypr-kbd de|us` or the ⌨ bar button. The choice survives reloads and reboots,
 and hypr-rdp follows it without reconnecting.
+
+## Private data: fonts and licenses
+
+Proprietary fonts and license keys can't go into a public repo, so they're kept
+in `private/` (git-ignored) and committed only as the encrypted
+`private.tar.age`, a bit like ansible-vault. It uses [age](https://age-encryption.org)
+through the `pyrage` library, so nothing needs to be installed on the controller.
+
+**This repo's `private.tar.age` and `private.recipients` belong to the author.**
+Using this repo yourself: delete both files and either do without private data
+(the deploy just skips it) or set up your own:
+
+```bash
+uv run python privdata.py keygen      # age key in ~/.config/age/keys.txt, added to private.recipients
+cp -r private.example private         # then add fonts to private/fonts/, keys to private/licenses.toml
+uv run python privdata.py seal        # -> private.tar.age: commit it (and private.recipients)
+uv run python privdata.py open        # later: decrypt to private/ to edit, then seal again
+```
+
+* **Back up `~/.config/age/keys.txt`.** Without it `private.tar.age` can't be
+  decrypted. `private.recipients` can also list SSH public keys (`ssh-ed25519
+  ...`), so an unencrypted SSH key on another controller works too;
+  `PRIVATE_IDENTITY=path1:path2` picks the identity files.
+* The deploy uses `private/` when it exists, otherwise it decrypts
+  `private.tar.age` in memory. Nothing decrypted is written to the repo.
+* **Fonts** (`private/fonts/`) are installed to `/usr/local/share/fonts/private`.
+* **Licenses** (`private/licenses.toml`, see `private.example/`): installed as
+  `~/.local/share/licenses/licenses.toml` (mode 600). Sublime Text's license
+  file is written where Sublime reads it. For apps that are activated in their
+  own UI (Typora: Help → My License), use **Licenses** in the app menu or
+  `hypr-licenses [app] [field]`. It copies the value to the clipboard, marked
+  sensitive.
 
 ## Shell and tools
 
@@ -223,11 +275,40 @@ and hypr-rdp follows it without reconnecting.
   Fixedsys Core), `cream` (light: navy on cream). The ● bar button (click next, right-click previous), SUPER+Y,
   `hypr-termtheme <name>|next|prev` or right-click → Theme switches all open
   terminals; new ones (SUPER+Return, app menu) use the last choice. Tabs are a
-  slim tmux-style line at the bottom; tab titles show just the directory.
+  slim tmux-style line at the bottom; tab titles show just the directory. The
+  tab bar takes the theme's font (Fixedsys Core for `fixedsys`) and colours.
+  Terminal apps switch along: Claude Code (`~/.claude/themes`, live) and btop
+  (reloads its config) get a matching theme; Neovim starts with Berg light for
+  `cream` and Berg dark otherwise.
 
-  ![Terminator themes default, navy and fixedsys side by side](docs/terminal-themes.png)
+  ![The four Terminator themes (default/cobalt, navy, fixedsys, cream), each running Claude Code and btop in the matching theme](docs/terminal-themes.png)
 * **CLI tools**: ripgrep, fd, fzf (+ bat, tree for previews), multitail, aria2, btop,
-  atop, lazygit, Neovim (LazyVim).
+  atop, lazygit, Neovim with [nvim-simple](https://github.com/norandom/nvim-simple)
+  (CUA keys, F10 menu bar, Berg theme; pinned in `nvim_simple_commit`). An old
+  LazyVim config is moved to `~/.config/nvim.lazyvim`.
+* **Rust coreutils**: uutils (`rust-coreutils`) comes first in `PATH` for your
+  shells and the Hyprland session (`uutils_coreutils`); system services and root
+  keep GNU coreutils.
+* **Editors and apps**: Sublime Text (`subl`), Typora, Obsidian (pinned .deb,
+  checksum verified), Vivaldi. Sublime, Typora and Vivaldi come from the vendors'
+  apt repositories (deb822 sources pinned to their keys).
+* **Files and sync**: rsync, Meld (graphical diff and merge for files and
+  folders, like WinDiff), rclone (GitHub release, pinned).
+* **OneDrive (personal)** via rclone: `rclone_mounts` maps a remote to a folder
+  in your home (`onedrive` → `~/OneDrive`), mounted by the user service
+  `rclone-onedrive` (FUSE, full VFS cache up to 2 GB). Set up the remote once,
+  in a terminal in the RDP session (the login opens in the browser there):
+
+  ```bash
+  rclone config        # n) new remote, name: onedrive, storage: onedrive,
+                       # defaults, "Use web browser to authenticate": yes,
+                       # then "OneDrive Personal or Business" -> the personal drive
+  systemctl --user restart rclone-onedrive
+  ```
+
+  Until the remote exists the service is skipped. The token lives in
+  `~/.config/rclone/rclone.conf` on the host (rclone refreshes it); it isn't
+  part of the private data.
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
 * **TUIs**: `glow` (Markdown), `posting` (HTTP/API client), `trip` (trippy:
   traceroute + ping), `gdu` (disk usage), `podman-tui` (containers; uses the

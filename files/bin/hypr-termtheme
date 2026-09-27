@@ -1,17 +1,39 @@
 #!/bin/sh
-# Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev
+# Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev|apply
 # (SUPER+Y or the ● bar button cycle; right-click menu "Theme" in Terminator). New windows opened
 # with SUPER+Return use the last choice (~/.local/state/terminator-profile).
+# Terminal apps follow: Claude Code theme, btop theme, Neovim colorscheme (next start).
+# "apply" only re-applies the app themes for the current profile.
 state="$HOME/.local/state/terminator-profile"
 profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.config/terminator/config")
 cur=$(cat "$state" 2>/dev/null || echo default)
 case "$1" in
+  apply) new=$cur ;;
   prev) new=$(printf '%s\n' $profiles | awk -v c="$cur" '{a[NR]=$0; if ($0==c) i=NR} END{print (i>1) ? a[i-1] : a[NR]}') ;;
   ""|next) new=$(printf '%s\n' $profiles | awk -v c="$cur" 'NR==1{f=$0} p{print; d=1; exit} $0==c{p=1} END{if(!d)print f}' | head -1) ;;
   *) printf '%s\n' $profiles | grep -qx "$1" || { echo "profiles: $profiles" >&2; exit 2; }; new=$1 ;;
 esac
 [ -n "$new" ] || new=default
 mkdir -p "${state%/*}" && echo "$new" > "$state"
+
+# App themes per profile (files in ~/.claude/themes and ~/.config/btop/themes)
+case "$new" in
+  default) app=cobalt ;;
+  *) app=$new ;;
+esac
+[ -f "$HOME/.claude/themes/$app.json" ] || app=cobalt
+claude="$HOME/.claude/settings.json"
+if command -v jq >/dev/null; then
+  [ -s "$claude" ] || echo '{}' > "$claude"
+  t=$(mktemp) && jq --arg t "custom:$app" '.theme = $t' "$claude" > "$t" && cat "$t" > "$claude"; rm -f "$t"
+fi
+btop="$HOME/.config/btop/btop.conf"
+if [ -f "$btop" ]; then
+  sed -i "s|^color_theme = .*|color_theme = \"$app\"|" "$btop"
+  pkill -USR2 -x btop 2>/dev/null   # btop reloads its config
+fi
+[ "$1" = apply ] && exit 0
+
 remotinator switch_profile_all -p "$new" >/dev/null 2>&1
 pkill -RTMIN+10 -x waybar 2>/dev/null
 hyprctl notify -1 1500 "rgb(8bb4e0)" "Terminal theme: $new" >/dev/null 2>&1
