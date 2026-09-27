@@ -148,3 +148,7 @@ obsidian_sha256 = "17dc33b49cb3e785ecc27edd2ea0c79e40207798b554fd2886e36ebee7af9
 # Rust coreutils (uutils, Debian's rust-coreutils) first in PATH for the desktop
 # user's shells and the Hyprland session. System services and root keep GNU coreutils.
 uutils_coreutils = True
+
+# Top bar: CPU / MEM / net with a 50 s history graph (hypr-sparkline) instead of
+# plain numbers. Off: waybar's own modules, just the numbers.
+bar_graphs = False

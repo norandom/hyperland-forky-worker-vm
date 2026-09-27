@@ -1,7 +1,9 @@
 /* Managed by debian-hypr. cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#taskbar, #clock, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray { padding: 0 6px; }
+#taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray { padding: 0 6px; }
+#cpu.warning, #memory.warning { color: #a87a2f; }
+#cpu.critical, #memory.critical { color: #c0605a; }
 #clock { font-weight: bold; }
 /* Tooltips: navy with cream text. GTK draws the text in a label, so it needs its
    own colour; weight 600 survives the popup's (transparent) text rendering. */

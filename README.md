@@ -218,7 +218,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   Hyprland CPU over btop). ⊤ keeps a window above the others (Hyprland pin). Shadows: `hypr-shadow on|off` (off by default: CPU-drawn).
 * **File manager**: Xfe, a small FOX-toolkit app (X11 via Xwayland) with a folder
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
-* **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net with a graph of the last 50 s (`hypr-sparkline`, every 5 s), volume (speaker icon: click mutes, scroll or hover slider adjusts),
+* **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net (numbers; `bar_graphs = True` adds a graph of the last 50 s via `hypr-sparkline`), volume (speaker icon: click mutes, scroll or hover slider adjusts),
   terminal theme (● in the theme's colour, click to switch), keyboard layout
   (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 

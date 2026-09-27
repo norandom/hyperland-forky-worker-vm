@@ -1,4 +1,4 @@
-// Managed by debian-hypr. Minimal bar: clock + CPU/MEM/net, like the Omarchy setup.
+// Managed by debian-hypr (template: bar_graphs = {{ host.data.bar_graphs }}). Minimal bar: clock + CPU/MEM/net, like the Omarchy setup.
 {
   "layer": "top",
   "position": "top",
@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/cpu", "custom/mem", "custom/net", "group/audio", "tray", "hyprland/submap", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": [{% if host.data.bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -60,11 +60,23 @@
     "ignore-list": ["fuzzel"]
   },
   "clock": { "format": "{:%A %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
+{% if host.data.bar_graphs %}
   // CPU / memory / network with a sparkline of the last 50 s (hypr-sparkline, every 5 s)
   "custom/cpu": { "exec": "$HOME/.local/bin/hypr-sparkline cpu", "return-type": "json",
                   "on-click": "uwsm app -- terminator -x btop" },
   "custom/mem": { "exec": "$HOME/.local/bin/hypr-sparkline mem", "return-type": "json" },
   "custom/net": { "exec": "$HOME/.local/bin/hypr-sparkline net", "return-type": "json" },
+{% else %}
+  // CPU / memory / network as numbers (bar_graphs = False)
+  "cpu": { "interval": 5, "format": "CPU {usage}%", "on-click": "uwsm app -- terminator -x btop" },
+  "memory": { "interval": 5, "format": "MEM {percentage}%", "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used" },
+  "network": {
+    "interval": 5,
+    "format": "↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
+    "format-disconnected": "offline",
+    "tooltip-format": "{ifname} {ipaddr}"
+  },
+{% endif %}
   // Speaker icon; hover reveals the volume slider. Click = mute, scroll = ±5%.
   "group/audio": {
     "orientation": "horizontal",

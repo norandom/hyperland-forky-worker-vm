@@ -108,7 +108,6 @@ files.template(
 
 # --- Bar, notifications, launcher, GTK, terminal, top tools ----------------------
 for src, dest in (
-    ("files/waybar/config.jsonc", ".config/waybar/config.jsonc"),
     ("files/waybar/style.css", ".config/waybar/style.css"),
     ("files/mako/config", ".config/mako/config"),
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
@@ -121,6 +120,9 @@ for src, dest in (
     ("files/gtk-3.0/gtk.css", ".config/gtk-3.0/gtk.css"),  # slim Terminator tabs
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
+
+files.template(name=f"Config: ~/.config/waybar/config.jsonc (bar graphs {'on' if host.data.bar_graphs else 'off'})",
+               src="templates/waybar/config.jsonc.j2", dest=f"{home}/.config/waybar/config.jsonc", mode="644")
 
 files.put(name="Bar: hypr-sparkline (CPU / MEM / net with a history graph)", src="files/bin/hypr-sparkline",
           dest=f"{home}/.local/bin/hypr-sparkline", mode="755")
