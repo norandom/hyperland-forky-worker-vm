@@ -4,7 +4,7 @@ from pyinfra import host
 from pyinfra.operations import files, server
 
 home = host.data.desktop_home
-themes = ("cobalt", "navy", "fixedsys", "cream")
+themes = ("cobalt", "navy", "fixedsys", "cream", "petrol")
 
 for t in themes:
     files.put(name=f"btop theme ({t}, transparent background)", src=f"files/themes/btop-{t}.theme",

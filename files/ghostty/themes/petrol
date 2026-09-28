@@ -1,16 +1,16 @@
-# Managed by debian-hypr (tools/themegen.py). Ghostty theme = Terminator profile "fixedsys"
+# Managed by debian-hypr (tools/themegen.py). Ghostty theme = Terminator profile "petrol"
 # (hypr-termtheme switches it).
-background = #1f233c
-foreground = #ffa348
-cursor-color = #ffa348
-cursor-text = #1f233c
+background = #002b36
+foreground = #ff911d
+cursor-color = #62a0ea
+cursor-text = #000000
 selection-background = #555753
-selection-foreground = #ffa348
-palette = 0=#2e3436
+selection-foreground = #ff911d
+palette = 0=#000000
 palette = 1=#cc0000
 palette = 2=#4e9a06
 palette = 3=#c4a000
-palette = 4=#3584e4
+palette = 4=#3465a4
 palette = 5=#75507b
 palette = 6=#06989a
 palette = 7=#d3d7cf
@@ -22,6 +22,6 @@ palette = 12=#729fcf
 palette = 13=#ad7fa8
 palette = 14=#34e2e2
 palette = 15=#eeeeec
-font-family = Berkeley Mono
+font-family = Fixedsys Core
 font-size = 12
-gtk-custom-css = themes/fixedsys.css
+gtk-custom-css = themes/petrol.css

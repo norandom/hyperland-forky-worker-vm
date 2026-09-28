@@ -41,6 +41,7 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-termtheme.navy { color: #1a2a3f; }
 #custom-termtheme.fixedsys { color: #ffa348; }
 #custom-termtheme.cream { color: #f5ede0; text-shadow: 0 0 1px #2b4570, 0 0 1px #2b4570; }
+#custom-termtheme.petrol { color: #002b36; }
 #custom-termtheme:hover { background: #f5ede0; }
 #custom-kbd:hover { background: #f5ede0; }
 /* SUPER badge while one-shot Super is armed */

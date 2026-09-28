@@ -1,8 +1,9 @@
-# Managed by debian-hypr. Ghostty theme = Terminator profile "navy"
-# (generated from files/terminator/config; hypr-termtheme switches it).
+# Managed by debian-hypr (tools/themegen.py). Ghostty theme = Terminator profile "navy"
+# (hypr-termtheme switches it).
 background = #1a2a3f
 foreground = #fff8f0
 cursor-color = #fff8f0
+cursor-text = #1a2a3f
 selection-background = #3a5a7a
 selection-foreground = #fff8f0
 palette = 0=#243b55

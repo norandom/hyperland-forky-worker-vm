@@ -1,13 +1,13 @@
-/* Managed by debian-hypr (tools/themegen.py). Ghostty tab bar for the "navy" theme: a
+/* Managed by debian-hypr (tools/themegen.py). Ghostty tab bar for the "petrol" theme: a
    slim line in Terminator's tab colours instead of the tall Adwaita toolbar. */
-toolbarview > .top-bar, toolbarview > .bottom-bar { min-height: 0; background: #243b55; box-shadow: none; }
-tabbar .box { min-height: 0; padding: 0; background: #243b55; border: none; box-shadow: none; }
+toolbarview > .top-bar, toolbarview > .bottom-bar { min-height: 0; background: #073642; box-shadow: none; }
+tabbar .box { min-height: 0; padding: 0; background: #073642; border: none; box-shadow: none; }
 tabbar tabbox, tabbar tabbox > tabboxchild { min-height: 0; padding: 0; margin: 0; }
 tabbar tab { min-height: 20px; padding: 0 10px; margin: 0; border-radius: 0;
-             background: transparent; color: #7b96b4; box-shadow: none; }
-tabbar tab:hover { color: #c4933f; background: transparent; }
-tabbar tab:selected, tabbar tab:selected:hover { background: #c4933f; color: #1a2a3f; }
-tabbar tab label { font-family: "FiraCode Nerd Font"; font-size: 9pt; }
+             background: transparent; color: #c77a2e; box-shadow: none; }
+tabbar tab:hover { color: #ff911d; background: transparent; }
+tabbar tab:selected, tabbar tab:selected:hover { background: #ff911d; color: #002b36; }
+tabbar tab label { font-family: "Fixedsys Core"; font-size: 9pt; }
 tabbar tab button.image-button { min-height: 16px; min-width: 16px; padding: 0; margin: 0; border-radius: 0; }
 tabbar tabbox > separator { opacity: 0; }
 tabbar .start-action, tabbar .end-action { padding: 0; }

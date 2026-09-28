@@ -204,11 +204,11 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | SUPER + Y, ● in the bar | next Terminator theme (bar: right-click = previous; in Terminator: right-click → Theme) |
 | SUPER + Space | launcher (search) |
 | SUPER + Escape, power button | log out, reboot, shut down |
-| SUPER + W / F / ALT + F | close / fullscreen / maximize |
+| SUPER + W / F / SHIFT + F | close / fullscreen / maximize |
 | SUPER + T | toggle floating / tiling (one window) |
 | SUPER + L, ▦ in the bar | next layout mode |
 | SUPER + M | show / hide minimized windows |
-| SUPER + arrows, ALT + TAB | focus |
+| SUPER + arrows, SUPER + TAB | focus / next window |
 | SUPER + left / right drag | move / resize |
 | SUPER + ß / ´ (+ SHIFT) | narrower / wider (shorter / taller) |
 
@@ -230,10 +230,14 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   terminal theme (● in the theme's colour, click to switch), keyboard layout
   (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
 
-**Keyboard**: `keyboard_layout` / `keyboard_variant` / `keyboard_options` (default: German Apple
-layout, `altwin:swap_ralt_rwin`, so SUPER is the right Option key). hypr-rdp
-uses Hyprland's keymap, so the mapping is the same over RDP. German (no dead keys)
-and US are loaded together: switch with `kbde` / `kbus`, `setxkbmap de|us`,
+**Keyboard**: `keyboard_layout` / `keyboard_variant` / `keyboard_options`. Default:
+the Apple Magic Keyboard (2015) German layout as on the Mac (`de(mac_nodeadkeys)`):
+**left Option** is the Option key (`lv3:lalt_switch`): Option+L = @, Option+5/6 = [ ],
+Option+7 = |, Option+Shift+7 = \, Option+8/9 = { }, Option+E = €, Option+N = ~.
+Right Option is SUPER (`altwin:swap_ralt_rwin`), right Cmd works as Option too. With
+no Alt key left, window switching is SUPER+Tab. The PC German layout (`nodeadkeys`,
+@ = AltGr+Q) is kept commented out in `group_data/all.py`. hypr-rdp uses Hyprland's
+keymap, so the mapping is the same over RDP. German and US are loaded together: switch with `kbde` / `kbus`, `setxkbmap de|us`,
 `hypr-kbd de|us` or the ⌨ bar button. The choice survives reloads and reboots,
 and hypr-rdp follows it without reconnecting.
 
@@ -312,7 +316,10 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   rootless podman without a daemon.
 * **Terminator themes**: `default` (cobalt), `navy`, `fixedsys` (amber on navy,
   Berkeley Mono from the private data; the default monospace without it), `cream`
-  (light: navy on cream). The ● bar button (click next, right-click previous), SUPER+Y,
+  (light: navy on cream), `petrol` (orange on petrol `#002b36`, blue block cursor,
+  Fixedsys Core). New themes: add a Terminator profile and its tab colours, then
+  `python3 tools/themegen.py` writes the Ghostty and foot themes; Claude Code, btop and
+  Sublime Text have one file per theme in `files/themes/` and `files/sublime/`. The ● bar button (click next, right-click previous), SUPER+Y,
   `hypr-termtheme <name>|next|prev` or right-click → Theme switches all open
   terminals; new ones (SUPER+Return, app menu) use the last choice. Tabs are a
   slim tmux-style line at the bottom; tab titles show just the directory. The

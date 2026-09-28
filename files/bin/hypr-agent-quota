@@ -20,7 +20,7 @@ import urllib.request
 from pathlib import Path
 
 CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "hypr-agent-quota.json"
-GREEN, YELLOW, RED = "#3a8e4f", "#a87a2f", "#a0403a"
+GREEN, YELLOW, RED, GREY = "#3a8e4f", "#a87a2f", "#a0403a", "#7b96b4"
 USAGE_ENDPOINT = "https://api.anthropic.com/api/oauth/usage"
 
 
@@ -119,28 +119,34 @@ def main():
         cache = json.loads(CACHE.read_text())
     except (OSError, ValueError):
         cache = {}
-    agents, parts, tip = (("claude", "Cl", "Claude", claude), ("codex", "Co", "Codex", codex)), [], []
-    for key, short, name, probe in agents:
-        stale = False
+    agents = (("claude", "Cl", "Claude", claude, Path.home() / ".claude/.credentials.json"),
+              ("codex", "Co", "Codex", codex, Path.home() / ".codex/auth.json"))
+    parts, tip = [], []
+    for key, short, name, probe, login in agents:
+        stale, why = False, ""
         try:
             limits = probe()
-        except (OSError, ValueError, RuntimeError, urllib.error.URLError, subprocess.SubprocessError):
-            limits = None
-            stale = True
+        except urllib.error.HTTPError as e:
+            limits, stale = None, True
+            why = ("login expired: start " + key + " once to renew it") if e.code in (401, 403) else f"usage endpoint: HTTP {e.code}"
+        except (OSError, ValueError, RuntimeError, urllib.error.URLError, subprocess.SubprocessError) as e:
+            limits, stale, why = None, True, f"check failed ({type(e).__name__})"
         if limits:
             cache[key] = limits
         elif stale and cache.get(key) and still_open(cache[key], now):
             limits = cache[key]          # last good reading
         else:
-            stale = False
             cache.pop(key, None)
+            if login.exists():           # logged in, but no reading: keep the symbol, say why
+                parts.append(f"<span color='{GREY}'>{short} –</span>")
+                tip.append(f"{name}: no reading ({why or 'no limits reported'})")
             continue
         weekly = next((l for l in limits if l["label"] == "Weekly"), limits[-1])
         left = max(0, round(100 * (1 - weekly["used"])))
         colour = GREEN if left > 50 else YELLOW if left > 20 else RED
         text = f"{short} {left}%"
         parts.append(f"<span color='{colour}'>{'<i>' + text + '</i>' if stale else text}</span>")
-        tip.append(name + (" (last good reading)" if stale else ""))
+        tip.append(name + (f" (last good reading; {why})" if stale else ""))
         for l in limits:
             when = ""
             if l["resets"]:

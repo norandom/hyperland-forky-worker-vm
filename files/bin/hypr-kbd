@@ -1,7 +1,7 @@
 #!/bin/sh
 # Switch the keyboard layout: hypr-kbd de|us|toggle [--quiet]
 # Both layouts are loaded in one keymap (input.lua: kb_layout "de,us",
-# German without dead keys); this only changes the active one, and hypr-rdp
+# German = Apple Mac layout without dead keys); this only changes the active one, and hypr-rdp
 # follows it (no reconnect). The choice is kept in ~/.local/state/hypr-kbd.
 # setxkbmap only reaches X11 apps on Wayland, so this goes through Hyprland.
 state="$HOME/.local/state/hypr-kbd"
@@ -9,7 +9,7 @@ cur=$(cat "$state" 2>/dev/null || echo de)
 case "$1" in
   de|us) new=$1 ;;
   toggle|"") [ "$cur" = us ] && new=de || new=us ;;
-  *) echo "usage: hypr-kbd de|us|toggle   (de = German, no dead keys)" >&2; exit 2 ;;
+  *) echo "usage: hypr-kbd de|us|toggle   (de = German Mac layout, no dead keys)" >&2; exit 2 ;;
 esac
 [ "$new" = us ] && group=1 || group=0
 mkdir -p "${state%/*}" && echo "$new" > "$state"

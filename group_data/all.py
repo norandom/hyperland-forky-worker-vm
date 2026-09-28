@@ -7,9 +7,14 @@ debian_suite = "forky"
 # Keyboard layouts loaded together; switch with hypr-kbd / kbde / kbus / setxkbmap
 # or the ⌨ bar button (first = default). Both stay in one keymap, so hypr-rdp
 # follows a switch without reconnecting.
+# German = Apple Magic Keyboard (2015) layout, as on the Mac: Option+L = @, Option+5/6 = [ ],
+# Option+7 = |, Option+Shift+7 = \, Option+8/9 = { }, Option+E = €, Option+N = ~.
+# Left Option is that Option key (lv3:lalt_switch; there is no Alt key then), right Option
+# is Super (altwin:swap_ralt_rwin), right Cmd works as Option too.
 keyboard_layout = "de,us"
-keyboard_variant = "nodeadkeys,"
-keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwin"
+keyboard_variant = "mac_nodeadkeys,"
+# keyboard_variant = "nodeadkeys,"   # PC German layout (@ = AltGr+Q)
+keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwin,lv3:lalt_switch"
 
 # hypr-rdp with the patches in files/hypr-rdp.
 #   "release": install the .deb built by CI (Dagger) from this repo's GitHub release

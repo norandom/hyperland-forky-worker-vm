@@ -24,7 +24,7 @@ hl.bind("SUPER + A", exec("$HOME/.local/bin/hypr-appmenu"), { description = "App
 hl.bind("SUPER + ESCAPE", exec("$HOME/.local/bin/hypr-appmenu power"), { description = "Power menu" })
 hl.bind("SUPER + W", hl.dsp.window.close(), { description = "Close window" })
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }), { description = "Full screen" })
-hl.bind("SUPER + ALT + F", hl.dsp.window.fullscreen({ mode = "maximized" }), { description = "Maximize" })
+hl.bind("SUPER + SHIFT + F", hl.dsp.window.fullscreen({ mode = "maximized" }), { description = "Maximize" })
 hl.bind("SUPER + T", hl.dsp.window.float({ action = "toggle" }), { description = "Toggle floating/tiling" })
 hl.bind("SUPER + L", exec("$HOME/.local/bin/hypr-layout next"), { description = "Next layout mode" })
 hl.bind("SUPER + SHIFT + M", exec("uwsm stop"), { description = "Log out (exit Hyprland)" })
@@ -34,8 +34,9 @@ hl.bind("SUPER + LEFT", hl.dsp.focus({ direction = "l" }), { description = "Focu
 hl.bind("SUPER + RIGHT", hl.dsp.focus({ direction = "r" }), { description = "Focus right" })
 hl.bind("SUPER + UP", hl.dsp.focus({ direction = "u" }), { description = "Focus up" })
 hl.bind("SUPER + DOWN", hl.dsp.focus({ direction = "d" }), { description = "Focus down" })
-hl.bind("ALT + TAB", hl.dsp.window.cycle_next(), { description = "Next window" })
-hl.bind("ALT + TAB", hl.dsp.window.bring_to_top(), { description = "Raise window" })
+-- SUPER + TAB, not ALT + TAB: left Option is the Mac Option key (level 3, input.lua)
+hl.bind("SUPER + TAB", hl.dsp.window.cycle_next(), { description = "Next window" })
+hl.bind("SUPER + TAB", hl.dsp.window.bring_to_top(), { description = "Raise window" })
 
 -- Mouse: SUPER + left drag = move, SUPER + right drag = resize
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Move window" })

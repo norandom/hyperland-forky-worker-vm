@@ -1,7 +1,9 @@
 """Terminator plugin (debian-hypr): right-click menu "Theme" to switch all
 terminals between the profiles; the choice also applies to new windows.
 The tab bar follows the profile too: its font (family of the profile's font)
-and colours are restyled live when ~/.local/state/terminator-profile changes."""
+and colours are restyled live when ~/.local/state/terminator-profile changes.
+The config itself is re-read when ~/.config/terminator/config changes (a deploy
+adding a theme), so new profiles work without restarting Terminator."""
 import os
 import subprocess
 
@@ -12,6 +14,7 @@ from terminatorlib.config import Config
 AVAILABLE = ['ThemeMenu']
 SWITCH = os.path.expanduser('~/.local/bin/hypr-termtheme')
 STATE = os.path.expanduser('~/.local/state/terminator-profile')
+CONFIG = os.path.expanduser('~/.config/terminator/config')
 
 # Tab bar per profile: (bar background, tab text, active tab background, active tab text).
 # Base layout (slim tmux-style tabs) is in ~/.config/gtk-3.0/gtk.css.
@@ -20,6 +23,7 @@ TAB_COLOURS = {
     'navy': ('#243b55', '#7b96b4', '#c4933f', '#1a2a3f'),
     'fixedsys': ('#2a2f4c', '#b07838', '#ffa348', '#1f233c'),
     'cream': ('#ebe3d6', '#5b7fa5', '#2b4570', '#fff8f0'),
+    'petrol': ('#073642', '#c77a2e', '#ff911d', '#002b36'),
 }
 TAB = '.terminator-terminal-window notebook > header'
 
@@ -38,7 +42,18 @@ class _TabStyle:
             Gdk.Screen.get_default(), self.provider, Gtk.STYLE_PROVIDER_PRIORITY_USER + 1)
         self.monitor = Gio.File.new_for_path(STATE).monitor_file(Gio.FileMonitorFlags.NONE, None)
         self.monitor.connect('changed', lambda *_a: self.apply())
+        self.cfg_monitor = Gio.File.new_for_path(CONFIG).monitor_file(Gio.FileMonitorFlags.NONE, None)
+        self.cfg_monitor.connect('changed', self.reload_config)
         self.apply()
+
+    def reload_config(self, _monitor, _file, _other, event):
+        # New or changed profiles (e.g. a theme added by a deploy) without a restart
+        if event == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+            try:
+                Config().base.reload()
+            except Exception:  # a half-written file: the next change event retries
+                pass
+            self.apply()
 
     def apply(self):
         try:
