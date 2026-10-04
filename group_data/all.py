@@ -21,8 +21,8 @@ keyboard_options = "compose:caps,shift:both_capslock_cancel,altwin:swap_ralt_rwi
 #   "build":   compile on the host (needs the Rust toolchain there, ~10 min)
 hypr_rdp_source = "release"
 hypr_rdp_deb_url = ("https://github.com/norandom/hyperland-forky-worker-vm/releases/download/"
-                    "hypr-rdp-0.1.6-4/hypr-rdp-clearcodec_0.1.6-4_amd64.deb")
-hypr_rdp_deb_sha256 = "39e4a5b6b02a22e9fad535cb07a34009ba893153fc62c1f17e7eb7bf5f2081e6"
+                    "hypr-rdp-0.1.6-5/hypr-rdp-clearcodec_0.1.6-5_amd64.deb")
+hypr_rdp_deb_sha256 = "226a069f58a65ff60cd04a95de413563dafab75175d676160e11694878cc4aaa"
 hypr_rdp_version = "0.1.6"
 hypr_rdp_sha256 = "6857d170da5d678211eb5318bb03c1bd3ff9503f5c26cf0ea05755fa63ff1d13"
 hypr_rdp_codec = "clearcodec"      # clearcodec | planar | avc420
