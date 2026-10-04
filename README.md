@@ -188,7 +188,7 @@ the patched hypr-rdp in a clean Debian forky container and publishes the .deb.
 Locally:
 
 ```bash
-dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-4_amd64.deb
+dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-5_amd64.deb
 ```
 
 ## Desktop

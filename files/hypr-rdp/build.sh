@@ -17,6 +17,7 @@ patch -Np1 -i "$src/clearcodec.patch"   # egfx_codec = "clearcodec"
 patch -Np1 -i "$src/planar.patch"       # egfx_codec = "planar"
 patch -Np1 -i "$src/capture-pacing.patch"  # no full-screen captures on pointer motion
 patch -Np1 -i "$src/clipboard-request-timeout.patch"  # a lost clipboard answer no longer blocks host -> VM copies
+patch -Np1 -i "$src/clipboard-diagnostics-retry.patch"  # format names + request/error logging, one retry after an empty answer
 
 export CARGO_HOME="$work/cargo-home"    # private, so IronRDP can be patched
 cargo fetch --locked

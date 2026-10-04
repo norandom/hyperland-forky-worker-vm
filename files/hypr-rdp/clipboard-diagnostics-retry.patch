@@ -1,0 +1,208 @@
+--- a/src/clipboard/backend.rs
++++ b/src/clipboard/backend.rs
+@@ -148,6 +148,8 @@ impl CliprdrBackendFactory for HyprCliprdrFactory {
+             running,
+             last_requested_format: None,
+             request_sent_at: None,
++            retried: false,
++            retry_cancel: None,
+             pending_echo_candidate: None,
+             file_transfer_mode: self.file_transfer_mode,
+             files,
+@@ -175,6 +177,8 @@ struct RemoteSelectionRequest {
+ /// How long a request to the client may stay unanswered before a new client copy
+ /// replaces it (answers normally arrive within milliseconds).
+ const REQUEST_TIMEOUT: Duration = Duration::from_secs(3);
++/// Delay before re-requesting data the client answered with an error or nothing.
++const RETRY_DELAY: Duration = Duration::from_millis(300);
+ 
+ struct HyprCliprdrBackend {
+     event_sender: Option<mpsc::UnboundedSender<ServerEvent>>,
+@@ -189,6 +193,10 @@ struct HyprCliprdrBackend {
+     /// When the pending request went out. Format Data Responses carry no request
+     /// ID; a lost one would otherwise block every later copy of the same format.
+     request_sent_at: Option<Instant>,
++    /// The current selection was already re-requested once after an error or empty answer.
++    retried: bool,
++    /// Set while a delayed re-request is planned; a new announcement cancels it.
++    retry_cancel: Option<Arc<AtomicBool>>,
+     pending_echo_candidate: Option<ClipboardEchoCandidate>,
+     file_transfer_mode: FileTransferMode,
+     files: FrozenFiles,
+@@ -297,7 +305,13 @@ impl CliprdrBackend for HyprCliprdrBackend {
+     fn on_remote_copy(&mut self, available_formats: &[ClipboardFormat]) {
+         tracing::trace!(
+             formats = available_formats.len(),
+-            ids = ?available_formats.iter().map(|f| f.id).collect::<Vec<_>>(),
++            formats = ?available_formats
++                .iter()
++                .map(|f| match &f.name {
++                    Some(name) => format!("{}:{}", f.id.value(), name.value()),
++                    None => f.id.value().to_string(),
++                })
++                .collect::<Vec<_>>(),
+             "Clipboard: remote clipboard updated"
+         );
+         // A request the client never answered must not block later copies: once it is
+@@ -317,6 +331,13 @@ impl CliprdrBackend for HyprCliprdrBackend {
+             self.request_sent_at = None;
+         }
+         self.remote_formats = available_formats.to_vec();
++        self.retried = false;
++        // A new selection replaces a planned re-request of the old one.
++        if let Some(cancel) = self.retry_cancel.take() {
++            cancel.store(true, Ordering::SeqCst);
++            self.last_requested_format = None;
++            self.request_sent_at = None;
++        }
+         clear_selection(&self.files);
+         let remote_generation = self
+             .inbound
+@@ -377,6 +398,7 @@ impl CliprdrBackend for HyprCliprdrBackend {
+                 )))
+                 .is_ok()
+             {
++                tracing::debug!(?format, "Clipboard: requesting the client's data");
+                 self.last_requested_format = Some(format);
+                 self.request_sent_at = Some(Instant::now());
+                 self.file_list_request = file_generation.map(FileListRequest::Waiting);
+@@ -468,6 +490,34 @@ impl CliprdrBackend for HyprCliprdrBackend {
+ }
+ 
+ impl HyprCliprdrBackend {
++    /// Ask once more, shortly after, for a format the client answered with an error or
++    /// nothing (some clients are not ready right after announcing a new selection).
++    fn retry_once(&mut self, format: Option<ClipboardFormatId>) {
++        let (Some(format), false) = (format, self.retried) else {
++            return;
++        };
++        let Some(sender) = self.event_sender.clone() else {
++            return;
++        };
++        self.retried = true;
++        self.last_requested_format = Some(format);
++        self.request_sent_at = Some(Instant::now());
++        let cancel = Arc::new(AtomicBool::new(false));
++        self.retry_cancel = Some(Arc::clone(&cancel));
++        tracing::debug!(
++            ?format,
++            "Clipboard: requesting the client's data again in 300 ms"
++        );
++        thread::spawn(move || {
++            thread::sleep(RETRY_DELAY);
++            if !cancel.load(Ordering::SeqCst) {
++                let _ = sender.send(ServerEvent::Clipboard(ClipboardMessage::SendInitiatePaste(
++                    format,
++                )));
++            }
++        });
++    }
++
+     fn finish_file_list_request(&mut self, request: FileListRequest) {
+         self.last_requested_format = None;
+         let FileListRequest::Draining(Some(RemoteSelectionRequest {
+@@ -491,6 +541,7 @@ impl HyprCliprdrBackend {
+                 )))
+                 .is_ok()
+             {
++                tracing::debug!(?format, "Clipboard: requesting the client's data");
+                 self.last_requested_format = Some(format);
+                 self.request_sent_at = Some(Instant::now());
+                 self.file_list_request = file_generation.map(FileListRequest::Waiting);
+@@ -567,15 +618,19 @@ impl HyprCliprdrBackend {
+     ) {
+         let requested_format = self.last_requested_format.take();
+         let echo_candidate = self.pending_echo_candidate.take();
++        self.retry_cancel = None;
+ 
+-        if response.is_error() {
++        if response.is_error() || response.data().is_empty() {
++            tracing::warn!(
++                format = ?requested_format,
++                error = response.is_error(),
++                "Clipboard: the client sent no data for a requested format"
++            );
++            self.retry_once(requested_format);
+             return;
+         }
+ 
+         let data = response.data();
+-        if data.is_empty() {
+-            return;
+-        }
+ 
+         if data.len() > max_clipboard_size {
+             tracing::warn!(
+@@ -733,6 +788,8 @@ mod tests {
+                 running: Arc::new(AtomicBool::new(true)),
+                 last_requested_format: None,
+                 request_sent_at: None,
++                retried: false,
++                retry_cancel: None,
+                 pending_echo_candidate: None,
+                 file_transfer_mode: FileTransferMode::ToClient,
+                 files: Arc::new(Mutex::new(None.into())),
+@@ -994,6 +1051,8 @@ mod tests {
+             running: Arc::new(AtomicBool::new(true)),
+             last_requested_format: None,
+             request_sent_at: None,
++            retried: false,
++            retry_cancel: None,
+             pending_echo_candidate: None,
+             file_transfer_mode: FileTransferMode::ToClient,
+             files,
+@@ -1270,6 +1329,40 @@ mod tests {
+         assert_eq!(format, ClipboardFormatId::CF_UNICODETEXT);
+     }
+ 
++    #[test]
++    fn a_new_copy_replaces_a_planned_retry() {
++        let (mut backend, mut event_rx) = backend_with_events();
++        let text = [ClipboardFormat::new(ClipboardFormatId::CF_UNICODETEXT)];
++        backend.on_remote_copy(&text);
++        let _ = recv_clipboard_event(&mut event_rx);
++        backend.handle_format_data_response(FormatDataResponse::new_error(), MAX_CLIPBOARD_SIZE);
++        // New copy before the retry fires: requested at once, the retry is dropped.
++        backend.on_remote_copy(&text);
++        let ClipboardMessage::SendInitiatePaste(_) = recv_clipboard_event(&mut event_rx) else {
++            panic!("expected an immediate request");
++        };
++        std::thread::sleep(RETRY_DELAY * 3);
++        assert!(event_rx.try_recv().is_err());
++    }
++
++    #[test]
++    fn an_error_answer_is_retried_once() {
++        let (mut backend, mut event_rx) = backend_with_events();
++        backend.on_remote_copy(&[ClipboardFormat::new(ClipboardFormatId::CF_UNICODETEXT)]);
++        let _ = recv_clipboard_event(&mut event_rx);
++        backend.handle_format_data_response(FormatDataResponse::new_error(), MAX_CLIPBOARD_SIZE);
++        std::thread::sleep(RETRY_DELAY * 3);
++        let ClipboardMessage::SendInitiatePaste(format) = recv_clipboard_event(&mut event_rx)
++        else {
++            panic!("expected a retry");
++        };
++        assert_eq!(format, ClipboardFormatId::CF_UNICODETEXT);
++        // A second error is not retried again.
++        backend.handle_format_data_response(FormatDataResponse::new_error(), MAX_CLIPBOARD_SIZE);
++        std::thread::sleep(RETRY_DELAY * 3);
++        assert!(event_rx.try_recv().is_err());
++    }
++
+     #[test]
+     fn client_text_echo_of_our_copy_keeps_wayland_selection() {
+         let (mut backend, mut event_rx) = backend_with_events();
+@@ -1815,7 +1908,12 @@ mod tests {
+             if let Some(PendingWrite::Image(png_data)) = backend.pending_write.lock().unwrap().as_ref() {
+                 let _ = decode_png(png_data);
+             }
+-            prop_assert_eq!(backend.last_requested_format, None);
++            // Only an empty answer leaves a request pending: the one planned retry.
++            if data.is_empty() {
++                prop_assert!(backend.retry_cancel.is_some());
++            } else {
++                prop_assert_eq!(backend.last_requested_format, None);
++            }
+         }
+     }
+ 

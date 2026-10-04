@@ -17,7 +17,8 @@ BUILD_DEPS = [
     "libgbm-dev", "libfuse3-dev", "libpulse-dev", "libssl-dev",
 ]
 
-PATCHES = ["clearcodec.patch", "planar.patch", "capture-pacing.patch", "clipboard-request-timeout.patch"]
+PATCHES = ["clearcodec.patch", "planar.patch", "capture-pacing.patch", "clipboard-request-timeout.patch",
+           "clipboard-diagnostics-retry.patch"]
 IRONRDP_PATCH = "ironrdp-planar.patch"
 IRONRDP_REV = "5198cde"
 
@@ -51,7 +52,7 @@ class HyprRdpDeb:
         sha256: Annotated[str, Doc("sha256 of the upstream release tarball")] = (
             "6857d170da5d678211eb5318bb03c1bd3ff9503f5c26cf0ea05755fa63ff1d13"
         ),
-        revision: Annotated[str, Doc("Debian package revision")] = "4",
+        revision: Annotated[str, Doc("Debian package revision")] = "5",
         base: Annotated[str, Doc("Debian base image")] = "debian:forky-slim",
     ) -> dagger.File:
         """Build the patched hypr-rdp and return the .deb."""
