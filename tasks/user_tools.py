@@ -105,16 +105,21 @@ mkdir -p {home}/.local/share/debian-hypr && echo {ax} > {home}/.local/share/debi
     )
 comp = f"{home}/.local/share/bash-completion/completions"
 server.shell(
-    name="bash completion: kubectl (+ alias k), helm, ax, rc",
+    name="bash completion: kubectl (+ alias k), helm, gh, ax, rc",
     commands=[f"""mkdir -p {comp}
 command -v kubectl >/dev/null && kubectl completion bash > {comp}/kubectl && \
   {{ cat {comp}/kubectl; echo 'complete -o default -F __start_kubectl k'; }} > {comp}/k
 command -v helm >/dev/null && helm completion bash > {comp}/helm
+command -v gh >/dev/null && gh completion -s bash > {comp}/gh
 [ -x {bin_dir}/ax ] && {bin_dir}/ax completion bash > {comp}/ax 2>/dev/null || rm -f {comp}/ax
 command -v rc >/dev/null && rc completions bash > {comp}/rc 2>/dev/null || rm -f {comp}/rc
 true"""],
 )
 
+server.shell(
+    name="GitHub Copilot CLI (npm global; also runs as `gh copilot`; log in with /login)",
+    commands=[env + f"[ -x {bin_dir}/copilot ] || npm install -g @github/copilot"],
+)
 server.shell(
     name="Codex CLI (npm global; log in once with: codex login)",
     commands=[env + f"[ -x {bin_dir}/codex ] || npm install -g @openai/codex"],

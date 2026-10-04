@@ -130,6 +130,12 @@ release_tools = {
                 "65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8"),
     "helm": ("https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz",
              "86584a54def73570558f66f5111cc53dfed56689637ae32c1201205d494f54fb"),
+    # Kubernetes TUIs: k9s (browse / act: logs, shell, edit, scale), ktop (btop-like live
+    # node / pod usage; also `kubectl ktop`); sha256 from the projects' checksum files
+    "k9s": ("https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_amd64.tar.gz",
+            "c3752ad51a5a4015a113819c4eeb6e55a4d0e4b8e652494797532f6fc8161dd7"),
+    "ktop": ("https://github.com/vladimirvivien/ktop/releases/download/v0.5.3/ktop_v0.5.3_linux_amd64.tar.gz",
+             "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),

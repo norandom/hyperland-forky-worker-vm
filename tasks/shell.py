@@ -29,6 +29,15 @@ files.block(
     try_prevent_shell_expansion=True,
 )
 
+# --- GitHub Copilot CLI uses gh's login (no keychain on this desktop to store its own) ----
+files.block(
+    name="bash: Copilot CLI takes its token from gh (gh auth login is the one login)",
+    path=f"{home}/.bashrc",
+    marker="# {mark} debian-hypr: copilot",
+    content='command -v gh >/dev/null && COPILOT_GITHUB_TOKEN=$(gh auth token 2>/dev/null) && export COPILOT_GITHUB_TOKEN',
+    try_prevent_shell_expansion=True,
+)
+
 # --- Kali-like history -------------------------------------------------------------------
 files.block(
     name="bash: large, shared, timestamped history (Kali-style)",

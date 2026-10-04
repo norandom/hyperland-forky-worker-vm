@@ -78,7 +78,7 @@ Every run is idempotent.
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
 | `apps` | LibreOffice Calc + Writer (UI English/German, spelling de + en-US), Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch, Rust coreutils |
-| `user_tools` | uv, pnpm, Aikido Safe Chain, Neovim config (nvim-simple), rclone mounts (OneDrive), ccusage, euporie, pretty-mermaid skill |
+| `user_tools` | uv, pnpm, Aikido Safe Chain, Neovim config (nvim-simple), rclone mounts (OneDrive), Codex + Copilot CLIs, ax, ccusage, euporie, pretty-mermaid skill |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
 | `themes` | btop and Claude Code themes for each Terminator theme; Chromium frame colour |
 | `private` | your private data (encrypted in the repo): proprietary fonts, license keys |
@@ -360,7 +360,11 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
 * **Kubernetes**: `kubectl` (alias `k`) and `helm` from the upstream releases (pinned,
   checksum verified; Debian's kubectl is 4 minor versions behind, and kubectl should be
-  within one minor version of the cluster), with bash completion.
+  within one minor version of the cluster), with bash completion. TUIs:
+  [ktop](https://github.com/vladimirvivien/ktop), a btop for the cluster (live node and pod
+  CPU / memory against requests and limits; metrics-server or Prometheus, works without
+  either), and [k9s](https://k9scli.io) to browse and act (`:pods`, `l` logs, `s` shell,
+  `e` edit, also AX's `Task` resources).
   [ax](https://github.com/google/ax) (`ax_version`) is Google's agentic orchestration
   CLI: it runs AI agent tasks in sandboxes on a cluster that has
   [Agent Substrate](https://github.com/agent-substrate/substrate) installed (`ax apply -f
@@ -378,6 +382,11 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
+* **GitHub**: `gh` (GitHub's apt repository) and the [Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+  (`copilot`, npm global; `gh copilot` runs the same one). Log in once with `gh auth login`
+  (needs a Copilot subscription for Copilot): shells export `COPILOT_GITHUB_TOKEN` from
+  `gh auth token`, so Copilot uses gh's login (there is no keychain on this desktop for a
+  login of its own); `gh auth logout` ends both.
 * **AI quota in the bar**: `Cl 90%  Co 60%` = weekly quota left for Claude and Codex
   (green / yellow / red; tooltip: every window and its reset time; click: refresh).
   Claude via Anthropic's OAuth usage endpoint with Claude Code's own login, Codex via
@@ -437,9 +446,9 @@ The projects this setup installs or builds on, with their home pages.
 
 **Containers, security, agents**
 - [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
-- [kubectl](https://kubernetes.io/docs/reference/kubectl/), [Helm](https://helm.sh), [ax](https://github.com/google/ax), [Go](https://go.dev)
+- [kubectl](https://kubernetes.io/docs/reference/kubectl/), [Helm](https://helm.sh), [k9s](https://k9scli.io), [ktop](https://github.com/vladimirvivien/ktop), [ax](https://github.com/google/ax), [Go](https://go.dev)
 - [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
-- [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
+- [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [GitHub Copilot CLI](https://github.com/github/copilot-cli), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
 
 **Fonts**
 - [Berkeley Mono](https://usgraphics.com/products/berkeley-mono) (commercial; private data only)
