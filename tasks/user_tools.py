@@ -94,6 +94,27 @@ WantedBy=default.target
                     user_mode=True, enabled=True, running=True)
 
 # --- Agent / notebook tools ---------------------------------------------------------------
+# --- Kubernetes: ax (built with Go), shell completion for kubectl / helm / ax / rc -----------
+ax = host.data.get("ax_version")
+if ax:
+    server.shell(
+        name=f"ax {ax} (Google's agentic orchestration CLI, built with Go)",
+        commands=[f"""[ "$(cat {home}/.local/share/debian-hypr/ax.version 2>/dev/null)" = "{ax}" ] || (set -e
+GOTOOLCHAIN={host.data.ax_go_toolchain} GOBIN={bin_dir} go install github.com/google/ax/cmd/ax@{ax}
+mkdir -p {home}/.local/share/debian-hypr && echo {ax} > {home}/.local/share/debian-hypr/ax.version)"""],
+    )
+comp = f"{home}/.local/share/bash-completion/completions"
+server.shell(
+    name="bash completion: kubectl (+ alias k), helm, ax, rc",
+    commands=[f"""mkdir -p {comp}
+command -v kubectl >/dev/null && kubectl completion bash > {comp}/kubectl && \
+  {{ cat {comp}/kubectl; echo 'complete -o default -F __start_kubectl k'; }} > {comp}/k
+command -v helm >/dev/null && helm completion bash > {comp}/helm
+[ -x {bin_dir}/ax ] && {bin_dir}/ax completion bash > {comp}/ax 2>/dev/null || rm -f {comp}/ax
+command -v rc >/dev/null && rc completions bash > {comp}/rc 2>/dev/null || rm -f {comp}/rc
+true"""],
+)
+
 server.shell(
     name="Codex CLI (npm global; log in once with: codex login)",
     commands=[env + f"[ -x {bin_dir}/codex ] || npm install -g @openai/codex"],

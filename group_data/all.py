@@ -124,6 +124,15 @@ release_tools = {
                "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
     "upmd": ("https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
              "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
+    # Kubernetes: kubectl from dl.k8s.io (Debian's is 4 minor versions behind; kubectl should
+    # be within one minor version of the cluster), helm (not in Debian)
+    "kubectl": ("https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl",
+                "65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8"),
+    "helm": ("https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz",
+             "86584a54def73570558f66f5111cc53dfed56689637ae32c1201205d494f54fb"),
+    # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
+    "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
+           "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
     # rclone (not in forky right now); sha256 from downloads.rclone.org/v1.75.1/SHA256SUMS
     "rclone": ("https://github.com/rclone/rclone/releases/download/v1.75.1/rclone-v1.75.1-linux-amd64.zip",
                "982b5aa772841168f8e380f139e9e787b2a105403e32b94da8676a0e1c0a13ab"),
@@ -162,3 +171,9 @@ uutils_coreutils = True
 # Top bar: CPU / MEM / net with a 50 s history graph (hypr-sparkline) instead of
 # plain numbers. Off: waybar's own modules, just the numbers.
 bar_graphs = False
+
+# ax: Google's agentic orchestration runtime CLI (github.com/google/ax), "kubectl for agent
+# tasks" on a cluster running Agent Substrate. No release binaries: built with Go at this
+# tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
+ax_version = "v0.3.1"
+ax_go_toolchain = "go1.27.1"

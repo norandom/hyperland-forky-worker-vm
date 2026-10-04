@@ -16,6 +16,7 @@ alias diff='diff --color=auto'
 alias ip='ip -color=auto'
 # Keyboard layout (Hyprland, live): US / German without dead keys
 alias kbus='hypr-kbd us' kbde='hypr-kbd de'
+alias k=kubectl   # completion: ~/.local/share/bash-completion/completions/k
 # setxkbmap us / setxkbmap de: on Wayland switch Hyprland's layout instead
 setxkbmap() {
   case "$*" in

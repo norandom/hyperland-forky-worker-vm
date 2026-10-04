@@ -188,7 +188,7 @@ the patched hypr-rdp in a clean Debian forky container and publishes the .deb.
 Locally:
 
 ```bash
-dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-3_amd64.deb
+dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-clearcodec_0.1.6-4_amd64.deb
 ```
 
 ## Desktop
@@ -358,6 +358,18 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   `~/.config/rclone/rclone.conf` on the host (rclone refreshes it); it isn't
   part of the private data.
 * **Viewers**: Ristretto (images), qpdfview (PDF: tabs, annotations), Xfe (files).
+* **Kubernetes**: `kubectl` (alias `k`) and `helm` from the upstream releases (pinned,
+  checksum verified; Debian's kubectl is 4 minor versions behind, and kubectl should be
+  within one minor version of the cluster), with bash completion.
+  [ax](https://github.com/google/ax) (`ax_version`) is Google's agentic orchestration
+  CLI: it runs AI agent tasks in sandboxes on a cluster that has
+  [Agent Substrate](https://github.com/agent-substrate/substrate) installed (`ax apply -f
+  task.yaml`, `ax watch task …`, `ax ssh …`), next to kubectl rather than instead of it.
+  It has no release binaries yet, so it is built with Go at the pinned tag (Go fetches
+  the toolchain version the tag needs).
+* **Object storage**: `rc`, the [RustFS](https://rustfs.com) CLI (S3 objects and RustFS
+  admin; also MinIO / AWS S3): `rc alias set myrustfs https://host:9000 ACCESS SECRET`,
+  then `rc ls myrustfs`.
 * **More terminals**: Ghostty (Debian forky build from
   [mkasberg/ghostty-ubuntu](https://github.com/mkasberg/ghostty-ubuntu), pinned) and foot.
   Both follow the Terminator theme: `hypr-termtheme` copies the matching theme
@@ -421,10 +433,11 @@ The projects this setup installs or builds on, with their home pages.
 - [Sublime Text](https://www.sublimetext.com), [Typora](https://typora.io), [Obsidian](https://obsidian.md), [NEdit](https://sourceforge.net/projects/nedit/), [Xfe](https://sourceforge.net/projects/xfe/) (file manager, with Xfw, Xfi, Xfa, Xfp)
 - [LibreOffice](https://www.libreoffice.org) (Calc, Writer), [Meld](https://meldmerge.org), [xpdf](http://www.xpdfreader.com), [qpdfview](https://launchpad.net/qpdfview), [Ristretto](https://docs.xfce.org/apps/ristretto/start)
 - [Vivaldi](https://vivaldi.com), [Chromium](https://www.chromium.org)
-- [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org)
+- [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org), [rc](https://github.com/rustfs/cli) (RustFS)
 
 **Containers, security, agents**
 - [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
+- [kubectl](https://kubernetes.io/docs/reference/kubectl/), [Helm](https://helm.sh), [ax](https://github.com/google/ax), [Go](https://go.dev)
 - [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
 - [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
 

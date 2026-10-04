@@ -29,6 +29,8 @@ apt.packages(
         "multitail", "bat", "tree",
         # downloads: segmented HTTP/FTP/BitTorrent/metalink; sync (rclone: release_tools)
         "aria2", "rsync",
+        # Go (builds the ax CLI, see user_tools)
+        "golang-go",
         # graphical diff/merge for files and folders (like WinDiff)
         "meld",
         # TUIs: markdown viewer, HTTP client, network path, disk usage
@@ -141,7 +143,11 @@ t=$(mktemp -d)
 curl -fsSL -o "$t/{archive}" {url}
 echo "{sha}  $t/{archive}" | sha256sum -c --quiet
 mkdir "$t/x"
-case {archive} in *.zip) unzip -q "$t/{archive}" -d "$t/x" ;; *) tar -xf "$t/{archive}" -C "$t/x" ;; esac
+case {archive} in
+  *.zip) unzip -q "$t/{archive}" -d "$t/x" ;;
+  *.tar|*.tar.*|*.tgz) tar -xf "$t/{archive}" -C "$t/x" ;;
+  *) cp "$t/{archive}" "$t/x/{name}" ;;   # a plain binary (kubectl)
+esac
 install -m 755 "$(find "$t/x" -type f -name {name} | head -1)" /usr/local/bin/{name}
 install -d /usr/local/share/debian-hypr; echo "{sha}" > /usr/local/share/debian-hypr/{name}.sha256
 rm -rf "$t")"""],
