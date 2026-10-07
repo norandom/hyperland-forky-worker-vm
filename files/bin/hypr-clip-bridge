@@ -1,0 +1,15 @@
+#!/bin/sh
+# Clipboard bridge for old X11 apps (NEdit, other Motif / Xt programs under Xwayland):
+# they offer text only as the ICCCM type STRING (Latin-1), which Hyprland passes on to
+# the Wayland clipboard as-is. hypr-rdp (RDP clipboard) and most Wayland apps only take
+# text/plain / UTF8_STRING, so such a copy goes nowhere. When the clipboard offers STRING
+# but no UTF-8 text type, re-publish it as text/plain;charset=utf-8.
+#   hypr-clip-bridge          watch (systemd user service hypr-clip-bridge)
+#   hypr-clip-bridge --once   convert the current clipboard if needed
+if [ "${1:-}" != --once ]; then
+  exec wl-paste --watch "$0" --once
+fi
+types=$(wl-paste --list-types 2>/dev/null) || exit 0
+printf '%s\n' "$types" | grep -qx 'STRING' || exit 0
+printf '%s\n' "$types" | grep -q -e '^text/plain' -e '^UTF8_STRING$' -e '^TEXT$' && exit 0
+wl-paste --no-newline --type STRING | iconv -f LATIN1 -t UTF-8 | wl-copy --type 'text/plain;charset=utf-8'

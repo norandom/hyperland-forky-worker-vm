@@ -397,6 +397,9 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   highlighting, text in Fixedsys; Latin-1 only, UTF-8 shows as garbage) and xpdf,
   coloured through `~/.Xdefaults` (Xwayland has no xrdb). NEdit draws its text with
   core X fonts, so `hypr-xfonts` puts Fixedsys on Xwayland's font path at session start.
+  These programs offer copied text only as X11 `STRING` (Latin-1), which hypr-rdp and many
+  Wayland apps ignore; the user service `hypr-clip-bridge` re-publishes such copies as
+  UTF-8 text, so they reach the RDP client (upstream fix: MuNeNiCK/hypr-rdp#107).
 * **Mainframes**: x3270 (menu: System → IBM 3270 Terminal) with the 3270 keypad
   built in (PF1-24, PA1-3, Clear, Enter, Attn, SysReq, ...), e.g. for z/OS, z/VM or
   Linux on Z consoles; c3270 is the same in a terminal. The dynamic layout leaves

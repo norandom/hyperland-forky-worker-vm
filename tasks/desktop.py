@@ -251,3 +251,30 @@ files.put(
     dest=f"{home}/.config/xdg-terminals.list",
     mode="644",
 )
+
+# --- Clipboard bridge: X11 apps that offer text only as STRING (NEdit, Motif) ------------
+files.put(name="hypr-clip-bridge (STRING-only X11 copies -> UTF-8 text)", src="files/bin/hypr-clip-bridge",
+          dest=f"{home}/.local/bin/hypr-clip-bridge", mode="755")
+bridge_unit = files.put(
+    name="hypr-clip-bridge user service",
+    src=StringIO("""# Managed by debian-hypr
+[Unit]
+Description=Clipboard bridge: STRING-only X11 copies (NEdit) -> UTF-8 text
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/hypr-clip-bridge
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
+"""),
+    dest=f"{home}/.config/systemd/user/hypr-clip-bridge.service",
+    mode="644",
+)
+server.shell(name="hypr-clip-bridge: systemd user daemon-reload", commands=["systemctl --user daemon-reload"],
+             _if=bridge_unit.did_change)
+server.shell(name="hypr-clip-bridge enabled and running",
+             commands=["systemctl --user enable --now hypr-clip-bridge.service"])
