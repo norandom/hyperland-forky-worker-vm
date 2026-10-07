@@ -11,4 +11,10 @@ file_transfer_mode = "both"
 capture_mode = "ext"
 # avc420 | avc444 | auto (stock) ; clearcodec | planar (patched build)
 egfx_codec = "{{ host.data.hypr_rdp_codec }}"
+{% if host.data.hypr_rdp_codec in ("clearcodec", "planar") %}
+# No H.264 with this codec, so no VA-API either: "auto" would make every connection
+# first try zero-copy DMA-BUF capture (VirGL/GPU hosts), which times out with ClearCodec
+# and kept ~1.1 GB per connection (5.7 GB after 5 connections).
+h264_backend = "software"
+{% endif %}
 # Session start/end: hypr-rdp-sessionwatch.service (built-in hooks never fire).
