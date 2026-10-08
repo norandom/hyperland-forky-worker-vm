@@ -203,6 +203,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 | SUPER + P / title bar ⊤ | stay on top on / off |
 | SUPER + Y, ● in the bar | next Terminator theme (bar: right-click = previous; in Terminator: right-click → Theme) |
 | SUPER + Space | launcher (search) |
+| SUPER + V, clipboard button | clipboard history (right-click on the button: wipe) |
 | SUPER + Escape, power button | log out, reboot, shut down |
 | SUPER + W / F / SHIFT + F | close / fullscreen / maximize |
 | SUPER + T | toggle floating / tiling (one window) |
@@ -382,6 +383,17 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
+* **Clipboard history** ([cliphist](https://github.com/sentriz/cliphist), `hypr-cliphist`):
+  SUPER+V or the clipboard button in the bar picks an older entry in fuzzel; right-click
+  on the button wipes it now. Built for a VM that runs for weeks: the history lives in RAM
+  (`$XDG_RUNTIME_DIR`), holds at most 200 entries and is wiped every night at 01:00
+  (`hypr-cliphist-wipe.timer`, catches up after downtime), together with the current
+  clipboard. Not recorded: copies marked sensitive (password managers, `hypr-licenses`)
+  and anything copied while Bitwarden has the focus. Copies coming in over RDP carry no
+  such mark, so a password copied on the client stays in the history until the next wipe.
+* **Bitwarden**: the desktop app and `bw`, both pinned from Bitwarden's GitHub releases
+  (checksum verified). The CLI is deliberately not installed from npm: `@bitwarden/cli`
+  2026.4.0 there was backdoored for 93 minutes in April 2026 (a compromised CI action).
 * **GitHub**: `gh` (GitHub's apt repository) and the [Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli)
   (`copilot`, npm global; `gh copilot` runs the same one). Log in once with `gh auth login`
   (needs a Copilot subscription for Copilot): shells export `COPILOT_GITHUB_TOKEN` from
@@ -451,6 +463,7 @@ The projects this setup installs or builds on, with their home pages.
 - [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/), [Helm](https://helm.sh), [k9s](https://k9scli.io), [ktop](https://github.com/vladimirvivien/ktop), [ax](https://github.com/google/ax), [Go](https://go.dev)
 - [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
+- [Bitwarden](https://bitwarden.com) (desktop, CLI), [cliphist](https://github.com/sentriz/cliphist)
 - [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [GitHub Copilot CLI](https://github.com/github/copilot-cli), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
 
 **Fonts**

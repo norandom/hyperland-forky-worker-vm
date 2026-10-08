@@ -1,0 +1,38 @@
+#!/bin/sh
+# Clipboard history for a long-running thin client (cliphist):
+#   hypr-cliphist watch    record copies (user service hypr-cliphist)
+#   hypr-cliphist pick     choose an entry in fuzzel -> clipboard (SUPER+V, bar button)
+#   hypr-cliphist wipe     forget everything, also the current clipboard
+#                          (nightly at 01:00: hypr-cliphist-wipe.timer; right-click on the button)
+#   hypr-cliphist status   waybar JSON
+# The history lives in RAM ($XDG_RUNTIME_DIR, gone at logout / reboot), at most 200
+# entries. Not recorded: copies marked sensitive (password managers, wl-copy --sensitive;
+# cliphist checks CLIPBOARD_STATE) and anything copied while Bitwarden has the focus
+# (its copies are not marked).
+# cliphist 0.5 (Debian) keeps its database in $XDG_CACHE_HOME/cliphist/db: point that at
+# the RAM-backed runtime dir, for cliphist only.
+ram="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+ch() { XDG_CACHE_HOME="$ram" cliphist -max-items 200 "$@"; }
+
+case "${1:-pick}" in
+  watch)
+    exec wl-paste --watch "$0" store ;;
+  store)
+    class=$(hyprctl activewindow -j 2>/dev/null | jq -r '.class // ""')
+    case "$class" in [Bb]itwarden*) exit 0 ;; esac
+    ch store ;;
+  pick)
+    sel=$(ch list | fuzzel --dmenu --prompt 'Clipboard > ' --width 60 --with-nth=2) || exit 0
+    printf '%s' "$sel" | ch decode | wl-copy ;;
+  wipe)
+    ch wipe
+    wl-copy --clear 2>/dev/null
+    pkill -RTMIN+13 -x waybar 2>/dev/null
+    [ "${2:-}" = --quiet ] || hyprctl notify -1 2000 "rgb(8bb4e0)" "Clipboard history wiped" >/dev/null 2>&1 ;;
+  status)
+    n=$(ch list 2>/dev/null | wc -l)
+    printf '{"text":"\363\261\243\271","class":"%s","tooltip":"Clipboard history: %s entries (in RAM, wiped nightly at 01:00)\\nClick: pick (SUPER+V) / right-click: wipe now"}\n' \
+      "$([ "$n" -gt 0 ] && echo used || echo empty)" "$n" ;;
+  *)
+    sed -n '2,7p' "$0"; exit 2 ;;
+esac

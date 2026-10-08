@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/quota", {% if host.data.bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": ["custom/quota", {% if host.data.bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -25,6 +25,15 @@
     "format": " ",
     "tooltip-format": "Log out / reboot / shut down",
     "on-click": "$HOME/.local/bin/hypr-launch $HOME/.local/bin/hypr-appmenu power"
+  },
+  // Clipboard history (in RAM, wiped nightly at 01:00): click = pick, right-click = wipe now
+  "custom/cliphist": {
+    "exec": "$HOME/.local/bin/hypr-cliphist status",
+    "return-type": "json",
+    "interval": 30,
+    "signal": 13,
+    "on-click": "$HOME/.local/bin/hypr-launch $HOME/.local/bin/hypr-cliphist pick",
+    "on-click-right": "$HOME/.local/bin/hypr-cliphist wipe"
   },
   // Night filter: rabbit black = off, green = mint night filter, white = dark (click: next)
   "custom/nightmode": {

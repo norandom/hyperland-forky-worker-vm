@@ -30,6 +30,10 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #f5ede0; }
 #custom-layout { padding: 0 8px; color: #2b4570; }
 #custom-kbd { padding: 0 8px; color: #2b4570; }
+/* Clipboard history: dim when empty */
+#custom-cliphist { padding: 0 8px; font-size: 14px; color: #2b4570; }
+#custom-cliphist.empty { color: #9aa8bc; }
+#custom-cliphist:hover { background: #f5ede0; }
 /* Night filter rabbit: black = off, mint = green filter, white (on navy) = dark */
 #custom-nightmode { padding: 0 8px; font-size: 15px; color: #1a2a3f; }
 #custom-nightmode.green { color: #3a8e6f; }

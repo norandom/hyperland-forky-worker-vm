@@ -136,6 +136,10 @@ release_tools = {
             "c3752ad51a5a4015a113819c4eeb6e55a4d0e4b8e652494797532f6fc8161dd7"),
     "ktop": ("https://github.com/vladimirvivien/ktop/releases/download/v0.5.3/ktop_v0.5.3_linux_amd64.tar.gz",
              "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
+    # Bitwarden CLI: the standalone build from the GitHub release, not npm (@bitwarden/cli
+    # 2026.4.0 on npm was backdoored for 93 minutes, Apr 2026); sha256 = GitHub's digest
+    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
+           "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
@@ -183,3 +187,7 @@ bar_graphs = False
 # tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
 ax_version = "v0.3.1"
 ax_go_toolchain = "go1.27.1"
+
+# Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
+bitwarden_version = "2026.9.1"
+bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"

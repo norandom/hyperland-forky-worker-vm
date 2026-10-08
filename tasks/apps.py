@@ -29,6 +29,8 @@ apt.packages(
         "multitail", "bat", "tree",
         # downloads: segmented HTTP/FTP/BitTorrent/metalink; sync (rclone: release_tools)
         "aria2", "rsync",
+        # clipboard history (hypr-cliphist: in RAM, wiped nightly)
+        "cliphist",
         # Go (builds the ax CLI, see user_tools)
         "golang-go",
         # graphical diff/merge for files and folders (like WinDiff)
@@ -103,6 +105,19 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{obs_deb} https://github.com/obsidianmd/obsidian-releases/releases/download/v{obs_ver}/{obs_deb}
 echo "{obs_sha}  /var/cache/debian-hypr/{obs_deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{obs_deb})"""],
+    _sudo=True,
+)
+
+# Bitwarden desktop: .deb from the GitHub release (pinned, checksum verified)
+bw_ver, bw_sha = host.data.bitwarden_version, host.data.bitwarden_sha256
+bw_deb = f"Bitwarden-{bw_ver}-amd64.deb"
+server.shell(
+    name=f"Bitwarden {bw_ver} (checksum verified)",
+    commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' bitwarden 2>/dev/null)" = "{bw_ver}" ] || (set -e
+install -d -m 755 /var/cache/debian-hypr
+curl -fsSL -o /var/cache/debian-hypr/{bw_deb} https://github.com/bitwarden/clients/releases/download/desktop-v{bw_ver}/{bw_deb}
+echo "{bw_sha}  /var/cache/debian-hypr/{bw_deb}" | sha256sum -c --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{bw_deb})"""],
     _sudo=True,
 )
 

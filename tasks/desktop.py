@@ -143,6 +143,9 @@ for shader in ("night-green.glsl", "night-dark.glsl"):
     files.put(name=f"Night filter shader: {shader}", src=f"files/hypr/shaders/{shader}",
               dest=f"{home}/.config/hypr/shaders/{shader}", mode="644", create_remote_dir=True)
 
+bar.append(files.put(name="Bar: hypr-cliphist (clipboard history: pick / wipe / status)", src="files/bin/hypr-cliphist",
+                     dest=f"{home}/.local/bin/hypr-cliphist", mode="755"))
+
 bar.append(files.put(name="Bar: hypr-agent-quota (Claude / Codex quota left)", src="files/bin/hypr-agent-quota",
           dest=f"{home}/.local/bin/hypr-agent-quota", mode="755"))
 
@@ -278,3 +281,43 @@ server.shell(name="hypr-clip-bridge: systemd user daemon-reload", commands=["sys
              _if=bridge_unit.did_change)
 server.shell(name="hypr-clip-bridge enabled and running",
              commands=["systemctl --user enable --now hypr-clip-bridge.service"])
+
+# --- Clipboard history: cliphist in RAM, nightly wipe at 01:00 -----------------------------
+ch_units = {
+    "hypr-cliphist.service": """[Unit]
+Description=Clipboard history recorder (cliphist, in RAM)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/hypr-cliphist watch
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
+""",
+    "hypr-cliphist-wipe.service": """[Unit]
+Description=Wipe the clipboard history and the current clipboard
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/hypr-cliphist wipe --quiet
+""",
+    "hypr-cliphist-wipe.timer": """[Unit]
+Description=Wipe the clipboard history every night at 01:00
+
+[Timer]
+OnCalendar=*-*-* 01:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+""",
+}
+ch_ops = [files.put(name=f"Clipboard history unit: {u}", src=StringIO("# Managed by debian-hypr\n" + body),
+                    dest=f"{home}/.config/systemd/user/{u}", mode="644") for u, body in ch_units.items()]
+server.shell(name="Clipboard history: systemd user daemon-reload", commands=["systemctl --user daemon-reload"],
+             _if=any_changed(*ch_ops))
+server.shell(name="Clipboard history recorder + nightly wipe enabled",
+             commands=["systemctl --user enable --now hypr-cliphist.service hypr-cliphist-wipe.timer"])
