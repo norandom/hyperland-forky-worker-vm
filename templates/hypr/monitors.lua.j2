@@ -28,6 +28,11 @@ local active = io.open(runtime .. "/hypr-rdp-active", "r")
 if active then
   active:close()
   hl.monitor({ output = "Virtual-1", disabled = true })
+  -- and its input (keyboard, tablet, mice): nothing typed at the console reaches the session
+  for _, d in ipairs({ "at-translated-set-2-keyboard", "qemu-qemu-usb-tablet",
+                       "virtualps/2-vmware-vmmouse", "virtualps/2-vmware-vmmouse-1" }) do
+    hl.device({ name = d, enabled = false })
+  end
 end
 
 -- hypr-rdp creates/resizes its output at 60 Hz; hold it at RDP_HZ.

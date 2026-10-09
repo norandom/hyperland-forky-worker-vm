@@ -391,6 +391,9 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
   password, your processes can't reach the Little Snitch UI and ptrace is restricted; it
   unlocks as soon as you reconnect. Screenshots and details: [docs/snitch](docs/snitch/README.md).
+* **Console lock**: the Proxmox / SPICE console needs your password (hyprlock), RDP logs in by
+  itself. RDP gone -> the session locks before the console shows it; RDP back -> console
+  display, keyboard and mouse off, then it unlocks. One session, no second login.
 * **Disk space** (`dev-disk-reclaim`, nightly at 03:30 via `dev-disk-reclaim.timer`):
   removes regenerable caches so the disk stays free for dev work: stopped containers,
   superseded (dangling) images, unused volumes and the build cache (rootless Podman), the

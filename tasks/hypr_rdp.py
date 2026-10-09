@@ -125,5 +125,6 @@ server.shell(
         "systemctl --user is-active -q graphical-session.target 2>/dev/null && "
         "systemctl --user restart hypr-rdp.service hypr-rdp-sessionwatch.service hypr-rdp-modecache.service || true",
     ],
-    _if=lambda: installed or cfg.did_change() or any(op.did_change() for op in scripts + units),
+    # hypr-rdp-session (scripts[0]) runs fresh for every event: changing it needs no restart
+    _if=lambda: installed or cfg.did_change() or any(op.did_change() for op in scripts[1:] + units),
 )

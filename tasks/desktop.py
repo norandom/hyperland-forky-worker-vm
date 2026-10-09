@@ -17,6 +17,8 @@ apt.packages(
         "libgl1-mesa-dri", "libegl-mesa0",
         # bar, notifications, launcher, terminal
         "waybar", "mako-notifier", "fuzzel", "terminator",
+        # lock screen for the Proxmox / SPICE console (hypr-rdp-session locks it when RDP is gone)
+        "hyprlock",
         # file manager: Xfe (FOX toolkit, few dependencies, tree + file list)
         "xfe",
         # fonts, cursor/icons
@@ -57,7 +59,7 @@ hypr = [
     )
     for name in (
         "hyprland.lua", "looknfeel.lua", "layouts.lua", "bindings.lua",
-        "autostart.lua", "decorations.lua", "aerosnap.lua", "cursorzone.lua",
+        "autostart.lua", "decorations.lua", "aerosnap.lua", "cursorzone.lua", "hyprlock.conf",
     )
 ]
 hypr.append(files.template(

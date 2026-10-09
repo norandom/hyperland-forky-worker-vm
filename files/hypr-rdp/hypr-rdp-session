@@ -1,7 +1,27 @@
 #!/bin/bash
 # hypr-rdp session hooks: hide the server cursor (hypr-rdp-cursor) and turn the
 # unused Proxmox console output off while an RDP client is connected.
+# One session, two ways in: the RDP login is enough, the Proxmox / SPICE console needs
+# the password. RDP gone -> lock (hyprlock), then show the console; RDP back (after its
+# login) -> console output and input off, then unlock (hyprlock: SIGUSR1).
 console=Virtual-1
+# the VM's own input devices (Proxmox console); hypr-rdp's virtual keyboard / pointer stay on
+console_inputs=(at-translated-set-2-keyboard qemu-qemu-usb-tablet virtualps/2-vmware-vmmouse virtualps/2-vmware-vmmouse-1)
+
+console_input() {  # on | off
+  local d on=true
+  [ "$1" = off ] && on=false
+  for d in "${console_inputs[@]}"; do
+    hyprctl eval "hl.device({ name = \"$d\", enabled = $on })" >/dev/null
+  done
+}
+
+lock() {
+  pgrep -x -u "$UID" hyprlock >/dev/null && return
+  hyprctl dispatch 'hl.dsp.exec_cmd("hyprlock")' >/dev/null
+  for _ in $(seq 20); do pgrep -x -u "$UID" hyprlock >/dev/null && break; sleep 0.1; done
+  sleep 1  # the lock surface is up before the console shows anything
+}
 # Windows keep absolute coordinates; when hypr-rdp recreates its output at a
 # different position (restart, console on/off) they can end up off-screen.
 # Center every window whose middle is not on an active monitor.
@@ -23,9 +43,13 @@ case "$1" in
   start)
     hypr-rdp-cursor start
     hyprctl eval "hl.monitor({ output = \"$console\", disabled = true })" >/dev/null
+    console_input off
+    pkill -USR1 -x -u "$UID" hyprlock  # the RDP login was the login
     rescue_windows ;;
   end)
     hypr-rdp-cursor end
+    lock
+    console_input on
     hyprctl eval "hl.monitor({ output = \"$console\", mode = \"preferred\", position = \"auto\", scale = \"auto\" })" >/dev/null ;;
   *) echo "Usage: hypr-rdp-session start|end" >&2; exit 1 ;;
 esac
