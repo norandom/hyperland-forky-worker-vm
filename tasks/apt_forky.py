@@ -35,8 +35,10 @@ files.put(
 )
 
 files.put(
-    name="Never install recommends/suggests (minimal footprint)",
-    src=StringIO('APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\n'),
+    name="Never install recommends/suggests, don't keep downloaded .debs (minimal footprint)",
+    src=StringIO('APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\n'
+                 '// apt-get keeps every downloaded package in /var/cache/apt/archives otherwise\n'
+                 'APT::Keep-Downloaded-Packages "false";\nBinary::apt::APT::Keep-Downloaded-Packages "false";\n'),
     dest="/etc/apt/apt.conf.d/99debian-hypr-minimal",
     mode="644",
     _sudo=True,

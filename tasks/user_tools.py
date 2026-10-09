@@ -101,6 +101,7 @@ if ax:
         name=f"ax {ax} (Google's agentic orchestration CLI, built with Go)",
         commands=[f"""[ "$(cat {home}/.local/share/debian-hypr/ax.version 2>/dev/null)" = "{ax}" ] || (set -e
 GOTOOLCHAIN={host.data.ax_go_toolchain} GOBIN={bin_dir} go install github.com/google/ax/cmd/ax@{ax}
+GOTOOLCHAIN={host.data.ax_go_toolchain} go clean -cache -modcache  # ~6 GB, only needed to rebuild
 mkdir -p {home}/.local/share/debian-hypr && echo {ax} > {home}/.local/share/debian-hypr/ax.version)"""],
     )
 comp = f"{home}/.local/share/bash-completion/completions"
@@ -137,3 +138,35 @@ server.shell(
     commands=[env + f"[ -d {home}/.claude/skills/pretty-mermaid ] || "
               "npx -y skills add imxv/pretty-mermaid-skills@pretty-mermaid -g -y"],
 )
+
+# --- dev-disk-reclaim: regenerable caches (containers, npm/uv/pip/go, cargo target/) -----
+files.put(name="dev-disk-reclaim (cache cleanup; dry-run by default)", src="files/bin/dev-disk-reclaim",
+          dest=f"{bin_dir}/dev-disk-reclaim", mode="755")
+reclaim = [
+    files.put(name=f"dev-disk-reclaim unit: {u}", src=StringIO("# Managed by debian-hypr\n" + body),
+              dest=f"{home}/.config/systemd/user/{u}", mode="644")
+    for u, body in {
+        "dev-disk-reclaim.service": """[Unit]
+Description=Reclaim regenerable caches (dev-disk-reclaim, safe set)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/dev-disk-reclaim
+Nice=19
+IOSchedulingClass=idle
+""",
+        "dev-disk-reclaim.timer": """[Unit]
+Description=Reclaim regenerable caches every night at 03:30
+
+[Timer]
+OnCalendar=*-*-* 03:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+""",
+    }.items()
+]
+server.shell(name="dev-disk-reclaim: systemd user daemon-reload + timer enabled",
+             commands=["systemctl --user daemon-reload", "systemctl --user enable --now dev-disk-reclaim.timer"])
+

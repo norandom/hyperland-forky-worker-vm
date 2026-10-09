@@ -29,7 +29,8 @@ if mode == "release":
 install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{deb} {url}
 echo "{host.data.hypr_rdp_deb_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}"""],
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}
+rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file"""],
             _sudo=True,
         )
         installed = True

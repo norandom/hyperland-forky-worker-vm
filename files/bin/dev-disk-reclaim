@@ -1,0 +1,414 @@
+#!/usr/bin/env bash
+# Reclaim regenerable caches on a busy development Linux box (debian-hypr port:
+# Podman instead of Docker, CACHEDIR.TAG build dirs in ~/.cache, apt/deploy .debs).
+#
+# Deletes by default (disk space is needed for dev work); --dry-run only reports.
+# Recurring caches only - not project trees, not one-off leftovers. Age filters keep
+# recent work intact.
+#
+#   dev-disk-reclaim --dry-run       # report what would go
+#   dev-disk-reclaim                 # do the safe set (nightly: dev-disk-reclaim.timer)
+#   dev-disk-reclaim --sudo          # plus journal vacuum, apt autoremove + clean
+#   dev-disk-reclaim --keep-days 7
+#
+# Safe while containers, MCP servers and builds are running. Uses nice/ionice and
+# `uv cache prune` (not clean) so in-use tool envs stay.
+
+set -euo pipefail
+
+KEEP_DAYS=3
+APPLY=1
+DO_SUDO=0
+DO_VOLUMES=1
+# Not touched, only watched: warn when these grow past the limit (GiB)
+WATCH_LIMIT_GIB=3
+DO_IMAGES=0
+DO_BROWSERS=0
+AGGRESSIVE=0
+
+usage() {
+  cat <<'EOF'
+Usage: dev-disk-reclaim [options]
+
+  --dry-run        only report what would go (default: delete)
+  --apply          delete (the default; kept for older calls)
+  --keep-days N    keep cache/tmp/logs newer than N days (default: 3)
+  --sudo           also vacuum journald, apt-get autoremove + clean, deploy .debs
+  --keep-volumes   keep unused container volumes (pruned by default)
+  --images         also prune unused (not just dangling) container images
+  --browsers       also drop Playwright / camoufox / electron caches
+  --aggressive     keep-days=2, include browsers, uv cache clean
+  -h, --help       this help
+
+Never touches venvs, nvm, rustup, the Codex / Claude installs (only reported, with a
+warning above 3 GiB), pnpm's live store, project trees or running containers.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) APPLY=0; shift ;;
+    --apply) APPLY=1; shift ;;
+    --keep-days) KEEP_DAYS="${2:?}"; shift 2 ;;
+    --sudo) DO_SUDO=1; shift ;;
+    --volumes) DO_VOLUMES=1; shift ;;      # the default; kept for older calls
+    --keep-volumes) DO_VOLUMES=0; shift ;;
+    --images) DO_IMAGES=1; shift ;;
+    --browsers) DO_BROWSERS=1; shift ;;
+    --aggressive) AGGRESSIVE=1; DO_BROWSERS=1; KEEP_DAYS=2; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ ! "$KEEP_DAYS" =~ ^[0-9]+$ ]] || [[ "$KEEP_DAYS" -lt 1 ]]; then
+  echo "--keep-days must be a positive integer" >&2
+  exit 2
+fi
+
+KEEP_HOURS=$((KEEP_DAYS * 24))
+MODE=DRY-RUN
+[[ "$APPLY" -eq 1 ]] && MODE=APPLY
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+bytes_of() {
+  local p=$1
+  [[ -e "$p" ]] || { echo 0; return; }
+  # unreadable parts (permission denied) count as 0 instead of failing the run
+  { du -sb --apparent-size "$p" 2>/dev/null || true; } | awk '{print $1+0}'
+}
+
+# rootless Podman keeps image layers under subordinate uids: measure them in its namespace
+podman_store_bytes() {
+  { podman unshare du -sb --apparent-size "$1" 2>/dev/null || true; } | awk '{print $1+0}'
+}
+
+hr() {
+  numfmt --to=iec --suffix=B --format='%.1f' "${1:-0}" 2>/dev/null \
+    || echo "${1:-0}B"
+}
+
+FREED=0
+add_freed() { FREED=$((FREED + ${1:-0})); }
+
+log() { printf '  %s\n' "$*"; }
+section() { printf '\n== %s ==\n' "$*"; }
+
+run() {
+  if [[ "$APPLY" -eq 1 ]]; then
+    nice -n 19 ionice -c3 "$@"
+  else
+    printf '  (dry-run) %s\n' "$*" >&2
+  fi
+}
+
+# find -mtime +N is "N+1 days". Use minutes so --keep-days 7 means 168h.
+older_than() {
+  printf '%s' "+$((KEEP_DAYS * 24 * 60))"
+}
+
+# flock so two overlapping runs cannot fight over containers/caches
+LOCK=${XDG_RUNTIME_DIR:-/tmp}/dev-disk-reclaim.lock
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "another dev-disk-reclaim is running ($LOCK)" >&2
+  exit 1
+fi
+
+df_line() { df -h / | awk 'NR==2 {printf "%s used, %s free (%s)\n", $3, $4, $5}'; }
+
+echo "dev-disk-reclaim  mode=$MODE  keep-days=$KEEP_DAYS"
+echo "disk: $(df_line)"
+
+# ---------- containers (rootless Podman here; docker is an alias for it) ----------
+CTR=""
+if have podman; then CTR=podman; elif have docker; then CTR=docker; fi
+section "containers${CTR:+ ($CTR)}"
+if [[ -n "$CTR" ]] && "$CTR" info >/dev/null 2>&1; then
+  "$CTR" system df 2>/dev/null | sed 's/^/  /'
+  store="$HOME/.local/share/containers"
+  store_bytes() { if [[ "$CTR" = podman ]]; then podman_store_bytes "$store"; else bytes_of "$store"; fi; }
+  before=$(store_bytes)
+
+  log "stopped containers older than ${KEEP_DAYS}d"
+  run "$CTR" container prune -f --filter "until=${KEEP_HOURS}h" >/dev/null || true
+
+  if [[ "$DO_IMAGES" -eq 1 ]]; then
+    log "unused images older than ${KEEP_DAYS}d"
+    run "$CTR" image prune -af --filter "until=${KEEP_HOURS}h" >/dev/null || true
+  else
+    log "dangling images (superseded builds)"
+    run "$CTR" image prune -f >/dev/null || true
+    log "unused tagged images kept (pass --images to prune ones older than ${KEEP_DAYS}d)"
+  fi
+
+  if [[ "$CTR" = podman ]]; then
+    log "build cache (RUN --mount=type=cache)"
+    run podman image prune -f --build-cache >/dev/null || true
+  else
+    log "builder cache older than ${KEEP_DAYS}d"
+    run docker builder prune -af --filter "until=${KEEP_HOURS}h" >/dev/null || true
+  fi
+
+  if [[ "$DO_VOLUMES" -eq 1 ]]; then
+    log "unused volumes"
+    run "$CTR" volume prune -f >/dev/null || true
+  else
+    unused=$("$CTR" volume ls -qf dangling=true 2>/dev/null | wc -l)
+    log "unused volumes: $unused kept (--keep-volumes)"
+  fi
+
+  if [[ "$APPLY" -eq 1 ]]; then
+    after=$(store_bytes)
+    add_freed $((before - after))
+    log "container storage: $(hr "$before") -> $(hr "$after")"
+  fi
+else
+  log "no container engine available, skip"
+fi
+
+# Directory mtime does not move when agents write into subdirs. Skip the
+# well-known Claude Code root and any tree with a file newer than keep-days.
+tmp_recent() {
+  local p=$1
+  [[ -d "$p" ]] || return 1
+  [[ -n "$(find "$p" -mmin "-$((KEEP_DAYS * 24 * 60))" -print -quit 2>/dev/null)" ]]
+}
+
+# ---------- /tmp: recurring agent/test prefixes, this user, old enough ----------
+section "/tmp (user junk older than ${KEEP_DAYS}d)"
+TMP_BYTES=0
+TMP_N=0
+TMP_SMALL_N=0
+# only maxdepth 1, only our uid, never sockets/X11/systemd
+while IFS= read -r -d '' p; do
+  if [[ "$p" == "/tmp/claude-$UID" ]]; then
+    log "skip live Claude runtime $p"
+    continue
+  fi
+  if tmp_recent "$p"; then
+    b=$(bytes_of "$p")
+    [[ "$b" -ge 10485760 ]] && log "skip recently used $(hr "$b")  $p"
+    continue
+  fi
+  b=$(bytes_of "$p")
+  TMP_BYTES=$((TMP_BYTES + b))
+  TMP_N=$((TMP_N + 1))
+  if [[ "$b" -ge 10485760 ]]; then
+    log "$(hr "$b")  $p"
+  else
+    TMP_SMALL_N=$((TMP_SMALL_N + 1))
+  fi
+  if [[ "$APPLY" -eq 1 ]]; then
+    rm -rf -- "$p"
+  fi
+done < <(find /tmp -maxdepth 1 -user "$USER" \( -type d -o -type f \) \
+  \( -name 'ousast-*' -o -name 'facdrone-*' -o -name 'sentrux-*' \
+     -o -name 'pytest-of-*' -o -name 'group[0-9]*' -o -name 'claude-*' \
+     -o -name 'dhx-*' -o -name 'taint-*' -o -name 'wrapped-script*' \
+     -o -name 'scala-*' -o -name 'go-build*' -o -name 'cargo-install*' \) \
+  -mmin "$(older_than)" -print0 2>/dev/null)
+if [[ "$TMP_N" -eq 0 ]]; then
+  log "nothing matching"
+else
+  [[ "$TMP_SMALL_N" -gt 0 ]] && log "+ $TMP_SMALL_N smaller items"
+  add_freed "$TMP_BYTES"
+  log "$TMP_N items $(hr "$TMP_BYTES")"
+fi
+
+# ---------- cargo build output (target/) below ~/.cache ----------
+# A target/ dir holds .rustc_info.json + CACHEDIR.TAG and is fully regenerable
+# (often several GB). Only below ~/.cache (scratch clones), never project trees.
+section "cargo build output in ~/.cache older than ${KEEP_DAYS}d"
+BUILD_BYTES=0
+BUILD_N=0
+while IFS= read -r -d '' marker; do
+  d=$(dirname "$marker")
+  [[ -e "$d/CACHEDIR.TAG" ]] || continue
+  [[ "$d" == "${XDG_CACHE_HOME:-$HOME/.cache}" ]] && continue
+  tmp_recent "$d" && continue
+  b=$(bytes_of "$d")
+  BUILD_BYTES=$((BUILD_BYTES + b))
+  BUILD_N=$((BUILD_N + 1))
+  log "$(hr "$b")  $d"
+  if [[ "$APPLY" -eq 1 ]]; then
+    run rm -rf -- "$d"
+  fi
+done < <(find "${XDG_CACHE_HOME:-$HOME/.cache}" -mindepth 2 -maxdepth 4 -name .rustc_info.json \
+  -not -path '*/pre-commit/*' -print0 2>/dev/null)
+if [[ "$BUILD_N" -eq 0 ]]; then
+  log "nothing old enough"
+else
+  add_freed "$BUILD_BYTES"
+fi
+
+# ---------- package-manager caches ----------
+section "package caches"
+
+if have uv; then
+  if [[ "$AGGRESSIVE" -eq 1 ]]; then
+    log "uv cache clean --force (aggressive; MCP tools may need a restart)"
+    if [[ "$APPLY" -eq 1 ]]; then
+      before=$(bytes_of "${XDG_CACHE_HOME:-$HOME/.cache}/uv")
+      run uv cache clean --force >/dev/null || true
+      after=$(bytes_of "${XDG_CACHE_HOME:-$HOME/.cache}/uv")
+      add_freed $((before - after))
+    fi
+  else
+    log "uv cache prune --force (keeps in-use tool envs)"
+    if [[ "$APPLY" -eq 1 ]]; then
+      out=$(run uv cache prune --force 2>&1 || true)
+      printf '%s\n' "$out" | sed 's/^/  /'
+    fi
+  fi
+fi
+
+if have npm; then
+  npm_cache=$(npm config get cache 2>/dev/null || echo "$HOME/.npm")
+  b=$(bytes_of "$npm_cache")
+  log "npm cache $(hr "$b")  $npm_cache"
+  if [[ "$APPLY" -eq 1 ]]; then
+    run npm cache clean --force >/dev/null || true
+  fi
+  add_freed "$b"
+fi
+
+# bun pm cache rm needs a package.json; the cache dir is well-known and regenerable
+if have bun; then
+  bun_cache="${BUN_INSTALL:-$HOME/.bun}/install/cache"
+  if [[ -d "$bun_cache" ]]; then
+    b=$(bytes_of "$bun_cache")
+    log "bun install cache $(hr "$b")  $bun_cache"
+    [[ "$APPLY" -eq 1 ]] && run rm -rf -- "$bun_cache"
+    add_freed "$b"
+  fi
+fi
+
+if have pnpm; then
+  pnpm_store=$(pnpm store path 2>/dev/null || true)
+  if [[ -n "${pnpm_store:-}" && -d "$pnpm_store" ]]; then
+    b=$(bytes_of "$pnpm_store")
+    log "pnpm store $(hr "$b")  $pnpm_store (prune orphans only)"
+    if [[ "$APPLY" -eq 1 ]]; then
+      before=$b
+      run pnpm store prune >/dev/null || true
+      after=$(bytes_of "$pnpm_store")
+      add_freed $((before - after))
+    fi
+  fi
+fi
+
+if have pip; then
+  pip_cache=$(pip cache dir 2>/dev/null || true)
+  if [[ -n "${pip_cache:-}" && -d "$pip_cache" ]]; then
+    b=$(bytes_of "$pip_cache")
+    log "pip cache $(hr "$b")"
+    [[ "$APPLY" -eq 1 ]] && { run pip cache purge >/dev/null || true; }
+    add_freed "$b"
+  fi
+fi
+
+if have go; then
+  for kind in GOCACHE GOMODCACHE; do
+    d=$(go env "$kind" 2>/dev/null || true)
+    [[ -n "${d:-}" && -d "$d" ]] || continue
+    b=$(bytes_of "$d")
+    log "go $kind $(hr "$b")"
+    if [[ "$APPLY" -eq 1 ]]; then
+      if [[ "$kind" = GOCACHE ]]; then run go clean -cache || true; else run go clean -modcache || true; fi
+    fi
+    add_freed "$b"
+  done
+fi
+
+# leftover interrupted pre-commit installs (files, not hook clones)
+pc="$HOME/.cache/pre-commit"
+if [[ -d "$pc" ]]; then
+  mapfile -t patches < <(find "$pc" -maxdepth 1 -type f -name 'patch*' 2>/dev/null)
+  if [[ ${#patches[@]} -gt 0 ]]; then
+    pb=0
+    for f in "${patches[@]}"; do pb=$((pb + $(bytes_of "$f"))); done
+    log "pre-commit leftover patches ${#patches[@]} files $(hr "$pb")"
+    [[ "$APPLY" -eq 1 ]] && rm -f -- "${patches[@]}"
+    add_freed "$pb"
+  fi
+fi
+
+# ---------- rotating logs ----------
+section "logs older than ${KEEP_DAYS}d"
+LOG_BYTES=0
+LOG_N=0
+if [[ -d "$HOME/.claude-mem/logs" ]]; then
+  while IFS= read -r -d '' f; do
+    b=$(bytes_of "$f")
+    LOG_BYTES=$((LOG_BYTES + b))
+    LOG_N=$((LOG_N + 1))
+    [[ "$APPLY" -eq 1 ]] && rm -f -- "$f"
+  done < <(find "$HOME/.claude-mem/logs" -type f -name '*.log' \
+    -mmin "$(older_than)" -print0 2>/dev/null)
+fi
+if [[ "$LOG_N" -eq 0 ]]; then
+  log "no old claude-mem logs"
+else
+  log "claude-mem $LOG_N files $(hr "$LOG_BYTES")"
+  add_freed "$LOG_BYTES"
+fi
+
+if [[ "$DO_SUDO" -eq 1 ]]; then
+  section "system (sudo)"
+  log "journalctl --vacuum-time=${KEEP_DAYS}d"
+  if [[ "$APPLY" -eq 1 ]]; then
+    sudo -n journalctl --vacuum-time="${KEEP_DAYS}d" || \
+      sudo journalctl --vacuum-time="${KEEP_DAYS}d"
+  fi
+  log "apt-get autoremove (old kernels) + clean"
+  if [[ "$APPLY" -eq 1 ]]; then
+    sudo -n apt-get -y autoremove --purge || sudo apt-get -y autoremove --purge
+    sudo -n apt-get clean || sudo apt-get clean
+  else
+    apt-get -s autoremove 2>/dev/null | awk '/^Remv /{print "  "$0}' | head
+    log "apt archives $(hr "$(bytes_of /var/cache/apt/archives)")"
+  fi
+  deploy_debs=$(find /var/cache/debian-hypr -maxdepth 1 -name '*.deb' 2>/dev/null | wc -l)
+  if [[ "$deploy_debs" -gt 0 ]]; then
+    log "deploy downloads: $deploy_debs .deb files $(hr "$(bytes_of /var/cache/debian-hypr)")"
+    [[ "$APPLY" -eq 1 ]] && { sudo -n find /var/cache/debian-hypr -maxdepth 1 -name '*.deb' -delete || true; }
+  fi
+else
+  log "journal/apt skipped (pass --sudo)"
+fi
+
+# ---------- browser engine caches (opt-in; they re-download) ----------
+if [[ "$DO_BROWSERS" -eq 1 ]]; then
+  section "browser engine caches"
+  for d in camoufox ms-playwright ms-playwright-go electron; do
+    p="$HOME/.cache/$d"
+    [[ -e "$p" ]] || continue
+    b=$(bytes_of "$p")
+    log "$(hr "$b")  $p"
+    [[ "$APPLY" -eq 1 ]] && rm -rf -- "$p"
+    add_freed "$b"
+  done
+fi
+
+# ---------- watched, never touched: agent installs that manage themselves ----------
+section "watched (not touched; warning above ${WATCH_LIMIT_GIB} GiB)"
+for d in "$HOME/.codex" "$HOME/.local/share/claude" "$HOME/.local/share/containers"; do
+  [[ -e "$d" ]] || continue
+  if [[ "$d" == */containers ]] && have podman; then b=$(podman_store_bytes "$d"); else b=$(bytes_of "$d"); fi
+  if [[ "$b" -gt $((WATCH_LIMIT_GIB * 1024 * 1024 * 1024)) ]]; then
+    log "WARNING $(hr "$b")  $d  (above ${WATCH_LIMIT_GIB} GiB: check what grows there)"
+  else
+    log "$(hr "$b")  $d"
+  fi
+done
+
+section "done"
+echo "disk: $(df_line)"
+if [[ "$APPLY" -eq 1 ]]; then
+  echo "removed (measured): $(hr "$FREED")"
+else
+  echo "would remove (caches/tmp/logs; container prune not estimated): $(hr "$FREED")"
+  echo "run without --dry-run to delete"
+fi

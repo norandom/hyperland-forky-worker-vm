@@ -383,6 +383,16 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
+* **Disk space** (`dev-disk-reclaim`, nightly at 03:30 via `dev-disk-reclaim.timer`):
+  removes regenerable caches so the disk stays free for dev work: stopped containers,
+  superseded (dangling) images, unused volumes and the build cache (rootless Podman), the
+  npm / pip / Go caches, `uv cache prune`, cargo build output in `~/.cache`, agent/test
+  junk in `/tmp`, everything older than `--keep-days` (3). `--dry-run` only shows what
+  would go; `--sudo` adds journald vacuum, apt autoremove + clean; `--images` also
+  prunes unused tagged images, `--keep-volumes` keeps volumes. Codex, Claude Code and
+  the container store are only watched (warning above 3 GiB). apt does not keep
+  downloaded packages, the deploy deletes its `.deb` files after installing, and the
+  `ax` build drops Go's caches (several GB) right away.
 * **Clipboard history** ([cliphist](https://github.com/sentriz/cliphist), `hypr-cliphist`):
   SUPER+V or the clipboard button in the bar picks an older entry in fuzzel; right-click
   on the button wipes it now. Built for a VM that runs for weeks: the history lives in RAM
