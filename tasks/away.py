@@ -4,7 +4,7 @@ files/sbin/hypr-away."""
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.operations import apt, files, systemd
+from pyinfra.operations import apt, files, server, systemd
 
 grace = host.data.get("away_grace_seconds", 600)
 
@@ -34,3 +34,49 @@ WantedBy=multi-user.target
 
 systemd.service(name="hypr-away running", service="hypr-away.service", running=True, enabled=True,
                 restarted=unit.changed, daemon_reload=unit.changed, _sudo=True)
+
+# --- snitch-trial: `snitch default deny` reverts to allow unless confirmed (also across reboots) ---
+files.put(name="snitch-trial (root): deny-by-default trial revert", src="files/sbin/snitch-trial",
+          dest="/usr/local/sbin/snitch-trial", user="root", group="root", mode="755", _sudo=True)
+files.directory(name="/var/lib/snitch-trial (root only)", path="/var/lib/snitch-trial",
+                user="root", group="root", mode="700", _sudo=True)
+trial_units = [
+    files.put(name=f"snitch-trial unit: {name}", src=StringIO("# Managed by debian-hypr\n" + body),
+              dest=f"/etc/systemd/system/{name}", mode="644", _sudo=True)
+    for name, body in {
+        "snitch-trial-boot.service": """[Unit]
+Description=snitch: an open deny-by-default trial at boot goes back to allow (lockout safety)
+Before=littlesnitch.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/snitch-trial boot
+
+[Install]
+WantedBy=multi-user.target
+""",
+        "snitch-trial.service": """[Unit]
+Description=snitch: end a deny-by-default trial once its deadline has passed
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/snitch-trial
+""",
+        "snitch-trial.timer": """[Unit]
+Description=snitch: check the deny-by-default trial every 30 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target
+""",
+    }.items()
+]
+server.shell(name="snitch-trial: boot check and timer enabled",
+             commands=["systemctl daemon-reload",
+                       "systemctl enable snitch-trial-boot.service",
+                       "systemctl enable --now snitch-trial.timer"], _sudo=True)
+
