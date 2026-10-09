@@ -1,0 +1,62 @@
+name: lint
+
+# One job per linter: a red X names the linter that failed.
+# Scripts without an extension (files/bin, files/sbin, files/hypr-rdp) are found by their shebang.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck (sh / bash scripts)
+        run: |
+          shellcheck --version | head -2
+          git ls-files -z | while IFS= read -r -d '' f; do
+            case "$f" in
+              *.sh) echo "$f" ;;
+              *) head -n1 "$f" 2>/dev/null | grep -qE '^#!.*\b(sh|bash)\b' && echo "$f" ;;
+            esac
+          done > scripts.txt
+          cat scripts.txt
+          xargs -a scripts.txt shellcheck
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v10
+      - name: ruff (Python; settings in pyproject.toml)
+        run: |
+          git ls-files -z | while IFS= read -r -d '' f; do
+            case "$f" in *.py) ;; *) head -n1 "$f" 2>/dev/null | grep -qE '^#!.*(python|uv run)' && echo "$f" ;; esac
+          done > scripts.txt
+          cat scripts.txt
+          uvx ruff@0.16.10 check --output-format github . $(cat scripts.txt)
+
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: luacheck (Hyprland config, nvim theme; settings in .luacheckrc)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lua-check
+          luacheck --version
+          luacheck --codes files/hypr files/nvim
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v10
+      - name: actionlint (these workflows)
+        run: uvx --from actionlint-py actionlint -color

@@ -9,7 +9,7 @@ from pyinfra import host
 from pyinfra.operations import files, server
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import privdata  # noqa: E402
+import privdata
 
 home = host.data.desktop_home
 

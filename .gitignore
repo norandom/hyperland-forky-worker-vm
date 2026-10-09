@@ -4,3 +4,4 @@ __pycache__/
 inventory.local.py
 dist/
 private/
+.ruff_cache/

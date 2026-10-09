@@ -9,9 +9,9 @@ profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.
 cur=$(cat "$state" 2>/dev/null || echo default)
 case "$1" in
   apply) new=$cur ;;
-  prev) new=$(printf '%s\n' $profiles | awk -v c="$cur" '{a[NR]=$0; if ($0==c) i=NR} END{print (i>1) ? a[i-1] : a[NR]}') ;;
-  ""|next) new=$(printf '%s\n' $profiles | awk -v c="$cur" 'NR==1{f=$0} p{print; d=1; exit} $0==c{p=1} END{if(!d)print f}' | head -1) ;;
-  *) printf '%s\n' $profiles | grep -qx "$1" || { echo "profiles: $profiles" >&2; exit 2; }; new=$1 ;;
+  prev) new=$(printf '%s\n' "$profiles" | awk -v c="$cur" '{a[NR]=$0; if ($0==c) i=NR} END{print (i>1) ? a[i-1] : a[NR]}') ;;
+  ""|next) new=$(printf '%s\n' "$profiles" | awk -v c="$cur" 'NR==1{f=$0} p{print; d=1; exit} $0==c{p=1} END{if(!d)print f}' | head -1) ;;
+  *) printf '%s\n' "$profiles" | grep -qx "$1" || { echo "profiles: $profiles" >&2; exit 2; }; new=$1 ;;
 esac
 [ -n "$new" ] || new=default
 mkdir -p "${state%/*}" && echo "$new" > "$state"

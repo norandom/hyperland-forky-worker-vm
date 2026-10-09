@@ -3,7 +3,7 @@ that don't apply to a KVM guest. Switches: group_data/all.py."""
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.operations import files, server, systemd
+from pyinfra.operations import files, server
 
 # --- Network: BBR + fq, Fast Open, buffers -----------------------------------------
 if host.data.tune_net:

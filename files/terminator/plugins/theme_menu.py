@@ -7,8 +7,8 @@ adding a theme), so new profiles work without restarting Terminator."""
 import os
 import subprocess
 
-from gi.repository import Gdk, Gio, Gtk
 import terminatorlib.plugin as plugin
+from gi.repository import Gdk, Gio, Gtk
 from terminatorlib.config import Config
 
 AVAILABLE = ['ThemeMenu']

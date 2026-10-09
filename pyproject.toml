@@ -10,3 +10,14 @@ dependencies = [
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+# Python scripts without .py in files/bin are listed in the lint workflow (.github/workflows/lint.yml)
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF"]
+# The repo's compact style (one-line ifs, long pyinfra calls) is deliberate: only bug-finding rules
+# RUF001-003: typographic characters (–, ›) in UI text are intended
+ignore = ["E501", "E701", "E702", "E731", "E741", "RUF001", "RUF002", "RUF003", "RUF005", "RUF012"]

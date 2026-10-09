@@ -37,7 +37,7 @@ def reset_iso(v):
     s = str(v)
     if s.isdigit():
         n = int(s)
-        return dt.datetime.fromtimestamp(n / 1000 if n > 1e12 else n, dt.timezone.utc).isoformat()
+        return dt.datetime.fromtimestamp(n / 1000 if n > 1e12 else n, dt.UTC).isoformat()
     return s
 
 
@@ -114,7 +114,7 @@ def still_open(limits, now):
 
 
 def main():
-    now = dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.now(dt.UTC)
     try:
         cache = json.loads(CACHE.read_text())
     except (OSError, ValueError):
