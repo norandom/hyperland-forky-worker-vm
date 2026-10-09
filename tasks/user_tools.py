@@ -170,3 +170,8 @@ WantedBy=timers.target
 server.shell(name="dev-disk-reclaim: systemd user daemon-reload + timer enabled",
              commands=["systemctl --user daemon-reload", "systemctl --user enable --now dev-disk-reclaim.timer"])
 
+# --- snitch: Little Snitch in the terminal (Textual; deps via uv's inline script metadata) --
+files.put(name="snitch (Little Snitch TUI)", src="files/bin/snitch", dest=f"{bin_dir}/snitch", mode="755")
+server.shell(name="snitch: dependencies cached (first start fast)",
+             commands=[env + f"{bin_dir}/snitch --help >/dev/null"])
+

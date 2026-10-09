@@ -383,6 +383,17 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
+* **Little Snitch in the terminal** (`snitch`): the daemon's connection tree (process >
+  host > address) over its own web-UI protocol, live. Arrows move (details follow), enter /
+  right opens, left closes, `x` blocks, `x` again unblocks (same rules as the web UI), `t` or
+  `1`..`5` switch the time window (15m / 30m / 1h / 24h / 7d), `/` searches, `s` sorts by
+  activity (frozen, re-sorted every 10s; `s` again: 20s), `S` by name, `e` shows the egress
+  graph: which program sends how much to where in the time window (btop-style bars, log
+  scale, live rate; a second hidden daemon connection expands the whole tree, so the list
+  stays as it is). Blocking a
+  protected process (`hypr-rdp`, `sshd`, `littlesnitch`) needs a second `x`. Blocks,
+  unblocks and denied connections are logged to `~/.local/state/snitch/snitch.log`.
+  Optional `~/.config/snitch/config.toml`: `periods`, `since`, `protect`, `resort`.
 * **Disk space** (`dev-disk-reclaim`, nightly at 03:30 via `dev-disk-reclaim.timer`):
   removes regenerable caches so the disk stays free for dev work: stopped containers,
   superseded (dangling) images, unused volumes and the build cache (rootless Podman), the
