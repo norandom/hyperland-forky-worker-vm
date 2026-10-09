@@ -41,7 +41,7 @@ jobs:
             case "$f" in *.py) ;; *) if head -n1 "$f" 2>/dev/null | grep -qE '^#!.*(python|uv run)'; then echo "$f"; fi ;; esac
           done > scripts.txt
           cat scripts.txt
-          uvx ruff@0.16.10 check --output-format github . $(cat scripts.txt)
+          xargs -a scripts.txt uvx ruff@0.16.10 check --output-format github .
 
   luacheck:
     runs-on: ubuntu-latest
