@@ -191,3 +191,7 @@ ax_go_toolchain = "go1.27.1"
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
 bitwarden_version = "2026.9.1"
 bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
+
+# Away lock (tasks/away.py): seconds without an RDP session before sudo, the Little Snitch UI
+# and ptrace lock (they unlock as soon as the session is back)
+away_grace_seconds = 600

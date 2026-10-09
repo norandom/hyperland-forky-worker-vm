@@ -1,6 +1,6 @@
 [project]
 name = "hyperland-forky-worker-vm"
-version = "0.1.0"
+version = "0.2.0"
 description = "Debian forky thin client: low-footprint Hyprland desktop over RDP, for remote VMs without a GPU"
 requires-python = ">=3.11"
 dependencies = [

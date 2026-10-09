@@ -1,0 +1,88 @@
+#!/bin/sh
+# hypr-away (root service): lock the box while nobody works on it over RDP.
+#
+#   present  an RDP session from another machine, served by the real /usr/bin/hypr-rdp, with
+#            picture data flowing (> MIN_BYTES sent): a bare TCP connect without the password,
+#            or a connection a user process opens itself from port 3389, does not count
+#   away     no such session for GRACE seconds -> lock:
+#              - sudo asks for the user's password (a later sudoers.d entry beats NOPASSWD)
+#              - nothing running as the user can reach the Little Snitch UI (no rule changes,
+#                no "filter off"); snitch and its popups work again after the unlock
+#              - kernel.yama.ptrace_scope=1: processes cannot read each other's memory
+#   back     the session is there again -> unlock, everything as before
+#
+#   hypr-away            run (systemd: hypr-away.service)
+#   hypr-away status     locked / unlocked, and whether a session counts as present
+set -u
+USER_NAME=${AWAY_USER:-mc}
+GRACE=${GRACE:-600}
+MIN_BYTES=${MIN_BYTES:-2000000}
+RDP_EXE=/usr/bin/hypr-rdp
+SUDOERS=/etc/sudoers.d/zz-hypr-away
+STATE=/run/hypr-away
+uid=$(id -u "$USER_NAME") || exit 1
+
+present() {
+  local_ips=$(ip -o addr show | awk '{ split($4, a, "/"); print a[1] }')
+  # connection line (peer, pid) followed by its tcp info line (bytes_acked)
+  ss -tnipH state established '( sport = :3389 )' | awk -v min="$MIN_BYTES" '
+    /^[0-9]/ { peer = $4; sub(/:[0-9]+$/, "", peer); gsub(/[][]/, "", peer); sub(/^::ffff:/, "", peer)
+               pid = ""; if (match($0, /pid=[0-9]+/)) pid = substr($0, RSTART + 4, RLENGTH - 4); info = 1; next }
+    info     { b = 0; if (match($0, /bytes_acked:[0-9]+/)) b = substr($0, RSTART + 12, RLENGTH - 12) + 0
+               if (b > min && pid != "") print peer, pid; info = 0 }' |
+  while read -r peer pid; do
+    printf '%s\n' "$local_ips" | grep -qxF "$peer" && continue          # from this machine itself
+    [ "$(readlink "/proc/$pid/exe")" = "$RDP_EXE" ] || continue         # not the real hypr-rdp
+    echo "$peer"; exit 0
+  done | grep -q .
+}
+
+lock() {
+  printf '# hypr-away: nobody connected, sudo asks for the password\n%s ALL=(ALL) PASSWD: ALL\n' "$USER_NAME" > "$SUDOERS.tmp"
+  chmod 440 "$SUDOERS.tmp"
+  if visudo -cqf "$SUDOERS.tmp"; then mv "$SUDOERS.tmp" "$SUDOERS"; else rm -f "$SUDOERS.tmp"; fi
+  rm -rf "/run/sudo/ts/$USER_NAME"                                      # no cached sudo
+  nft -f - <<EOF
+table inet hypr_away
+delete table inet hypr_away
+table inet hypr_away {
+  chain out {
+    type filter hook output priority 0; policy accept;
+    meta skuid $uid ip daddr 127.0.0.0/8 tcp dport 3031 reject with tcp reset
+    meta skuid $uid ip6 daddr ::1 tcp dport 3031 reject with tcp reset
+  }
+}
+EOF
+  cat /proc/sys/kernel/yama/ptrace_scope > "$STATE/ptrace_scope"
+  sysctl -qw kernel.yama.ptrace_scope=1
+  touch "$STATE/locked"
+  echo "locked: no RDP session for ${GRACE}s (sudo needs a password, Little Snitch UI closed, ptrace_scope=1)"
+}
+
+unlock() {
+  rm -f "$SUDOERS"
+  nft delete table inet hypr_away 2>/dev/null
+  sysctl -qw kernel.yama.ptrace_scope="$(cat "$STATE/ptrace_scope" 2>/dev/null || echo 0)"
+  rm -f "$STATE/locked"
+  echo "unlocked: RDP session present"
+}
+
+mkdir -p "$STATE"
+case "${1:-run}" in
+  status)
+    [ -e "$STATE/locked" ] && echo locked || echo unlocked
+    present && echo "session: present" || echo "session: none" ;;
+  run)
+    last=$(date +%s)
+    while :; do
+      now=$(date +%s)
+      if present; then
+        last=$now
+        [ -e "$STATE/locked" ] && unlock
+      elif [ $((now - last)) -ge "$GRACE" ] && [ ! -e "$STATE/locked" ]; then
+        lock
+      fi
+      sleep 5
+    done ;;
+  *) sed -n '2,16p' "$0"; exit 2 ;;
+esac

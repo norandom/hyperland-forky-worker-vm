@@ -31,6 +31,11 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-layout { padding: 0 8px; color: #2b4570; }
 #custom-kbd { padding: 0 8px; color: #2b4570; }
 /* Clipboard history: dim when empty */
+/* Little Snitch: shield = deny by default, outline = allow by default, red = alerts not running */
+#custom-snitch { padding: 0 8px; font-size: 14px; color: #2b4570; }
+#custom-snitch.allow { color: #9aa8bc; }
+#custom-snitch.down { color: #c0392b; }
+#custom-snitch:hover { background: #f5ede0; }
 #custom-cliphist { padding: 0 8px; font-size: 14px; color: #2b4570; }
 #custom-cliphist.empty { color: #9aa8bc; }
 #custom-cliphist:hover { background: #f5ede0; }

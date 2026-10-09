@@ -62,8 +62,9 @@ for prof, p in profiles.items():
     (ROOT / f"files/ghostty/themes/{theme}.css").write_text(CSS.format(t=theme, bar=bar, fg=tfg, act=act, act_fg=act_fg, font=fam))
     h = lambda c: c.lstrip("#")
     f = [f"# Managed by debian-hypr (tools/themegen.py). foot theme = Terminator profile \"{prof}\" (hypr-termtheme).",
-         "[main]", f"font={fam}:size={size}", "", "[cursor]", f"color={h(cur_fg)} {h(cur_bg)}", "", "[colors-dark]",
-         f"background={h(bg)}", f"foreground={h(fg)}", f"selection-background={h(pal[8])}", f"selection-foreground={h(fg)}"]
+         "[main]", f"font={fam}:size={size}", "", "[colors-dark]",
+         # foot >= 1.26: the cursor colour lives in the colour section ([cursor] color= is an error)
+         f"cursor={h(cur_fg)} {h(cur_bg)}", f"background={h(bg)}", f"foreground={h(fg)}", f"selection-background={h(pal[8])}", f"selection-foreground={h(fg)}"]
     f += [f"regular{i}={h(c)}" for i, c in enumerate(pal[:8])] + [f"bright{i}={h(c)}" for i, c in enumerate(pal[8:])]
     (ROOT / f"files/foot/themes/{theme}.ini").write_text("\n".join(f) + "\n")
     print(f"{theme:9} bg {bg} fg {fg} cursor {cur_bg}/{cur_fg} font {fam} {size}")

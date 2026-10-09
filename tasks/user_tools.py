@@ -174,4 +174,21 @@ server.shell(name="dev-disk-reclaim: systemd user daemon-reload + timer enabled"
 files.put(name="snitch (Little Snitch TUI)", src="files/bin/snitch", dest=f"{bin_dir}/snitch", mode="755")
 server.shell(name="snitch: dependencies cached (first start fast)",
              commands=[env + f"{bin_dir}/snitch --help >/dev/null"])
+files.put(name="snitch-watch user service (alert popups)", src=StringIO("""# Managed by debian-hypr
+[Unit]
+Description=snitch: alert popups for connections Little Snitch denies by default
+PartOf=graphical-session.target
+After=graphical-session.target littlesnitch.service
+
+[Service]
+ExecStart=%h/.local/bin/snitch watch
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
+"""), dest=f"{home}/.config/systemd/user/snitch-watch.service", mode="644")
+server.shell(name="snitch-watch: enabled",
+             commands=["systemctl --user daemon-reload", "systemctl --user enable --now snitch-watch.service",
+                       "systemctl --user restart snitch-watch.service"])
 

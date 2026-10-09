@@ -42,7 +42,7 @@ end
 -- Stored as fractions of the monitor, so it survives RDP resolution changes.
 local geom = {}
 -- Apps that size themselves (fixed character grid): never remembered or resized.
-local OWN_SIZE = { X3270 = true }
+local OWN_SIZE = { X3270 = true, ["snitch-alert"] = true }  -- snitch-alert: sized by its window rule
 do
   local f = io.open(GEOM_FILE, "r")
   if f then

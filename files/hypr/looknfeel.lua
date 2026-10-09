@@ -85,3 +85,6 @@ do
     end
   end
 end
+
+-- snitch alert popups (Little Snitch): small, floating, centred, on top of everything
+hl.window_rule({ name = "snitch-alert", match = { class = "snitch-alert" }, float = true, center = true, size = "1000 280", pin = true })
