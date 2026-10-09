@@ -386,7 +386,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
 * **Little Snitch in the terminal** (`snitch`, the shield in the bar): every connection as
   process > host > address, block / unblock with `x`, an egress graph (who sends how much to
   where), and with `snitch default deny` popups for anything new: `o` / `x` allow / block,
-  `O` / `X` for 15 minutes. Answers are ordinary Little Snitch rules, editable in its web UI.
+  `O` / `X` for 15 minutes; `snitch baseline --dev` allows the dev tools their own hosts for
+  overnight jobs. Answers are ordinary Little Snitch rules, editable in its web UI.
   **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
   password, your processes can't reach the Little Snitch UI and ptrace is restricted; it
   unlocks as soon as you reconnect. Screenshots and details: [docs/snitch](docs/snitch/README.md).
