@@ -2,6 +2,7 @@ name: lint
 
 # One job per linter: a red X names the linter that failed.
 # Scripts without an extension (files/bin, files/sbin, files/hypr-rdp) are found by their shebang.
+# Runs under bash -e: the discovery loops use if/then, a failed grep must not end the step.
 
 on:
   push:
@@ -23,7 +24,7 @@ jobs:
           git ls-files -z | while IFS= read -r -d '' f; do
             case "$f" in
               *.sh) echo "$f" ;;
-              *) head -n1 "$f" 2>/dev/null | grep -qE '^#!.*\b(sh|bash)\b' && echo "$f" ;;
+              *) if head -n1 "$f" 2>/dev/null | grep -qE '^#!.*\b(sh|bash)\b'; then echo "$f"; fi ;;
             esac
           done > scripts.txt
           cat scripts.txt
@@ -33,11 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
       - name: ruff (Python; settings in pyproject.toml)
         run: |
           git ls-files -z | while IFS= read -r -d '' f; do
-            case "$f" in *.py) ;; *) head -n1 "$f" 2>/dev/null | grep -qE '^#!.*(python|uv run)' && echo "$f" ;; esac
+            case "$f" in *.py) ;; *) if head -n1 "$f" 2>/dev/null | grep -qE '^#!.*(python|uv run)'; then echo "$f"; fi ;; esac
           done > scripts.txt
           cat scripts.txt
           uvx ruff@0.16.10 check --output-format github . $(cat scripts.txt)
@@ -57,6 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
       - name: actionlint (these workflows)
         run: uvx --from actionlint-py actionlint -color
