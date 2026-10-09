@@ -87,7 +87,7 @@ do
 end
 
 -- snitch alert popups (Little Snitch): small, floating, centred, on top of everything
-hl.window_rule({ name = "snitch-alert", match = { class = "snitch-alert" }, float = true, center = true, size = "1000 280", pin = true })
+hl.window_rule({ name = "snitch-alert", match = { class = "snitch-alert" }, float = true, center = true, size = "1100 340", pin = true })
 
 -- hyprlock (console lock): if it ever crashes, `hyprlock` can be started again to take over
 hl.config({ misc = { allow_session_lock_restore = true } })
