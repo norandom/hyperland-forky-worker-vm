@@ -402,6 +402,12 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
   password, your processes can't reach the Little Snitch UI and ptrace is restricted; it
   unlocks as soon as you reconnect. Details: [docs/away-lock.md](docs/away-lock.md); snitch itself lives in [norandom/snitch](https://github.com/norandom/snitch).
+* **Which VM am I on?** Title bars and the active window border take a colour per host
+  (`tools/hostcolor.py`, set at deploy from the hostname): same lightness for every host, white
+  text at 6.4–7.4:1 contrast. List the VMs in `fleet_hosts` (`group_data/all.py`): the position
+  sets the hue, so the first 8 are clearly apart (debb: petrol #0b647e). Unlisted hosts get a
+  hue from a hash of the name; `decor_colors` overrides one by hand.
+  `python3 tools/hostcolor.py debb vm2 …` shows the colours and warns when two are too close.
 * **Console lock**: the Proxmox / SPICE console needs your password (hyprlock), RDP logs in by
   itself. RDP gone -> the session locks before the console shows it; RDP back -> console
   display, keyboard and mouse off, then it unlocks. One session, no second login.

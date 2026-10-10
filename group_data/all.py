@@ -210,3 +210,9 @@ snitch_version = "0.1.0"
 snitch_sha256 = "c19f73ee3a9d83f95c5560a2676021f9ec6021e55d04dca33455e6682acc1a00"
 snitch_trial_sha256 = "36448ceac2dc89d575d290eb7f6e83cbb48596aba00d31791a1bfb44981893b2"
 
+# Which VM am I on? Title bars and the active border in one colour per host (tools/hostcolor.py,
+# white text >= 4.6:1). List the fleet here: the position sets the hue (first 8 clearly apart);
+# hosts not listed fall back to a hash of the hostname. decor_colors overrides one host by hand.
+fleet_hosts = ["debb"]
+decor_colors = {}
+

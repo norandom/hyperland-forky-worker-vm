@@ -1,9 +1,15 @@
 """Hyprland desktop without Omarchy: packages, config, theme, fonts, Terminator."""
+import sys
 from io import StringIO
+from pathlib import Path
 
 from pyinfra import host
+from pyinfra.facts.server import Hostname
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+import hostcolor
 
 home = host.data.desktop_home
 
@@ -66,6 +72,16 @@ hypr.append(files.template(
     name=f"Hyprland: monitors.lua (RDP output at {host.data.rdp_refresh_hz} Hz)",
     src="templates/hypr/monitors.lua.j2",
     dest=f"{home}/.config/hypr/monitors.lua",
+    mode="644",
+))
+# Host colour (tools/hostcolor.py): from the real hostname, so every VM's decorations differ
+hostname = host.get_fact(Hostname)
+hc = hostcolor.color_for(hostname, host.data.get("decor_colors", {}).get(hostname), host.data.get("fleet_hosts", []))
+hypr.append(files.put(
+    name=f"Hyprland: hostcolor.lua ({hostname}: #{hc['hex']}, hue {hc['hue']}, white text {hc['contrast']}:1)",
+    src=StringIO(f"-- Managed by debian-hypr (tools/hostcolor.py): this VM's colour\n"
+                 f'return {{ name = "{hostname}", color = "{hc["hex"]}", pale = "{hc["pale"]}" }}\n'),
+    dest=f"{home}/.config/hypr/hostcolor.lua",
     mode="644",
 ))
 hypr.append(files.template(

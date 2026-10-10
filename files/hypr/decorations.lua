@@ -10,6 +10,11 @@ if not (hl.plugin and hl.plugin.hyprbars) then
   return
 end
 
+-- This VM's colour (hostcolor.lua, written by the deploy from the hostname): you see which
+-- RDP VM you're on. Without it, the original navy / cream.
+local ok, hc = pcall(require, "hostcolor")
+if not ok or type(hc) ~= "table" then hc = { color = "000080", pale = "ebe3d6" } end
+
 local style = "mac"
 local f = io.open((os.getenv("HOME") or "") .. "/.config/hypr/decorations-style", "r")
 if f then
@@ -26,11 +31,11 @@ local pin = "$HOME/.local/bin/hypr-pin"       -- stay on top on/off
 if style == "win311" then
   -- Windows 3.11: navy title bar, white centred title, square buttons on the right.
   hl.config({
-    general = { col = { active_border = "rgb(000080)", inactive_border = "rgb(c0c0c0)" } },
+    general = { col = { active_border = "rgb(" .. hc.color .. ")", inactive_border = "rgb(c0c0c0)" } },
     plugin = {
       hyprbars = {
         bar_height = 22,
-        bar_color = "rgb(000080)",
+        bar_color = "rgb(" .. hc.color .. ")",
         ["col.text"] = "rgb(ffffff)",
         bar_text_size = 11,
         bar_text_font = "Sans Bold",
@@ -56,12 +61,13 @@ if style == "win311" then
     bg_color = "rgba(00000000)", fg_color = "rgb(ffffff)", size = 22, icon = "▒", action = glass,
   })
 else
-  -- macOS-like: cream bar, navy text, red/green buttons on the left.
+  -- macOS-like: a pale tint of the host colour, navy text, red/green buttons on the left.
   hl.config({
+    general = { col = { active_border = "rgb(" .. hc.color .. ")" } },
     plugin = {
       hyprbars = {
         bar_height = 24,
-        bar_color = "rgb(ebe3d6)",
+        bar_color = "rgb(" .. hc.pale .. ")",
         ["col.text"] = "rgb(2b4570)",
         bar_text_size = 11,
         bar_text_font = "JetBrainsMono Nerd Font",
