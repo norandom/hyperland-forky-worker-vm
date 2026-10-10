@@ -195,3 +195,9 @@ bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537f
 # Away lock (tasks/away.py): seconds without an RDP session before sudo, the Little Snitch UI
 # and ptrace lock (they unlock as soon as the session is back)
 away_grace_seconds = 600
+
+# snitch (github.com/norandom/snitch): Little Snitch TUI, alert popups, deny-by-default trial
+snitch_version = "0.1.0"
+snitch_sha256 = "c19f73ee3a9d83f95c5560a2676021f9ec6021e55d04dca33455e6682acc1a00"
+snitch_trial_sha256 = "36448ceac2dc89d575d290eb7f6e83cbb48596aba00d31791a1bfb44981893b2"
+

@@ -36,8 +36,19 @@ systemd.service(name="hypr-away running", service="hypr-away.service", running=T
                 restarted=unit.changed, daemon_reload=unit.changed, _sudo=True)
 
 # --- snitch-trial: `snitch default deny` reverts to allow unless confirmed (also across reboots) ---
-files.put(name="snitch-trial (root): deny-by-default trial revert", src="files/sbin/snitch-trial",
-          dest="/usr/local/sbin/snitch-trial", user="root", group="root", mode="755", _sudo=True)
+# Fetched with gh (allowed to GitHub in snitch's dev profile, so a deploy works under deny by
+# default); curl as the fallback on a fresh VM. Installed only if the SHA-256 matches.
+ver = host.data.snitch_version
+server.shell(  # downloaded as the user (gh's login), installed as root
+    name=f"snitch-trial {ver} (root): deny-by-default trial revert",
+    commands=[f"""f=/usr/local/sbin/snitch-trial; want={host.data.snitch_trial_sha256}
+[ -f "$f" ] && [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$want" ] && exit 0
+tmp=$(mktemp)
+gh release download v{ver} -R norandom/snitch -p snitch-trial -O "$tmp" --clobber 2>/dev/null ||
+  curl -fsSL -o "$tmp" https://github.com/norandom/snitch/releases/download/v{ver}/snitch-trial
+echo "$want  $tmp" | sha256sum -c --status && sudo install -o root -g root -m 755 "$tmp" "$f"; rc=$?
+rm -f "$tmp"; exit $rc"""],
+)
 files.directory(name="/var/lib/snitch-trial (root only)", path="/var/lib/snitch-trial",
                 user="root", group="root", mode="700", _sudo=True)
 trial_units = [

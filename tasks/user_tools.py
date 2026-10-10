@@ -170,8 +170,19 @@ WantedBy=timers.target
 server.shell(name="dev-disk-reclaim: systemd user daemon-reload + timer enabled",
              commands=["systemctl --user daemon-reload", "systemctl --user enable --now dev-disk-reclaim.timer"])
 
-# --- snitch: Little Snitch in the terminal (Textual; deps via uv's inline script metadata) --
-files.put(name="snitch (Little Snitch TUI)", src="files/bin/snitch", dest=f"{bin_dir}/snitch", mode="755")
+# --- snitch: Little Snitch in the terminal (github.com/norandom/snitch, a pinned release) --
+# Fetched with gh (allowed to GitHub in snitch's dev profile, so a deploy works under deny by
+# default); curl as the fallback on a fresh VM. Installed only if the SHA-256 matches.
+ver = host.data.snitch_version
+server.shell(
+    name=f"snitch {ver} (Little Snitch TUI)",
+    commands=[env + f"""f={bin_dir}/snitch; want={host.data.snitch_sha256}
+[ -f "$f" ] && [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$want" ] && exit 0
+tmp=$(mktemp)
+gh release download v{ver} -R norandom/snitch -p snitch -O "$tmp" --clobber 2>/dev/null ||
+  curl -fsSL -o "$tmp" https://github.com/norandom/snitch/releases/download/v{ver}/snitch
+echo "$want  $tmp" | sha256sum -c --status && install -m 755 "$tmp" "$f"; rc=$?; rm -f "$tmp"; exit $rc"""],
+)
 server.shell(name="snitch: dependencies cached (first start fast)",
              commands=[env + f"{bin_dir}/snitch --help >/dev/null"])
 files.put(name="snitch-watch user service (alert popups)", src=StringIO("""# Managed by debian-hypr
