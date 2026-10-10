@@ -105,7 +105,8 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{obs_deb} https://github.com/obsidianmd/obsidian-releases/releases/download/v{obs_ver}/{obs_deb}
 echo "{obs_sha}  /var/cache/debian-hypr/{obs_deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{obs_deb}
-rm -f /var/cache/debian-hypr/{obs_deb}  # installed; the deploy checks the package version, not the file)"""],
+rm -f /var/cache/debian-hypr/{obs_deb}  # installed; the deploy checks the package version, not the file
+)"""],
     _sudo=True,
 )
 
@@ -119,7 +120,8 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{bw_deb} https://github.com/bitwarden/clients/releases/download/desktop-v{bw_ver}/{bw_deb}
 echo "{bw_sha}  /var/cache/debian-hypr/{bw_deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{bw_deb}
-rm -f /var/cache/debian-hypr/{bw_deb}  # installed; the deploy checks the package version, not the file)"""],
+rm -f /var/cache/debian-hypr/{bw_deb}  # installed; the deploy checks the package version, not the file
+)"""],
     _sudo=True,
 )
 
@@ -133,7 +135,8 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{g_deb} https://github.com/mkasberg/ghostty-ubuntu/releases/download/{host.data.ghostty_release}/{g_deb}
 echo "{g_sha}  /var/cache/debian-hypr/{g_deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{g_deb}
-rm -f /var/cache/debian-hypr/{g_deb}  # installed; the deploy checks the package version, not the file)"""],
+rm -f /var/cache/debian-hypr/{g_deb}  # installed; the deploy checks the package version, not the file
+)"""],
     _sudo=True,
 )
 
@@ -148,7 +151,8 @@ install -d -m 755 /var/cache/debian-hypr
 curl -fsSL -o /var/cache/debian-hypr/{deb} https://obdev.at/downloads/littlesnitch-linux/{deb}
 echo "{host.data.littlesnitch_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}
-rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file)"""],
+rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file
+)"""],
         _sudo=True,
     )
     on = host.data.get("littlesnitch_enabled", True)
