@@ -157,6 +157,17 @@ CPU, while RDP and terminals stay usable.
   little host CPU).
 * Soft-lockup watchdog off (false alarms when the host is busy); floppy,
   pcspkr and joydev blacklisted.
+* `console=tty0 console=ttyS0,115200` (`serial_console`): kernel messages
+  on the serial port too, and the task enables a login on `ttyS0`.
+
+**Serial console** (`serial_console`). The way back when the network is gone,
+for example after a firewall change that denies too much (it happened:
+deny-by-default cut RDP and SSH once). The guest side is this repo; the VM
+also needs the device on the Proxmox host, once, with the VM stopped:
+`qm set <vmid> -serial0 socket`. Then the VM's *Console* in the Proxmox UI
+offers the serial terminal (xterm.js), or `qm terminal <vmid>` on the host.
+A root login there needs no network and no daemon; snitchd's kill switch is
+`bpftool map update pinned /sys/fs/bpf/snitch/kill key 0 0 0 0 value 1 0 0 0`.
 
 **Network and disk.** BBR + fq and larger TCP buffers (`tune_net`) help on
 WAN links; root filesystem `noatime,commit=60` (`tune_noatime`) cuts metadata

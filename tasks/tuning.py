@@ -38,8 +38,19 @@ mount -o remount /
         _sudo=True,
     )
 
+# --- Serial console: the way back when the network is gone -----------------------------
+# A getty on ttyS0 (works as soon as the VM has serial0) and the kernel console on both the
+# VGA console and the serial port (grub, below; after a reboot).
+server.shell(
+    name="serial-getty@ttyS0: " + ("enabled" if host.data.serial_console else "disabled"),
+    commands=["systemctl enable --now serial-getty@ttyS0.service" if host.data.serial_console
+              else "systemctl disable --now serial-getty@ttyS0.service"],
+    _sudo=True,
+)
+console_args = ["console=tty0", "console=ttyS0,115200"] if host.data.serial_console else []
+
 # --- Kernel command line via GRUB -------------------------------------------------------
-args = " ".join(host.data.tune_kernel_cmdline)
+args = " ".join(host.data.tune_kernel_cmdline + console_args)
 grub = files.line(
     name=f"GRUB kernel cmdline: quiet {args}".rstrip(),
     path="/etc/default/grub",

@@ -57,6 +57,12 @@ tune_noatime = True
 # halting -> lower wake-up latency (snappier RDP), costs a little host CPU.
 tune_kernel_cmdline = ["mitigations=off", "audit=0", "cpuidle_haltpoll.force=1", "cpuidle.governor=haltpoll"]
 
+# Serial console: a login on ttyS0 and the kernel console on it too (the latter after a
+# reboot). The way back when the network is gone, e.g. an egress firewall that denies too
+# much: Proxmox UI -> the VM's "Console" with serial0, or `qm terminal <vmid>` on the host.
+# The VM needs the device: `qm set <vmid> -serial0 socket` on the host (stop/start once).
+serial_console = True
+
 # SSH: allow root login with password (Mint repo's kvm_guest_optimization).
 # LAN-only VM behind NAT. False = Debian defaults (keys / no root password login).
 ssh_root_password_login = True
