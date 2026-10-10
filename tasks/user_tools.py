@@ -199,7 +199,12 @@ RestartSec=5
 [Install]
 WantedBy=graphical-session.target
 """), dest=f"{home}/.config/systemd/user/snitch-watch.service", mode="644")
-server.shell(name="snitch-watch: enabled",
-             commands=["systemctl --user daemon-reload", "systemctl --user enable --now snitch-watch.service",
-                       "systemctl --user restart snitch-watch.service"])
+if host.data.get("littlesnitch_enabled", True):
+    server.shell(name="snitch-watch: enabled",
+                 commands=["systemctl --user daemon-reload", "systemctl --user enable --now snitch-watch.service",
+                           "systemctl --user restart snitch-watch.service"])
+else:
+    server.shell(name="snitch-watch: disabled (littlesnitch_enabled = False)",
+                 commands=["systemctl --user daemon-reload",
+                           "systemctl --user disable --now snitch-watch.service 2>/dev/null || true"])
 

@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/quota", {% if host.data.bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", "custom/snitch", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": ["custom/quota", {% if host.data.bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", {% if host.data.littlesnitch_enabled %}"custom/snitch", {% endif %}"custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",

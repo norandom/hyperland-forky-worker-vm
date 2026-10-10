@@ -86,8 +86,14 @@ WantedBy=timers.target
 """,
     }.items()
 ]
-server.shell(name="snitch-trial: boot check and timer enabled",
-             commands=["systemctl daemon-reload",
-                       "systemctl enable snitch-trial-boot.service",
-                       "systemctl enable --now snitch-trial.timer"], _sudo=True)
+if host.data.get("littlesnitch_enabled", True):
+    server.shell(name="snitch-trial: boot check and timer enabled",
+                 commands=["systemctl daemon-reload",
+                           "systemctl enable snitch-trial-boot.service",
+                           "systemctl enable --now snitch-trial.timer"], _sudo=True)
+else:
+    server.shell(name="snitch-trial: disabled (littlesnitch_enabled = False)",
+                 commands=["systemctl daemon-reload", "rm -f /var/lib/snitch-trial/deadline",
+                           "systemctl disable --now snitch-trial.timer snitch-trial-boot.service 2>/dev/null || true"],
+                 _sudo=True)
 

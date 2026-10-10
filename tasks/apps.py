@@ -151,6 +151,13 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/c
 rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file)"""],
         _sudo=True,
     )
+    on = host.data.get("littlesnitch_enabled", True)
+    server.shell(
+        name=f"Little Snitch daemon {'enabled' if on else 'disabled (littlesnitch_enabled = False)'}",
+        commands=["systemctl enable --now littlesnitch.service" if on
+                  else "systemctl disable --now littlesnitch.service 2>/dev/null || true"],
+        _sudo=True,
+    )
 
 # --- Single-binary tools from GitHub releases (pinned, checksum verified) -------------
 for name, (url, sha) in host.data.release_tools.items():

@@ -155,6 +155,9 @@ rclone_mounts = {"onedrive": "OneDrive"}
 
 # Little Snitch for Linux (obdev.at; needs kernel 6.12+ with BTF). Web UI:
 # http://localhost:3031/ (in Chromium). None = don't install.
+# False: Little Snitch, the snitch alert popups and the deny trial stay installed but off
+# (meanwhile snitchd, the Go/eBPF rewrite in github.com/norandom/snitch, replaces them)
+littlesnitch_enabled = False
 littlesnitch_version = "1.1.0"
 littlesnitch_sha256 = "1a4bce4703ada6f74a69aec0386a4e2c96f8ab9ea1ce89303bf2775d5d8d0f1d"
 

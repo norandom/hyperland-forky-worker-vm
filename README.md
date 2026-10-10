@@ -383,7 +383,7 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
-* **Little Snitch in the terminal** ([`snitch`](https://github.com/norandom/snitch), the shield in the bar, deployed as a pinned release): every connection as
+* **Little Snitch in the terminal** ([`snitch`](https://github.com/norandom/snitch), the shield in the bar, deployed as a pinned release; `littlesnitch_enabled = False` keeps the daemon, popups, trial and bar module off while the Go/eBPF rewrite replaces them): every connection as
   process > host > address, block / unblock with `x`, an egress graph (who sends how much to
   where), and with `snitch default deny` popups for anything new: `o` / `x` allow / block,
   `O` / `X` for 15 minutes; `snitch baseline --dev` allows the dev tools their own hosts for
