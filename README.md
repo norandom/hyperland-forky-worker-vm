@@ -13,7 +13,7 @@ you use over RDP.
 * **For multitaskers** who want a purpose-built worker VM: terminals, AI
   agents, containers and a browser, nothing else.
 
-![Thin client desktop over RDP: Hacker News in Chromium as the main window; btop in Terminator's fixedsys theme (amber on navy, Berkeley Mono); Claude Code in Ghostty's cobalt theme explaining the night filter; top bar with app menu, launchers, window list, clock, AI quota, CPU/MEM/net, volume, night-filter rabbit, theme dot, keyboard layout and power button; Windows 3.11 style title bars](docs/screenshot.png)
+![Thin client desktop over RDP: Hacker News in Chromium as the main window; btop in Terminator's fixedsys theme (amber on navy, Berkeley Mono); Ghostty in the cobalt theme showing tools/hostcolor.py's fleet palette (eight hosts, white text 6.5 to 7.4:1); top bar with app menu, launchers, window list, clock, AI quota, CPU/MEM/net, volume, night-filter rabbit, theme dot, keyboard layout and power button; Windows 3.11 style title bars in this VM's colour (debb: petrol)](docs/screenshot.png)
 
 It is explicitly **not** a laptop or desktop base OS: no display manager, no
 GNOME/KDE, no power management, no Bluetooth, no printing. The VM boots
