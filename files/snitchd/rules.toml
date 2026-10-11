@@ -1,0 +1,236 @@
+# Managed by debian-hypr: snitchd rules for this VM, deployed to /etc/snitch/rules.toml.
+#
+# Source: the Python client's BASELINE and DEV_TOOLS lists (snitch repo, file `snitch`, the rules
+# that Little Snitch ran on this box). Every rule and program below names the list it came from.
+# Format: snitch/examples/rules.toml; validated in CI with `snitchd check -rules files/snitchd/rules.toml`.
+#
+# What is NOT here yet:
+#   - Domain rules (github.com, pypi.org, ...): the daemon decides on addresses, names come with
+#     the DNS tap spec. Each one is listed below as `# deferred (DNS tap spec): <program> -> <domains>`
+#     next to its program, so the missing list is visible in this file. Until then, in monitor mode
+#     those programs are reported with their names; in enforce mode they are denied beyond the rules
+#     below.
+#   - Local-network rules: allowed inside the BPF program (RFC 1918, link-local, loopback, fc00::/7,
+#     fe80::/10, ::1), no rule can change that, so they appear as comments only.
+#
+# WARNING: a trial (`snitchd trial`) without the `claude` rules to the Anthropic ranges cuts the
+# operator's own Claude Code session; the `any` rules to the same ranges are the second belt for
+# connections whose program the kernel cannot name. Keep both.
+#
+# curl is deliberately absent (the Python client never allowed it): a general-purpose downloader
+# gets reported and asked about later, never allowed by a blanket rule. The same goes for wget and
+# a bare python used as a downloader.
+
+# --- programs -------------------------------------------------------------------------------
+# Paths are filepath.Glob patterns (* ? [..], no **); `~` of the Python client is /home/*.
+# A program with only deferred or local-network rules is declared without rules so monitor
+# events and the learned file (/var/lib/snitch/learned.toml) name it.
+
+[[program]]
+name  = "claude"
+paths = ["/home/*/.local/share/claude/versions/*"]
+note  = "dev tool: Claude Code, the session tooling (DEV_TOOLS)"
+# deferred (DNS tap spec): claude -> anthropic.com, claude.ai, claude.com
+# deferred (DNS tap spec): any -> anthropic.com, claude.ai, claude.com (BASELINE: Anthropic for any program)
+
+[[program]]
+name  = "codex"
+paths = [
+  "/home/*/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/*/bin/codex",
+  "/home/*/.codex/packages/app-server-daemon/releases/*/bin/codex",
+]
+note  = "dev tool: Codex (DEV_TOOLS); also the bar's quota module started by waybar"
+# deferred (DNS tap spec): codex -> chatgpt.com, openai.com, oaiusercontent.com
+# deferred (DNS tap spec): codex (bar quota via waybar) -> chatgpt.com, openai.com
+
+[[program]]
+name  = "copilot"
+paths = ["/home/*/.local/lib/node_modules/@github/copilot/node_modules/@github/copilot-linux-x64/copilot"]
+note  = "dev tool: Copilot CLI (DEV_TOOLS)"
+# deferred (DNS tap spec): copilot -> github.com, githubcopilot.com
+
+[[program]]
+name  = "gh"
+paths = ["/usr/bin/gh"]
+note  = "dev tool: gh (DEV_TOOLS)"
+# deferred (DNS tap spec): gh -> github.com, githubusercontent.com
+
+[[program]]
+name  = "git"
+paths = ["/usr/lib/git-core/git-remote-http"]   # git-remote-https is a symlink to it
+note  = "dev tool: git over http(s) (DEV_TOOLS)"
+# deferred (DNS tap spec): git -> github.com, gitlab.com, codeberg.org, gitea.com
+
+[[program]]
+name  = "ssh"
+paths = ["/usr/bin/ssh"]
+note  = "dev tool: git over ssh (DEV_TOOLS)"
+# deferred (DNS tap spec): ssh -> github.com, gitlab.com, codeberg.org, gitea.com
+
+[[program]]
+name  = "node"
+paths = ["/usr/bin/node"]
+note  = "dev tool: npm (DEV_TOOLS)"
+# deferred (DNS tap spec): node -> npmjs.org
+
+[[program]]
+name  = "uv"
+paths = ["/home/*/.local/bin/uv"]
+note  = "dev tool: uv (DEV_TOOLS)"
+# deferred (DNS tap spec): uv -> pypi.org, pythonhosted.org, astral.sh, github.com, githubusercontent.com
+
+[[program]]
+name  = "python"
+paths = ["/usr/bin/python3.*", "/home/*/.local/share/uv/python/*/bin/python3*"]
+note  = "dev tool: pip, the system and the uv-managed interpreters (DEV_TOOLS)"
+# deferred (DNS tap spec): python -> pypi.org, pythonhosted.org
+
+[[program]]
+name  = "cargo"
+paths = ["/usr/bin/cargo"]
+note  = "dev tool: cargo (DEV_TOOLS)"
+# deferred (DNS tap spec): cargo -> crates.io
+
+[[program]]
+name  = "go"
+paths = ["/usr/lib/go-*/bin/go", "/home/*/go/pkg/mod/golang.org/toolchain@*/bin/go"]
+note  = "dev tool: go, the Debian and the downloaded toolchains (DEV_TOOLS)"
+# deferred (DNS tap spec): go -> golang.org, storage.googleapis.com
+
+[[program]]
+name  = "podman"
+paths = ["/usr/bin/podman"]
+note  = "dev tool: podman (DEV_TOOLS)"
+# deferred (DNS tap spec): podman -> docker.io, docker.com, ghcr.io, quay.io, gcr.io, githubusercontent.com
+
+[[program]]
+name  = "helm"
+paths = ["/usr/local/bin/helm"]
+note  = "dev tool: helm (DEV_TOOLS); helm to the cluster is local network"
+# deferred (DNS tap spec): helm -> openobserve.ai, github.com, githubusercontent.com, ghcr.io
+# helm to the cluster (the Kubernetes API, 10.0.0.x): allowed inside the BPF program, no rule needed
+
+[[program]]
+name  = "kube"
+paths = ["/usr/local/bin/kubectl", "/usr/local/bin/k9s", "/usr/local/bin/ktop"]
+note  = "dev tool: kubernetes tools to the cluster (DEV_TOOLS)"
+# kubectl, k9s, ktop to the cluster (10.0.0.x): allowed inside the BPF program, no rule needed
+
+[[program]]
+name  = "hypr-agent-quota"
+paths = ["/home/*/.local/bin/hypr-agent-quota"]
+note  = "dev tool: the bar's quota module started by waybar (DEV_TOOLS)"
+# deferred (DNS tap spec): hypr-agent-quota -> anthropic.com, chatgpt.com, openai.com
+
+[[program]]
+name  = "hypr-rdp"
+paths = ["/usr/bin/hypr-rdp"]
+note  = "baseline: RDP session (BASELINE)"
+
+[[program]]
+name  = "timesyncd"
+paths = ["/usr/lib/systemd/systemd-timesyncd"]
+note  = "baseline: time sync (BASELINE)"
+
+[[program]]
+name  = "apt"
+paths = ["/usr/lib/apt/methods/http", "/usr/lib/apt/methods/https"]
+note  = "baseline: apt http and https methods (BASELINE); sudo apt from the session (DEV_TOOLS)"
+
+# --- rules ----------------------------------------------------------------------------------
+# All allow. "Any destination" is the pair 0.0.0.0/0 + ::/0; the local network for any program
+# (BASELINE: local network, always) is allowed inside the BPF program, no rule needed.
+
+# Anthropic's published API ranges, for any program: some connections come before the kernel
+# can name the program, and this rule applies to them (BASELINE: Anthropic API addresses).
+[[rule]]
+program = "any"
+to      = "160.79.104.0/23"
+verdict = "allow"
+note    = "baseline: Anthropic for any program"
+
+[[rule]]
+program = "any"
+to      = "2607:6bc0::/48"
+verdict = "allow"
+note    = "baseline: Anthropic for any program"
+
+# Claude Code by address (DEV_TOOLS: Claude Code by address).
+[[rule]]
+program = "claude"
+to      = "160.79.104.0/23"
+verdict = "allow"
+note    = "dev tool: Claude Code; without this a trial cuts the operator's session"
+
+[[rule]]
+program = "claude"
+to      = "2607:6bc0::/48"
+verdict = "allow"
+note    = "dev tool: Claude Code; without this a trial cuts the operator's session"
+
+# The RDP session itself (BASELINE: RDP session (hypr-rdp), never block).
+[[rule]]
+program = "hypr-rdp"
+to      = "0.0.0.0/0"
+verdict = "allow"
+note    = "baseline: never block"
+
+[[rule]]
+program = "hypr-rdp"
+to      = "::/0"
+verdict = "allow"
+note    = "baseline: never block"
+
+# DNS for every program (BASELINE: DNS for every program); proto omitted: tcp and udp.
+[[rule]]
+program = "any"
+to      = "0.0.0.0/0"
+port    = 53
+verdict = "allow"
+note    = "baseline: DNS"
+
+[[rule]]
+program = "any"
+to      = "::/0"
+port    = 53
+verdict = "allow"
+note    = "baseline: DNS"
+
+# DHCP (BASELINE: DHCP, udp 67-68). The broadcast address is not in the kernel's local list.
+[[rule]]
+program = "any"
+to      = "255.255.255.255/32"
+proto   = "udp"
+port    = 67
+verdict = "allow"
+note    = "baseline: DHCP broadcast (dhcpcd; discover uses a raw socket, renewals are unicast to the local server)"
+
+# Time sync (BASELINE: time sync, systemd-timesyncd udp 123).
+[[rule]]
+program = "timesyncd"
+to      = "0.0.0.0/0"
+proto   = "udp"
+port    = 123
+verdict = "allow"
+note    = "baseline: time sync"
+
+[[rule]]
+program = "timesyncd"
+to      = "::/0"
+proto   = "udp"
+port    = 123
+verdict = "allow"
+note    = "baseline: time sync"
+
+# apt (BASELINE: apt (http), apt (https); DEV_TOOLS: apt -> any).
+[[rule]]
+program = "apt"
+to      = "0.0.0.0/0"
+verdict = "allow"
+note    = "baseline and dev tool: repositories vary, apt checks signatures"
+
+[[rule]]
+program = "apt"
+to      = "::/0"
+verdict = "allow"
+note    = "baseline and dev tool: repositories vary, apt checks signatures"
