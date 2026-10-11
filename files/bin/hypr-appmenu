@@ -40,7 +40,7 @@ ICON_APP = [(r"bitwarden", "PROGM036"), (r"terminator", "TERMI001"), (r"^xfa", "
             (r"meld", "PROGM021"), (r"vscode", "MORIC018"), (r"positron", "MORIC060"),
             (r"quarto", "MORIC045"), (r"nedit", "WINTU010"), (r"^nvim", "SCHDP006"),
             (r"^vim", "SCHDP008"), (r"sublime", "MORIC065"), (r"typora", "SCHDP007"),
-            (r"^xfw", "MSMAI009"), (r"designcraft", "PROGM012"), (r"ristretto", "PROGM024"),
+            (r"^xfw", "MSMAI009"), (r"designcraft", "PROGM012"), (r"gridcraft", "MORIC051"), (r"ristretto", "PROGM024"),
             (r"chromium", "MORIC062"), (r"vivaldi", "MORIC054"),
             (r"startcenter", "WINTU004"), (r"calc", "PROGM006"), (r"writer", "WRITE001"),
             (r"obsidian", "CARDF001"), (r"pdfcraft", "PROGM018"), (r"qpdfview", "CLIPB002"),
