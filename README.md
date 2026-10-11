@@ -444,8 +444,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   apt repositories (deb822 sources pinned to their keys).
 * **Client role** (`client_hosts`, only the hosts listed; removed elsewhere): tools
   for client work, pinned .debs with checksums. PdfCraft, DesignCraft,
-  GridCraft (Excel-style), LightCraft (Lightroom-style), WordCraft (Word-style) and DeckCraft
-  (PowerPoint-style) (ArtCraft, Apache-2.0), Quarto, Positron (Posit's data science IDE) and VS Code,
+  GridCraft (Excel-style), LightCraft (Lightroom-style), WordCraft (Word-style), DeckCraft
+  (PowerPoint-style) and CADCraft (AutoCAD-style) (ArtCraft, Apache-2.0), Quarto, Positron (Posit's data science IDE) and VS Code,
   about 4 GB together. Quarto works with Python only (no R): code cells run in a uv
   env with pinned Jupyter packages (`quarto_python`, `QUARTO_PYTHON` set for the shell
   and the session), PDF output through TinyTeX (`~/.TinyTeX`). VS Code's offer to add Microsoft's apt repo is declined; both
@@ -611,7 +611,7 @@ The projects this setup installs or builds on, with their home pages.
 - [Sublime Text](https://www.sublimetext.com), [Typora](https://typora.io), [Obsidian](https://obsidian.md), [NEdit](https://sourceforge.net/projects/nedit/), [Xfe](https://sourceforge.net/projects/xfe/) (file manager, with Xfw, Xfi, Xfa, Xfp)
 - [LibreOffice](https://www.libreoffice.org) (Calc, Writer), [Meld](https://meldmerge.org), [xpdf](http://www.xpdfreader.com), [qpdfview](https://launchpad.net/qpdfview), [Ristretto](https://docs.xfce.org/apps/ristretto/start)
 - [Vivaldi](https://vivaldi.com), [Chromium](https://www.chromium.org)
-- Client role: [Quarto](https://quarto.org), [Positron](https://positron.posit.co), [VS Code](https://code.visualstudio.com), [PdfCraft, DesignCraft, GridCraft, LightCraft, WordCraft and DeckCraft](https://getartcraft.com/apps)
+- Client role: [Quarto](https://quarto.org), [Positron](https://positron.posit.co), [VS Code](https://code.visualstudio.com), [PdfCraft, DesignCraft, GridCraft, LightCraft, WordCraft, DeckCraft and CADCraft](https://getartcraft.com/apps)
 - [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org), [rc](https://github.com/rustfs/cli) (RustFS)
 
 **Containers, security, agents**
