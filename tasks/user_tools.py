@@ -172,43 +172,11 @@ WantedBy=timers.target
 server.shell(name="dev-disk-reclaim: systemd user daemon-reload + timer enabled",
              commands=["systemctl --user daemon-reload", "systemctl --user enable --now dev-disk-reclaim.timer"])
 
-# --- snitch: Little Snitch in the terminal (github.com/norandom/snitch, a pinned release) --
-# Fetched with gh (allowed to GitHub in snitch's dev profile, so a deploy works under deny by
-# default); curl as the fallback on a fresh VM. Installed only if the SHA-256 matches.
-ver = host.data.snitch_version
-server.shell(
-    name=f"snitch {ver} (Little Snitch TUI)",
-    commands=[env + f"""f={bin_dir}/snitch; want={host.data.snitch_sha256}
-[ -f "$f" ] && [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$want" ] && exit 0
-tmp=$(mktemp)
-gh release download v{ver} -R norandom/snitch -p snitch -O "$tmp" --clobber 2>/dev/null ||
-  curl -fsSL -o "$tmp" https://github.com/norandom/snitch/releases/download/v{ver}/snitch
-echo "$want  $tmp" | sha256sum -c --status && install -m 755 "$tmp" "$f"; rc=$?; rm -f "$tmp"; exit $rc"""],
-)
-server.shell(name="snitch: dependencies cached (first start fast)",
-             commands=[env + f"{bin_dir}/snitch --help >/dev/null"])
-files.put(name="snitch-watch user service (alert popups)", src=StringIO("""# Managed by debian-hypr
-[Unit]
-Description=snitch: alert popups for connections Little Snitch denies by default
-PartOf=graphical-session.target
-After=graphical-session.target littlesnitch.service
-
-[Service]
-ExecStart=%h/.local/bin/snitch watch
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=graphical-session.target
-"""), dest=f"{home}/.config/systemd/user/snitch-watch.service", mode="644")
-if host.data.get("littlesnitch_enabled", True):
-    server.shell(name="snitch-watch: enabled",
-                 commands=["systemctl --user daemon-reload", "systemctl --user enable --now snitch-watch.service",
-                           "systemctl --user restart snitch-watch.service"])
-else:
-    server.shell(name="snitch-watch: disabled (littlesnitch_enabled = False)",
-                 commands=["systemctl --user daemon-reload",
-                           "systemctl --user disable --now snitch-watch.service 2>/dev/null || true"])
+# --- snitch 0.1 (the Little Snitch client): retired with Little Snitch; snitchd brings its own
+server.shell(name="snitch 0.1 and its alert popups removed",
+             commands=["systemctl --user disable --now snitch-watch.service 2>/dev/null || true",
+                       f"rm -f {home}/.config/systemd/user/snitch-watch.service {bin_dir}/snitch",
+                       "systemctl --user daemon-reload", "systemctl --user reset-failed snitch-watch.service 2>/dev/null || true"])
 
 
 # --- Quarto (client role): Python for code cells, TinyTeX for PDF -----------------------------

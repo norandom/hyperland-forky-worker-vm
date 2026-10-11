@@ -1,15 +1,11 @@
-"""Away lock: while nobody is connected over RDP, sudo asks for the password, user processes
-cannot reach the Little Snitch UI (no rule changes) and ptrace is restricted. See
-files/sbin/hypr-away."""
+"""Away lock: while nobody is connected over RDP, sudo asks for the password and ptrace is
+restricted. See files/sbin/hypr-away."""
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.operations import apt, files, server, systemd
+from pyinfra.operations import files, server, systemd
 
 grace = host.data.get("away_grace_seconds", 600)
-
-apt.packages(name="nftables (nft for the Little Snitch UI fence; no firewall service)",
-             packages=["nftables"], no_recommends=True, _sudo=True)
 
 files.put(name="hypr-away (root): lock while no RDP session", src="files/sbin/hypr-away",
           dest="/usr/local/sbin/hypr-away", user="root", group="root", mode="755", _sudo=True)
@@ -18,8 +14,8 @@ unit = files.put(
     name="hypr-away.service",
     src=StringIO(f"""# Managed by debian-hypr
 [Unit]
-Description=hypr-away: lock sudo, the Little Snitch UI and ptrace while nobody is connected over RDP
-After=network-online.target littlesnitch.service
+Description=hypr-away: lock sudo and ptrace while nobody is connected over RDP
+After=network-online.target
 
 [Service]
 Environment=AWAY_USER={host.data.desktop_user} GRACE={grace}
@@ -35,65 +31,10 @@ WantedBy=multi-user.target
 systemd.service(name="hypr-away running", service="hypr-away.service", running=True, enabled=True,
                 restarted=unit.changed, daemon_reload=unit.changed, _sudo=True)
 
-# --- snitch-trial: `snitch default deny` reverts to allow unless confirmed (also across reboots) ---
-# Fetched with gh (allowed to GitHub in snitch's dev profile, so a deploy works under deny by
-# default); curl as the fallback on a fresh VM. Installed only if the SHA-256 matches.
-ver = host.data.snitch_version
-server.shell(  # downloaded as the user (gh's login), installed as root
-    name=f"snitch-trial {ver} (root): deny-by-default trial revert",
-    commands=[f"""f=/usr/local/sbin/snitch-trial; want={host.data.snitch_trial_sha256}
-[ -f "$f" ] && [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$want" ] && exit 0
-tmp=$(mktemp)
-gh release download v{ver} -R norandom/snitch -p snitch-trial -O "$tmp" --clobber 2>/dev/null ||
-  curl -fsSL -o "$tmp" https://github.com/norandom/snitch/releases/download/v{ver}/snitch-trial
-echo "$want  $tmp" | sha256sum -c --status && sudo install -o root -g root -m 755 "$tmp" "$f"; rc=$?
-rm -f "$tmp"; exit $rc"""],
-)
-files.directory(name="/var/lib/snitch-trial (root only)", path="/var/lib/snitch-trial",
-                user="root", group="root", mode="700", _sudo=True)
-trial_units = [
-    files.put(name=f"snitch-trial unit: {name}", src=StringIO("# Managed by debian-hypr\n" + body),
-              dest=f"/etc/systemd/system/{name}", mode="644", _sudo=True)
-    for name, body in {
-        "snitch-trial-boot.service": """[Unit]
-Description=snitch: an open deny-by-default trial at boot goes back to allow (lockout safety)
-Before=littlesnitch.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/snitch-trial boot
-
-[Install]
-WantedBy=multi-user.target
-""",
-        "snitch-trial.service": """[Unit]
-Description=snitch: end a deny-by-default trial once its deadline has passed
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/snitch-trial
-""",
-        "snitch-trial.timer": """[Unit]
-Description=snitch: check the deny-by-default trial every 30 seconds
-
-[Timer]
-OnBootSec=30s
-OnUnitActiveSec=30s
-AccuracySec=5s
-
-[Install]
-WantedBy=timers.target
-""",
-    }.items()
-]
-if host.data.get("littlesnitch_enabled", True):
-    server.shell(name="snitch-trial: boot check and timer enabled",
-                 commands=["systemctl daemon-reload",
-                           "systemctl enable snitch-trial-boot.service",
-                           "systemctl enable --now snitch-trial.timer"], _sudo=True)
-else:
-    server.shell(name="snitch-trial: disabled (littlesnitch_enabled = False)",
-                 commands=["systemctl daemon-reload", "rm -f /var/lib/snitch-trial/deadline",
-                           "systemctl disable --now snitch-trial.timer snitch-trial-boot.service 2>/dev/null || true"],
-                 _sudo=True)
-
+# --- snitch-trial (Little Snitch deny-by-default trial): retired with Little Snitch ---------
+server.shell(name="snitch-trial removed",
+             commands=["systemctl disable --now snitch-trial.timer snitch-trial-boot.service 2>/dev/null || true",
+                       "rm -f /etc/systemd/system/snitch-trial.timer /etc/systemd/system/snitch-trial.service "
+                       "/etc/systemd/system/snitch-trial-boot.service /usr/local/sbin/snitch-trial",
+                       "rm -rf /var/lib/snitch-trial", "systemctl daemon-reload"],
+             _sudo=True)

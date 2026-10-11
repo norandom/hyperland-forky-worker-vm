@@ -50,6 +50,11 @@ apt.packages(
     _sudo=True,
 )
 
+# LibreOffice: Tabbed UI (ribbon) for Writer and Calc as the system default (an admin
+# .xcd layer; the user's own choice in View > User Interface overrides it)
+files.put(name="LibreOffice: Tabbed UI", src="files/libreoffice/debian-hypr.xcd",
+          dest="/usr/lib/libreoffice/share/registry/debian-hypr.xcd", mode="644", _sudo=True)
+
 # fd-find installs the binary as fdfind on Debian; tools look for fd.
 files.link(name="fd -> fdfind", path="/usr/local/bin/fd", target="/usr/bin/fdfind", _sudo=True)
 
@@ -164,28 +169,12 @@ rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package v
         _sudo=True,
     )
 
-# --- Little Snitch for Linux (network monitor/firewall, web UI on :3031) --------------
-ls_ver = host.data.get("littlesnitch_version")
-if ls_ver:
-    deb = f"littlesnitch_{ls_ver}_amd64.deb"
-    server.shell(
-        name=f"Little Snitch {ls_ver} (checksum verified)",
-        commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' littlesnitch 2>/dev/null)" = "{ls_ver}" ] || (set -e
-install -d -m 755 /var/cache/debian-hypr
-curl -fsSL -o /var/cache/debian-hypr/{deb} https://obdev.at/downloads/littlesnitch-linux/{deb}
-echo "{host.data.littlesnitch_sha256}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}
-rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file
-)"""],
-        _sudo=True,
-    )
-    on = host.data.get("littlesnitch_enabled", True)
-    server.shell(
-        name=f"Little Snitch daemon {'enabled' if on else 'disabled (littlesnitch_enabled = False)'}",
-        commands=["systemctl enable --now littlesnitch.service" if on
-                  else "systemctl disable --now littlesnitch.service 2>/dev/null || true"],
-        _sudo=True,
-    )
+# --- Little Snitch for Linux: retired (snitchd, the Go/eBPF rewrite in norandom/snitch, replaces it)
+server.shell(
+    name="Little Snitch removed",
+    commands=["! dpkg-query -W littlesnitch >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get purge -y littlesnitch"],
+    _sudo=True,
+)
 
 # --- Single-binary tools from GitHub releases (pinned, checksum verified) -------------
 for name, (url, sha) in host.data.release_tools.items():

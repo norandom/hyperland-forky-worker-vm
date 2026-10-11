@@ -159,14 +159,6 @@ release_tools = {
 # "onedrive", personal); until then the service is skipped.
 rclone_mounts = {"onedrive": "OneDrive"}
 
-# Little Snitch for Linux (obdev.at; needs kernel 6.12+ with BTF). Web UI:
-# http://localhost:3031/ (in Chromium). None = don't install.
-# False: Little Snitch, the snitch alert popups and the deny trial stay installed but off
-# (meanwhile snitchd, the Go/eBPF rewrite in github.com/norandom/snitch, replaces them)
-littlesnitch_enabled = False
-littlesnitch_version = "1.1.0"
-littlesnitch_sha256 = "1a4bce4703ada6f74a69aec0386a4e2c96f8ab9ea1ce89303bf2775d5d8d0f1d"
-
 # Font rendering: "rgb" = ClearType-like subpixel (RDP shown 1:1, RGB display),
 # "grayscale" = no colour fringes when the RDP client scales (Retina/HiDPI).
 font_rendering = "rgb"
@@ -211,14 +203,9 @@ artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub 
     "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
 }
 
-# Away lock (tasks/away.py): seconds without an RDP session before sudo, the Little Snitch UI
-# and ptrace lock (they unlock as soon as the session is back)
+# Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
+# lock (they unlock as soon as the session is back)
 away_grace_seconds = 600
-
-# snitch (github.com/norandom/snitch): Little Snitch TUI, alert popups, deny-by-default trial
-snitch_version = "0.1.0"
-snitch_sha256 = "c19f73ee3a9d83f95c5560a2676021f9ec6021e55d04dca33455e6682acc1a00"
-snitch_trial_sha256 = "36448ceac2dc89d575d290eb7f6e83cbb48596aba00d31791a1bfb44981893b2"
 
 # Client role .debs: package -> (dpkg version, url, sha256), no recommends. Quarto
 # (quarto-dev/quarto-cli, GitHub digest), Positron (Posit's data science IDE, VS Code-based;

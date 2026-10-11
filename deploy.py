@@ -20,7 +20,7 @@ for task in (
     "user_tools",     # uv, npm globals + pnpm, Aikido Safe Chain, nvim-simple
     "shell",          # Kali-style history, xfce4-terminal theme + paste dialog
     "themes",         # btop + Claude Code themes per Terminator profile; Chromium frame
-    "away",           # away lock: no RDP session -> sudo password, Little Snitch UI closed
+    "away",           # away lock: no RDP session -> sudo password, ptrace restricted
     "private",        # private data (private/ or private.tar.age): fonts, license keys
     "autologin",      # tty1 autologin -> uwsm -> Hyprland
 ):

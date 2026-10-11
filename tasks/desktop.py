@@ -134,7 +134,6 @@ for src, dest in (
     ("files/fuzzel/fuzzel.ini", ".config/fuzzel/fuzzel.ini"),
     ("files/terminator/config", ".config/terminator/config"),
     ("files/terminator/plugins/theme_menu.py", ".config/terminator/plugins/theme_menu.py"),
-    ("files/applications/littlesnitch.desktop", ".local/share/applications/littlesnitch.desktop"),
     ("files/applications/x3270.desktop", ".local/share/applications/x3270.desktop"),  # GUI, keypad
     ("files/applications/nedit.desktop", ".local/share/applications/nedit.desktop"),
     ("files/applications/foot-server.desktop", ".local/share/applications/foot-server.desktop"),  # hidden
@@ -150,6 +149,9 @@ for src, dest in (
     ("files/foot/foot.ini", ".config/foot/foot.ini"),
 ):
     files.put(name=f"Config: ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644")
+
+files.file(name="Little Snitch menu entry removed", path=f"{home}/.local/share/applications/littlesnitch.desktop",
+           present=False)
 
 bar.append(files.template(name=f"Config: ~/.config/waybar/config.jsonc (bar graphs {'on' if host.data.bar_graphs else 'off'})",
                src="templates/waybar/config.jsonc.j2", dest=f"{home}/.config/waybar/config.jsonc", mode="644"))

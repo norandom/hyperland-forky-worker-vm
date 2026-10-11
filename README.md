@@ -77,7 +77,7 @@ Every run is idempotent.
 | `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; emoji/symbol fallback (Noto Color Emoji, Symbola); font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
 | `hypr_rdp` | patched hypr-rdp, config, per-host password, session helpers |
-| `apps` | LibreOffice Calc + Writer (UI English/German, spelling de + en-US), Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Little Snitch, Rust coreutils |
+| `apps` | LibreOffice Calc + Writer (Tabbed UI, UI English/German, spelling de + en-US), Chromium + chromedriver (for MCP), Vivaldi, Sublime Text, Typora, Obsidian, Meld, rsync, rclone, git, gh, atop, Neovim, Node.js, xfce4-terminal, multitail, ripgrep, fzf (+ bat, tree), Ristretto (images), qpdfview (PDF), Rust coreutils |
 | `user_tools` | uv, pnpm, Aikido Safe Chain, Neovim config (nvim-simple), rclone mounts (OneDrive), Codex + Copilot CLIs, ax, ccusage, euporie, pretty-mermaid skill |
 | `shell` | grml-inspired bash, Kali-style history, xfce4-terminal paste review |
 | `themes` | btop and Claude Code themes for each Terminator theme; Chromium frame colour |
@@ -408,14 +408,11 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   keybindings (Ctrl+Shift+T tab, Ctrl+Shift+O / E splits); Super belongs to Hyprland.
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
-* **Little Snitch in the terminal** ([`snitch`](https://github.com/norandom/snitch), the shield in the bar, deployed as a pinned release; `littlesnitch_enabled = False` keeps the daemon, popups, trial and bar module off while the Go/eBPF rewrite replaces them): every connection as
-  process > host > address, block / unblock with `x`, an egress graph (who sends how much to
-  where), and with `snitch default deny` popups for anything new: `o` / `x` allow / block,
-  `O` / `X` for 15 minutes; `snitch baseline --dev` allows the dev tools their own hosts for
-  overnight jobs. Answers are ordinary Little Snitch rules, editable in its web UI.
-  **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
-  password, your processes can't reach the Little Snitch UI and ptrace is restricted; it
-  unlocks as soon as you reconnect. Details: [docs/away-lock.md](docs/away-lock.md); snitch itself lives in [norandom/snitch](https://github.com/norandom/snitch).
+* **Network control**: Little Snitch is retired; [snitchd](https://github.com/norandom/snitch)
+  (Go, eBPF egress firewall with the `snitch` TUI) replaces it once it ships.
+* **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
+  password and ptrace is restricted; it unlocks as soon as you reconnect. Details:
+  [docs/away-lock.md](docs/away-lock.md).
 * **Which VM am I on?** Title bars and the active window border take a colour per host
   (`tools/hostcolor.py`, set at deploy from the hostname): same lightness for every host, white
   text at 6.4–7.4:1 contrast. List the VMs in `fleet_hosts` (`group_data/all.py`): the position
@@ -488,9 +485,6 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   `release_tools`).
 * **AI agents**: `ccusage` (Claude Code token usage and cost) and the Claude Code
   skill *pretty-mermaid* (Mermaid diagrams as SVG or terminal ASCII).
-* **Little Snitch for Linux** (obdev.at, `littlesnitch_version`; kernel 6.12+
-  with BTF): network monitor and per-app rules. Web UI on `http://localhost:3031/`
-  (menu: Little Snitch, opens in Chromium). Built for privacy, not security.
 * **Supply chain**: Aikido Safe Chain wraps npm, npx, pnpm, pip, uv and uvx
   and blocks packages younger than 48 hours.
 
@@ -523,7 +517,7 @@ The projects this setup installs or builds on, with their home pages.
 **Containers, security, agents**
 - [Podman](https://podman.io) with [podman-tui](https://github.com/containers/podman-tui)
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/), [Helm](https://helm.sh), [k9s](https://k9scli.io), [ktop](https://github.com/vladimirvivien/ktop), [ax](https://github.com/google/ax), [Go](https://go.dev)
-- [Little Snitch for Linux](https://obdev.at/products/littlesnitch-linux/), [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
+- [Aikido Safe Chain](https://github.com/AikidoSec/safe-chain), [earlyoom](https://github.com/rfjakob/earlyoom)
 - [Bitwarden](https://bitwarden.com) (desktop, CLI), [cliphist](https://github.com/sentriz/cliphist)
 - [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex), [GitHub Copilot CLI](https://github.com/github/copilot-cli), [ccusage](https://github.com/ryoppippi/ccusage), [pretty-mermaid](https://github.com/imxv/pretty-mermaid-skills)
 

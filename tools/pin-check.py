@@ -5,8 +5,8 @@
     tools/pin-check.py --markdown   # only the outdated ones, as a Markdown list (CI issue body)
 
 Reads the pins from group_data/all.py and asks each upstream for its latest stable release
-(GitHub via `gh api`, so it needs `gh` logged in or GH_TOKEN; Go, Kubernetes, Little Snitch
-from their own sites). Only reports; bumping a pin (version + sha256) stays a manual commit.
+(GitHub via `gh api`, so it needs `gh` logged in or GH_TOKEN; Go, Kubernetes from their
+own sites). Only reports; bumping a pin (version + sha256) stays a manual commit.
 Exit 0: all current, 1: updates found, 2: a lookup failed (and no updates).
 """
 import json
@@ -59,7 +59,6 @@ def pins(d):
         ("ghostty (forky .deb)", "mkasberg/ghostty-ubuntu", "", d["ghostty_release"], "ghostty_release"),
         ("bitwarden desktop", "bitwarden/clients", "desktop-v", d["bitwarden_version"], "bitwarden_version"),
         ("ax", "google/ax", "", d["ax_version"], "ax_version"),
-        ("snitch", "norandom/snitch", "v", d["snitch_version"], "snitch_version"),
         *[(n, f"storytold/{n}", "v", v, "artcraft_apps") for n, (v, _sha) in d["artcraft_apps"].items()],
     ]
     for name, repo, prefix, ver, var in rel:
@@ -78,10 +77,6 @@ def pins(d):
     if d.get("ax_go_toolchain"):
         yield ("go toolchain (ax)", d["ax_go_toolchain"],
                lambda: json.loads(http("https://go.dev/dl/?mode=json"))[0]["version"], "ax_go_toolchain")
-    if d.get("littlesnitch_version"):
-        yield ("littlesnitch", d["littlesnitch_version"], lambda: max(
-            re.findall(r"littlesnitch_([\d.]+)_amd64\.deb", http("https://obdev.at/products/littlesnitch-linux/download.html")),
-            key=lambda v: [int(x) for x in v.split(".")]), "littlesnitch_version")
     if d.get("nvim_simple_commit"):
         yield ("nvim-simple (commit)", d["nvim_simple_commit"][:12],
                lambda: gh("repos/norandom/nvim-simple/commits/HEAD")["sha"][:12], "nvim_simple_commit")
