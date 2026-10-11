@@ -12,6 +12,7 @@ for task in (
     "memory",         # zram like Omarchy, sysctls, earlyoom, journald limits
     "tuning",         # Mint tuning: net/BBR, noatime, kernel cmdline, ssh (switches)
     "services",       # qemu-guest-agent, disable unneeded units
+    "snitchd",        # egress firewall: snitchd from a pinned release, rules, boot revert (switches)
     "containers",     # rootless podman, docker/compose aliases
     "fonts",          # JetBrainsMono Nerd Font (icon glyphs, as on Omarchy)
     "desktop",        # Hyprland, hyprbars, waybar, mako, fuzzel, Terminator, theme

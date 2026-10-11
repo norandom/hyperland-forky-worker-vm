@@ -63,6 +63,14 @@ tune_kernel_cmdline = ["mitigations=off", "audit=0", "cpuidle_haltpoll.force=1",
 # The VM needs the device: `qm set <vmid> -serial0 socket` on the host (stop/start once).
 serial_console = True
 
+# Egress firewall: snitchd (github.com/norandom/snitch, tasks/snitchd.py), from boot in monitor
+# mode; deny only as a bounded trial (`sudo snitchd trial 10m`, reverted at boot), the serial
+# console above is the way back. False: service and boot revert stopped and disabled, files kept.
+snitchd_enabled = True
+snitchd_version = "0.2.0"       # tag without the v; sha256 = the snitchd asset's digest
+snitchd_sha256 = "a51cf6d6c27e1af9de2487f0613cee1f0ef061e020a99e1065feb669dc45d291"  # the snitchd asset of v0.2.0
+snitchd_learn = False           # True: -learn, learned rules in /var/lib/snitch/learned.toml (reviewed by hand, never deployed)
+
 # SSH: allow root login with password (Mint repo's kvm_guest_optimization).
 # LAN-only VM behind NAT. False = Debian defaults (keys / no root password login).
 ssh_root_password_login = True
