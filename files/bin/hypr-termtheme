@@ -2,7 +2,7 @@
 # Switch all Terminator windows to a profile: hypr-termtheme <profile>|next|prev|apply
 # (SUPER+Y or the ● bar button cycle; right-click menu "Theme" in Terminator). New windows opened
 # with SUPER+Return use the last choice (~/.local/state/terminator-profile).
-# Apps follow: Claude Code, btop, Ghostty, foot (new windows), Sublime Text scheme + font, Neovim (next start).
+# Apps follow: Claude Code, btop, Ghostty, foot (new windows), Sublime Text, VS Code + Positron (scheme + font), Neovim (next start).
 # "apply" only re-applies the app themes for the current profile.
 state="$HOME/.local/state/terminator-profile"
 profiles=$(sed -n '/^\[profiles\]/,/^\[[a-z]/s/^  \[\[\(.*\)\]\]$/\1/p' "$HOME/.config/terminator/config")
@@ -68,6 +68,35 @@ with open(path, "w") as f:
     f.write("\n")
 EOF
 fi
+
+# VS Code + Positron: the matching debian-hypr colour theme + the profile's font (both reload
+# settings.json live); only where they are installed (client role)
+font=$(awk -v p="[[$new]]" '$1 == p {f=1; next} /^  \[\[/ {f=0} f && $1 == "font" {sub(/^[^=]*= */, ""); print; exit}' \
+  "$HOME/.config/terminator/config")
+for conf in Code Positron; do
+  [ -d "$HOME/.config/$conf" ] || continue
+  python3 - "$HOME/.config/$conf/User/settings.json" "$app" "$font" <<'EOF'
+import json, os, re, sys
+path, theme, font = sys.argv[1:]
+try:
+    text = open(path).read()
+except FileNotFoundError:
+    text = "{}"
+try:  # VS Code allows comments and trailing commas
+    prefs = json.loads(re.sub(r",(\s*[}\]])", r"\1", re.sub(r"^\s*//.*$", "", text, flags=re.M)))
+except ValueError:
+    sys.exit(0)  # leave a file we can't parse alone
+prefs["workbench.colorTheme"] = f"debian-hypr {theme.capitalize()}"
+face, _, size = font.rpartition(" ")
+if face and size.isdigit():
+    prefs["editor.fontFamily"] = prefs["terminal.integrated.fontFamily"] = f"'{face}', monospace"
+    prefs["editor.fontSize"] = prefs["terminal.integrated.fontSize"] = int(size)
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w") as f:
+    json.dump(prefs, f, indent=4)
+    f.write("\n")
+EOF
+done
 [ "$1" = apply ] && exit 0
 
 remotinator switch_profile_all -p "$new" >/dev/null 2>&1

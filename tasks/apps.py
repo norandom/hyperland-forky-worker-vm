@@ -1,5 +1,5 @@
 """Applications (system packages, no recommends; vendor apt repos for gh, Sublime Text,
-Typora, Vivaldi; Obsidian .deb; optional ArtCraft apps)."""
+Typora, Vivaldi; Obsidian .deb; client role: ArtCraft apps, Quarto, Positron, VS Code)."""
 from io import StringIO
 
 from pyinfra import host
@@ -141,20 +141,26 @@ rm -f /var/cache/debian-hypr/{g_deb}  # installed; the deploy checks the package
     _sudo=True,
 )
 
-# ArtCraft apps (PdfCraft, DesignCraft): .deb from GitHub releases (pinned, checksum verified),
-# only on the hosts in artcraft_hosts; removed again everywhere else
-art_on = host.get_fact(Hostname) in host.data.get("artcraft_hosts", [])
-for name, (ver, sha) in host.data.get("artcraft_apps", {}).items():
-    deb = f"{name}-{ver}-linux-x86_64.deb"
+# --- Client role (hosts in client_hosts): ArtCraft apps, Quarto, Positron, VS Code -------
+# .deb pinned + checksum verified; removed again on every other host.
+client = host.get_fact(Hostname) in host.data.get("client_hosts", [])
+debs = {name: (f"{ver}-1", f"https://github.com/storytold/{name}/releases/download/v{ver}/{name}-{ver}-linux-x86_64.deb", sha)
+        for name, (ver, sha) in host.data.get("artcraft_apps", {}).items()}
+debs.update(host.data.get("client_debs", {}))
+for name, (ver, url, sha) in debs.items():
+    deb = url.rsplit("/", 1)[1]
     server.shell(
-        name=f"{name} {ver} (checksum verified)" if art_on else f"{name} removed (host not in artcraft_hosts)",
-        commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' {name} 2>/dev/null)" = "{ver}-1" ] || (set -e
+        name=f"{name} {ver} (client role, checksum verified)" if client else f"{name} removed (host not in client_hosts)",
+        commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' {name} 2>/dev/null)" = "{ver}" ] || (set -e
 install -d -m 755 /var/cache/debian-hypr
-curl -fsSL -o /var/cache/debian-hypr/{deb} https://github.com/storytold/{name}/releases/download/v{ver}/{deb}
+echo "{sha}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet 2>/dev/null ||  # already fetched
+  curl -fsSL -o /var/cache/debian-hypr/{deb} {url}
 echo "{sha}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
+# VS Code: don't let its postinst add Microsoft's apt repo (the pin above is the update path)
+[ {name} != code ] || echo "code code/add-microsoft-repo boolean false" | debconf-set-selections
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}
 rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file
-)""" if art_on else f"! dpkg-query -W {name} >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get purge -y {name}"],
+)""" if client else f"! dpkg-query -W {name} >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get purge -y {name}"],
         _sudo=True,
     )
 

@@ -23,6 +23,8 @@ apt.packages(
         "libgl1-mesa-dri", "libegl-mesa0",
         # bar, notifications, launcher, terminal
         "waybar", "mako-notifier", "fuzzel", "terminator",
+        # start menu (hypr-appmenu): GTK3 from Python on a layer-shell overlay
+        "python3-gi", "gir1.2-gtk-3.0", "gir1.2-gtklayershell-0.1",
         # lock screen for the Proxmox / SPICE console (hypr-rdp-session locks it when RDP is gone)
         "hyprlock",
         # file manager: Xfe (FOX toolkit, few dependencies, tree + file list)
@@ -190,11 +192,25 @@ server.shell(
 )
 
 files.put(
-    name="XFCE-style app menu (waybar button, SUPER+A) + power menu",
+    name="Start menu, Windows 95-style (waybar button, SUPER+A, desktop right-click) + power menu",
     src="files/bin/hypr-appmenu",
     dest=f"{home}/.local/bin/hypr-appmenu",
     mode="755",
 )
+# Its Windows 3.1 icons: fetched from the icon repo at a pinned commit (the git commit id
+# is the checksum), not stored in this repo (they are Microsoft's). None = the apps' own icons.
+w31 = host.data.get("win31_icons_commit")
+if w31:
+    d = f"{home}/.local/share/hypr-appmenu/win31"
+    server.shell(
+        name=f"Start menu: Windows 3.1 icons ({w31[:7]})",
+        commands=[f"""[ "$(cat {d}/.commit 2>/dev/null)" = "{w31}" ] || (set -e
+t=$(mktemp -d); trap 'rm -rf "$t"' EXIT
+git -C "$t" init -q && git -C "$t" fetch -q --depth 1 {host.data.win31_icons_repo} {w31}
+git -C "$t" -c advice.detachedHead=false checkout -q {w31}
+[ "$(git -C "$t" rev-parse HEAD)" = "{w31}" ]
+rm -rf {d} && mkdir -p {d} && cp "$t"/*.PNG {d}/ && echo {w31} > {d}/.commit)"""],
+    )
 
 
 files.put(
@@ -256,14 +272,20 @@ files.put(
     mode="755",
 )
 
+# client role: Quarto's Python env for Positron / VS Code started from the session
+quarto_env = ('export QUARTO_PYTHON="$HOME/.local/share/quarto-python/bin/python"\n'
+              if host.get_fact(Hostname) in host.data.get("client_hosts", []) else "")
 uutils_path = ('export PATH="/usr/lib/cargo/bin/coreutils:$PATH"\n'
                if host.data.uutils_coreutils else "")
 files.put(
     name="Hyprland session env (llvmpipe threads, uutils in PATH)",
-    src=StringIO(f"# Managed by debian-hypr\nexport LP_NUM_THREADS={host.data.llvmpipe_threads}\n{uutils_path}"),
+    src=StringIO(f"# Managed by debian-hypr\nexport LP_NUM_THREADS={host.data.llvmpipe_threads}\n{uutils_path}{quarto_env}"),
     dest=f"{home}/.config/uwsm/env-hyprland",
     mode="644",
 )
+if quarto_env:   # the running session too (uwsm starts apps through systemd --user)
+    server.shell(name="Session: QUARTO_PYTHON for apps started from the menu",
+                 commands=['systemctl --user set-environment QUARTO_PYTHON="$HOME/.local/share/quarto-python/bin/python"'])
 
 # Terminator as the default for xdg-terminal-exec style launchers.
 files.put(

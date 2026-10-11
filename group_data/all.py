@@ -201,10 +201,11 @@ ax_go_toolchain = "go1.27.2"
 bitwarden_version = "2026.9.1"
 bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
 
+# Client role: tools for client work, installed only on the hostnames listed (removed
+# elsewhere). ~4.1 GB together: ArtCraft ~300 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
+client_hosts = ["debb"]
 # ArtCraft apps (github.com/storytold, Apache-2.0, early alpha): PdfCraft (PDF workbench) and
-# DesignCraft (page layout). .deb, no new dependencies (mesa-vulkan-drivers skipped, EGL is
-# enough), ~150 MB each. Optional: installed only on the hostnames listed, removed elsewhere.
-artcraft_hosts = ["debb"]
+# DesignCraft (page layout). .deb, no new dependencies (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
     "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
     "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
@@ -218,6 +219,34 @@ away_grace_seconds = 600
 snitch_version = "0.1.0"
 snitch_sha256 = "c19f73ee3a9d83f95c5560a2676021f9ec6021e55d04dca33455e6682acc1a00"
 snitch_trial_sha256 = "36448ceac2dc89d575d290eb7f6e83cbb48596aba00d31791a1bfb44981893b2"
+
+# Client role .debs: package -> (dpkg version, url, sha256), no recommends. Quarto
+# (quarto-dev/quarto-cli, GitHub digest), Positron (Posit's data science IDE, VS Code-based;
+# sha256 from cdn.posit.co/positron/releases/deb/x86_64/releases.json), VS Code (sha256 from
+# update.code.visualstudio.com/api/versions/<ver>/linux-deb-x64/stable; Microsoft's apt repo is
+# declined). Both editors get the debian-hypr themes (files/vscode, tools/vscodetheme.py).
+client_debs = {
+    "quarto": ("1.10.19", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.10.19/quarto-1.10.19-linux-amd64.deb",
+               "7f0c4769e7f0e55f50d922f44b18db5118fb388d2b8fd27291fe1f8beafb43eb"),
+    "positron": ("2026.10.0+297-1791473330", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.0-297-x64.deb",
+                 "3353fed8475b489d3c2f2f3bafb7abb9727be3a6385215d4967d0944596b2ea7"),
+    "code": ("1.141.0-1791276758", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
+             "2a59476c9bfcb90b3ddc372c36762471b7dfad1c/code_1.141.0-1791276758_amd64.deb",
+             "d0ff4f7702957d897d2e06956f8d42a08250c5df8339de3bec8190e56f726277"),
+}
+
+# Quarto (client role) with Python, no R: code cells run in a uv env with these packages
+# (QUARTO_PYTHON points to it, ~/.local/share/quarto-python); PDF output through TinyTeX
+# (`quarto install tinytex`, per user in ~/.TinyTeX, ~250 MB). Positron brings its own kernel.
+quarto_python = ["nbclient==0.11.0", "nbformat==5.11.1", "ipykernel==7.4.0",
+                 "jupyter-client==8.10.0", "pyyaml==6.0.3"]
+quarto_tinytex = True
+
+# Start menu icons (hypr-appmenu): Windows 3.1 icons as PNG, fetched at this commit at
+# deploy time (Microsoft's icons, no licence in that repo: not copied into this one).
+# None = every entry keeps the application's own icon.
+win31_icons_repo = "https://github.com/mRB0/many-windows-3.1-icons-in-png-format"
+win31_icons_commit = "c351992eadee522c585d2ef87f08fe0e168a80ca"
 
 # Which VM am I on? Title bars and the active border in one colour per host (tools/hostcolor.py,
 # white text >= 4.6:1). List the fleet here: the position sets the hue (first 8 clearly apart);

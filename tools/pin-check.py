@@ -65,6 +65,16 @@ def pins(d):
     for name, repo, prefix, ver, var in rel:
         if ver:
             yield name, prefix + ver, lambda r=repo, p=prefix: gh_latest(r, p), var
+    cd = d.get("client_debs", {})
+    if "quarto" in cd:
+        yield ("quarto", "v" + cd["quarto"][0], lambda: gh_latest("quarto-dev/quarto-cli", "v"), "client_debs['quarto']")
+    if "positron" in cd:
+        yield ("positron", re.search(r"Positron-(.+)-x64\.deb", cd["positron"][1]).group(1),
+               lambda: json.loads(http("https://cdn.posit.co/positron/releases/deb/x86_64/releases.json"))["version"],
+               "client_debs['positron']")
+    if "code" in cd:
+        yield ("vscode", cd["code"][0].split("-")[0],
+               lambda: json.loads(http("https://update.code.visualstudio.com/api/releases/stable"))[0], "client_debs['code']")
     if d.get("ax_go_toolchain"):
         yield ("go toolchain (ax)", d["ax_go_toolchain"],
                lambda: json.loads(http("https://go.dev/dl/?mode=json"))[0]["version"], "ax_go_toolchain")

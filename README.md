@@ -208,7 +208,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
 |---|---|
 | SUPER + Return / SUPER + SHIFT + Return | Terminator / xfce4-terminal |
 | SHIFT + PrtSc, then the key | one-shot Super, for keyboards without a free Super key (e.g. GPD Pocket: Windows key stays with Windows); SUPER badge in the bar while armed, Esc cancels |
-| SUPER + A, ☰ Apps, right-click on the desktop | application menu (categories) |
+| SUPER + A, ☰ Apps, right-click on the desktop | start menu (recent apps, categories ▸ apps) |
 | SUPER + E | file manager (Xfe) |
 | SUPER + G / title bar ▒ | glass window on / off (see-through, light milky blur) |
 | SUPER + P / title bar ⊤ | stay on top on / off |
@@ -352,6 +352,20 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
 * **Editors and apps**: Sublime Text (`subl`), Typora, Obsidian (pinned .deb,
   checksum verified), Vivaldi. Sublime, Typora and Vivaldi come from the vendors'
   apt repositories (deb822 sources pinned to their keys).
+* **Client role** (`client_hosts`, only the hosts listed; removed elsewhere): tools
+  for client work, pinned .debs with checksums. PdfCraft and DesignCraft
+  (ArtCraft, Apache-2.0), Quarto, Positron (Posit's data science IDE) and VS Code,
+  about 4 GB together. Quarto works with Python only (no R): code cells run in a uv
+  env with pinned Jupyter packages (`quarto_python`, `QUARTO_PYTHON` set for the shell
+  and the session), PDF output through TinyTeX (`~/.TinyTeX`). VS Code's offer to add Microsoft's apt repo is declined; both
+  editors run with telemetry and self-update off and native title bars (the
+  Hyprland ones, in the host colour). Their colour theme follows the terminal
+  profile like Sublime's (`hypr-termtheme`): a local extension generated from the
+  Sublime schemes and terminal palettes (`tools/vscodetheme.py` →
+  `files/vscode/debian-hypr-themes`).
+* **Pinned updates**: `tools/pin-check.py` compares every pin in `group_data/all.py`
+  with the newest upstream release; the daily `pins` workflow keeps an issue
+  "Pinned dependency updates" open while something is outdated.
 * **Files and sync**: rsync, Meld (graphical diff and merge for files and
   folders, like WinDiff), rclone (GitHub release, pinned).
 * **OneDrive (personal)** via rclone: `rclone_mounts` maps a remote to a folder
@@ -454,9 +468,17 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   built in (PF1-24, PA1-3, Clear, Enter, Attn, SysReq, ...), e.g. for z/OS, z/VM or
   Linux on Z consoles; c3270 is the same in a terminal. The dynamic layout leaves
   x3270's size alone (it sizes itself from the 3270 screen).
-* **App menu**: categories first, then every application; typing an app name
-  finds it directly. All text editors (Sublime Text, Typora, NEdit, Xfw, Neovim,
-  Vim) are grouped under *Editors*.
+* **App menu** (`hypr-appmenu`): a Windows 95-style start menu, Wayland-native
+  (GTK3 on a layer-shell overlay). The last three applications started from it on
+  top, then the categories: hovering one opens its applications beside it, a click
+  starts one, a click anywhere else (the Apps button too) or Escape closes the
+  menu; arrow keys work. *Run…* opens the fuzzel search (also SUPER+SPACE),
+  *Shut down…* has log out / reboot / shut down. Windows 3.1 icons, fetched at
+  deploy time from [mRB0/many-windows-3.1-icons-in-png-format](https://github.com/mRB0/many-windows-3.1-icons-in-png-format)
+  at a pinned commit (`win31_icons_commit`; Microsoft's icons, so not stored in
+  this repo; `None` = the apps' own icons); the selection bar is the host colour.
+  All text editors (Sublime Text, Typora, NEdit, Xfw, Neovim, Vim) are grouped
+  under *Editors*.
 * **TUIs**: `glow` (Markdown), `posting` (HTTP/API client), `trip` (trippy:
   traceroute + ping), `gdu` (disk usage), `podman-tui` (containers; uses the
   socket-activated user `podman.socket`), `zellij` (terminal workspaces), `upmd`
@@ -479,7 +501,7 @@ The projects this setup installs or builds on, with their home pages.
 **Desktop and RDP**
 - [Hyprland](https://hyprland.org) (compositor) with [hyprbars](https://github.com/hyprwm/hyprland-plugins) (title bars), started by [uwsm](https://github.com/Vladimir-csp/uwsm)
 - [hypr-rdp](https://github.com/MuNeNICK/hypr-rdp) (RDP server, patched here) on [IronRDP](https://github.com/Devolutions/IronRDP)
-- [Waybar](https://github.com/Alexays/Waybar) (top bar), [mako](https://github.com/emersion/mako) (notifications), [fuzzel](https://codeberg.org/dnkl/fuzzel) (launcher, app menu)
+- [Waybar](https://github.com/Alexays/Waybar) (top bar), [mako](https://github.com/emersion/mako) (notifications), [fuzzel](https://codeberg.org/dnkl/fuzzel) (launcher, power menu), [gtk-layer-shell](https://github.com/wmww/gtk-layer-shell) (start menu)
 - [PipeWire](https://pipewire.org) (audio, redirected to the RDP client)
 - [Royal TS](https://www.royalapps.com) (RDP client used on the Mac); ideas from [Omarchy](https://omarchy.org)
 
@@ -495,6 +517,7 @@ The projects this setup installs or builds on, with their home pages.
 - [Sublime Text](https://www.sublimetext.com), [Typora](https://typora.io), [Obsidian](https://obsidian.md), [NEdit](https://sourceforge.net/projects/nedit/), [Xfe](https://sourceforge.net/projects/xfe/) (file manager, with Xfw, Xfi, Xfa, Xfp)
 - [LibreOffice](https://www.libreoffice.org) (Calc, Writer), [Meld](https://meldmerge.org), [xpdf](http://www.xpdfreader.com), [qpdfview](https://launchpad.net/qpdfview), [Ristretto](https://docs.xfce.org/apps/ristretto/start)
 - [Vivaldi](https://vivaldi.com), [Chromium](https://www.chromium.org)
+- Client role: [Quarto](https://quarto.org), [Positron](https://positron.posit.co), [VS Code](https://code.visualstudio.com), [PdfCraft and DesignCraft](https://getartcraft.com/apps)
 - [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org), [rc](https://github.com/rustfs/cli) (RustFS)
 
 **Containers, security, agents**

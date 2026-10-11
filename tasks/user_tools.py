@@ -2,6 +2,7 @@
 from io import StringIO
 
 from pyinfra import host
+from pyinfra.facts.server import Hostname
 from pyinfra.operations import files, server, systemd
 
 home = host.data.desktop_home
@@ -209,3 +210,19 @@ else:
                  commands=["systemctl --user daemon-reload",
                            "systemctl --user disable --now snitch-watch.service 2>/dev/null || true"])
 
+
+# --- Quarto (client role): Python for code cells, TinyTeX for PDF -----------------------------
+if host.get_fact(Hostname) in host.data.get("client_hosts", []) and host.data.get("quarto_python"):
+    qpy, want = f"{home}/.local/share/quarto-python", " ".join(host.data.quarto_python)
+    server.shell(
+        name="Quarto: Python env for code cells (uv, pinned Jupyter packages)",
+        commands=[f"""[ "$(cat {qpy}/.packages 2>/dev/null)" = "{want}" ] || (set -e
+{bin_dir}/uv venv -q --clear {qpy}
+VIRTUAL_ENV={qpy} {bin_dir}/uv pip install -q {want}
+echo "{want}" > {qpy}/.packages)"""],
+    )
+    if host.data.get("quarto_tinytex"):
+        server.shell(
+            name="Quarto: TinyTeX for PDF output (~/.TinyTeX)",
+            commands=[f"[ -x {home}/.TinyTeX/bin/x86_64-linux/tlmgr ] || quarto install tinytex --no-prompt"],
+        )

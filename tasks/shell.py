@@ -2,6 +2,7 @@
 from io import StringIO
 
 from pyinfra import host
+from pyinfra.facts.server import Hostname
 from pyinfra.operations import apt, files, server
 
 home = host.data.desktop_home
@@ -35,6 +36,16 @@ files.block(
     path=f"{home}/.bashrc",
     marker="# {mark} debian-hypr: copilot",
     content='command -v gh >/dev/null && COPILOT_GITHUB_TOKEN=$(gh auth token 2>/dev/null) && export COPILOT_GITHUB_TOKEN',
+    try_prevent_shell_expansion=True,
+)
+
+# --- Quarto (client role): its Python env for code cells -----------------------------------
+files.block(
+    name="bash: QUARTO_PYTHON (client role)",
+    path=f"{home}/.bashrc",
+    marker="# {mark} debian-hypr: quarto",
+    content='export QUARTO_PYTHON="$HOME/.local/share/quarto-python/bin/python"',
+    present=host.get_fact(Hostname) in host.data.get("client_hosts", []),
     try_prevent_shell_expansion=True,
 )
 

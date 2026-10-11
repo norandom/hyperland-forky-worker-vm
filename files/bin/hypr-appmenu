@@ -1,94 +1,265 @@
-#!/bin/bash
-# XFCE-style application menu with fuzzel (no extra toolkit):
-#   hypr-appmenu              categories -> applications, or type an app name (top-left)
-#   hypr-appmenu --at X Y     same, opened at X/Y (desktop right-click)
-#   hypr-appmenu power        log out / reboot / shut down
-# Top: the last HYPR_APPMENU_RECENT (3) applications started from here, then every
-# category with its applications under it ("Other" last).
-set -u
-nrecent=${HYPR_APPMENU_RECENT:-3}
-recent=${XDG_STATE_HOME:-$HOME/.local/state}/hypr-appmenu/recent
-pos=()
-if [ "${1:-}" = --at ]; then
-  pos=(--x-margin "$2" --y-margin "$3"); shift 3
-fi
-menu() { fuzzel --dmenu --anchor top-left --width 32 "${pos[@]}" "$@"; }
+#!/usr/bin/python3
+"""Windows 95-style start menu, Wayland-native (GTK3 on a layer-shell overlay).
 
-if [ "${1:-}" = power ]; then
-  choice=$(printf 'Log out\nReboot\nShut down\n' | menu --prompt 'Power > ' --lines 3) || exit 0
-  case "$choice" in
-    "Log out")   uwsm stop ;;
-    "Reboot")    systemctl reboot ;;
-    "Shut down") systemctl poweroff ;;
-  esac
-  exit 0
-fi
+    hypr-appmenu              recent apps, categories ▸ applications, Run…, Shut down… (top-left)
+    hypr-appmenu --at X Y     same, opened at X/Y on the focused monitor (desktop right-click)
+    hypr-appmenu power        log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
 
-# "Category<TAB>Name<TAB>desktop-id" for every visible application;
-# ~/.local/share/applications overrides /usr/share/applications.
-entries() {
-  local seen=" " d f id
-  for d in "$HOME/.local/share/applications" /usr/local/share/applications /usr/share/applications; do
-    for f in "$d"/*.desktop; do
-      [ -f "$f" ] || continue
-      id=${f##*/}
-      case "$seen" in *" $id "*) continue ;; esac
-      seen="$seen$id "
-      awk -v id="$id" '
-        BEGIN {
-          m["AudioVideo"]="Multimedia"; m["Audio"]="Multimedia"; m["Video"]="Multimedia"
-          m["Development"]="Development"; m["Education"]="Education"; m["Game"]="Games"
-          m["Graphics"]="Graphics"; m["Network"]="Internet"; m["Office"]="Office"
-          m["Science"]="Science"; m["Settings"]="Settings"; m["System"]="System"
-          m["Utility"]="Accessories"
-        }
-        /^\[/ { sec = $0; next }
-        sec != "[Desktop Entry]" { next }
-        /^Name=/ && name == "" { name = substr($0, 6) }
-        /^Categories=/ { cats = substr($0, 12) }
-        /^Type=/ { type = substr($0, 6) }
-        /^(NoDisplay|Hidden)=true/ { hidden = 1 }
-        END {
-          if (hidden || name == "" || (type != "" && type != "Application")) exit
-          cat = "Other"; n = split(cats, a, ";")
-          for (i = 1; i <= n; i++) if (a[i] in m) { cat = m[a[i]]; break }
-          # all text editors together, whatever else they are tagged with
-          for (i = 1; i <= n; i++) if (a[i] == "TextEditor") cat = "Editors"
-          if (id == "typora.desktop") cat = "Editors"   # Markdown editor, tagged WordProcessor
-          printf "%s\t%s\t%s\n", cat, name, id
-        }' "$f"
-    done
-  done
-}
+Like Windows: hovering a category opens its submenu beside it, a click on an entry starts
+it, a click anywhere else (the Apps button too) or Escape closes the menu; arrow keys,
+Enter and Tab work. The menu lives on one transparent overlay over the whole monitor, so
+the closing click goes nowhere else.
+Top: the last HYPR_APPMENU_RECENT (3) applications started from here. Icons: Windows 3.1
+icons from ~/.local/share/hypr-appmenu/win31 (fetched by the deploy), else the apps' own.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
 
-# Remember the application (most recent first, no repeats), then start it.
-launch() {
-  mkdir -p "${recent%/*}"
-  { echo "$1"; grep -vxF "$1" "$recent" 2>/dev/null; } | head -n "$nrecent" > "$recent.tmp" &&
-    mv "$recent.tmp" "$recent"
-  exec uwsm app -- "$1"
-}
+HOME = Path.home()
+NRECENT = int(os.environ.get("HYPR_APPMENU_RECENT", "3"))
+RECENT = Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state")) / "hypr-appmenu/recent"
+W31 = HOME / ".local/share/hypr-appmenu/win31"
 
-list=$(entries)
-# Top level: recent applications, then each category ("▸ Category", opens it) followed
-# by its applications, so typing an app name finds it right away.
-# Output: "cat <Category>" or "app <id>".
-pick=$( { if [ "$nrecent" -gt 0 ] && [ -f "$recent" ]; then
-            head -n "$nrecent" "$recent" | while IFS= read -r id; do
-              awk -F'\t' -v id="$id" '$3 == id { printf "↺ %s\tapp %s\n", $2, $3; exit }' <<<"$list"
-            done
-          fi
-          awk -F'\t' -v OFS='\t' '{ print ($1 == "Other" ? "~" : "") $1, $0 }' <<<"$list" |
-            sort -t$'\t' -k1,1 -k3,3f | cut -f2- |
-            awk -F'\t' '$1 != c { c = $1; printf "▸ %s\tcat %s\n", c, c }
-                        { printf "      %s\tapp %s\n", $2, $3 }'; } |
-        menu --prompt 'Apps > ' --lines 20 --with-nth=1 --accept-nth=2) || exit 0
-case "$pick" in
-  app\ *) launch "${pick#app }" ;;
-  cat\ *) cat=${pick#cat } ;;
-  *) exit 0 ;;
-esac
+CATS = {"AudioVideo": "Multimedia", "Audio": "Multimedia", "Video": "Multimedia",
+        "Development": "Development", "Education": "Education", "Game": "Games",
+        "Graphics": "Graphics", "Network": "Internet", "Office": "Office", "Science": "Science",
+        "Settings": "Settings", "System": "System", "Utility": "Accessories"}
+# Windows 3.1 icon per category / menu entry, then one per application (desktop id regex,
+# first match wins; every app its own icon, none the same as its category's)
+ICON_CAT = {"Accessories": "PROGM011", "Development": "PROGM017", "Editors": "NOTEP001",
+            "Graphics": "PBRUS001", "Internet": "PROGM026", "Office": "PROGM031",
+            "Settings": "CONTR001", "System": "WINSE001", "Multimedia": "MPLAY001",
+            "Games": "SOL001", "Education": "WINSE006", "Science": "CALC001", "Other": "PROGM002",
+            "run": "PIFED001", "power": "PROGM033", "logout": "PROGM039", "reboot": "PROGM045"}
+ICON_APP = [(r"bitwarden", "PROGM036"), (r"terminator", "TERMI001"), (r"^xfa", "MSMAI011"),
+            (r"^xfi", "PROGM013"), (r"^xfp", "PACKA001"), (r"uuctl", "WINSE004"),
+            (r"meld", "PROGM021"), (r"vscode", "MORIC018"), (r"positron", "MORIC060"),
+            (r"quarto", "MORIC045"), (r"nedit", "WINTU010"), (r"^nvim", "SCHDP006"),
+            (r"^vim", "SCHDP008"), (r"sublime", "MORIC065"), (r"typora", "SCHDP007"),
+            (r"^xfw", "MSMAI009"), (r"designcraft", "PROGM012"), (r"ristretto", "PROGM024"),
+            (r"chromium", "MORIC062"), (r"littlesnitch", "MSREM001"), (r"vivaldi", "MORIC054"),
+            (r"startcenter", "WINTU004"), (r"calc", "PROGM006"), (r"writer", "WRITE001"),
+            (r"obsidian", "CARDF001"), (r"pdfcraft", "PROGM018"), (r"qpdfview", "CLIPB002"),
+            (r"xpdf", "PROGM027"), (r"licenses", "WINHE001"), (r"^foot", "PROGM005"),
+            (r"ghostty", "PROGM010"), (r"htop", "PROGM020"), (r"x3270", "MORIC019"),
+            (r"xfce4-terminal", "MORIC001"), (r"^xfe", "WINFI001"), (r"btop", "PROGM015")]
 
-id=$(awk -F'\t' -v c="$cat" '$1 == c { print $2 "\t" $3 }' <<<"$list" | sort -f |
-     menu --prompt "$cat > " --with-nth=1 --accept-nth=2) || exit 0
-[ -n "$id" ] && launch "$id"
+
+def run(argv):
+    subprocess.Popen(argv, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+args = sys.argv[1:]
+if args[:1] == ["power"]:
+    p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-left", "--width", "32",
+                        "--prompt", "Power > ", "--lines", "3"],
+                       input="Log out\nReboot\nShut down\n", capture_output=True, text=True)
+    cmd = {"Log out": ["uwsm", "stop"], "Reboot": ["systemctl", "reboot"],
+           "Shut down": ["systemctl", "poweroff"]}.get(p.stdout.strip())
+    if cmd:
+        os.execvp(cmd[0], cmd)
+    sys.exit(0)
+
+if args[:1] == ["--at"]:
+    X, Y = int(args[1]), int(args[2])
+else:   # top-left, under the bar (the focused monitor's reserved top edge)
+    try:
+        mon = next(m for m in json.loads(subprocess.run(["hyprctl", "-j", "monitors"], capture_output=True,
+                                                        text=True).stdout) if m["focused"])
+        X, Y = mon["reserved"][0], mon["reserved"][1]
+    except (StopIteration, ValueError, KeyError, IndexError):
+        X, Y = 0, 26
+
+import gi  # noqa: E402  (only needed for the menu itself)
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, GdkPixbuf, Gio, Gtk, GtkLayerShell  # noqa: E402
+
+ICON = 24   # px; the Windows 3.1 icons are 32x32, scaled down smoothly
+
+
+def apps():
+    """{category: [(name, app info)]}, {desktop id: (name, app info)}"""
+    by_cat, by_id = {}, {}
+    for a in Gio.AppInfo.get_all():
+        if not a.should_show() or not a.get_id():
+            continue
+        cats = (a.get_categories() or "").split(";")
+        cat = next((CATS[c] for c in cats if c in CATS), "Other")
+        if "TextEditor" in cats or a.get_id() == "typora.desktop":   # all editors together
+            cat = "Editors"
+        if "IDE" in cats:   # VS Code, Positron: with the development tools
+            cat = "Development"
+        by_cat.setdefault(cat, []).append((a.get_display_name(), a))
+        by_id[a.get_id()] = (a.get_display_name(), a)
+    return by_cat, by_id
+
+
+def image(w31=None, gicon=None):
+    if w31 and (W31 / f"{w31}.PNG").is_file():
+        return Gtk.Image.new_from_pixbuf(
+            GdkPixbuf.Pixbuf.new_from_file_at_scale(str(W31 / f"{w31}.PNG"), ICON, ICON, True))
+    img = Gtk.Image.new_from_gicon(gicon, Gtk.IconSize.DND) if gicon else Gtk.Image()
+    img.set_pixel_size(ICON)
+    return img
+
+
+def app_icon(info):
+    w31 = next((i for pat, i in ICON_APP if re.search(pat, info.get_id(), re.I)), None)
+    return image(w31, info.get_icon())
+
+
+class Menu:
+    def __init__(self):
+        self.win = Gtk.Window()
+        self.win.get_style_context().add_class("hypr-appmenu")
+        GtkLayerShell.init_for_window(self.win)
+        GtkLayerShell.set_namespace(self.win, "hypr-appmenu")
+        GtkLayerShell.set_layer(self.win, GtkLayerShell.Layer.OVERLAY)
+        GtkLayerShell.set_exclusive_zone(self.win, -1)        # whole monitor, bar included
+        GtkLayerShell.set_keyboard_mode(self.win, GtkLayerShell.KeyboardMode.EXCLUSIVE)
+        for edge in (GtkLayerShell.Edge.TOP, GtkLayerShell.Edge.BOTTOM,
+                     GtkLayerShell.Edge.LEFT, GtkLayerShell.Edge.RIGHT):
+            GtkLayerShell.set_anchor(self.win, edge, True)
+        # Screenshots on a headless output: HYPR_APPMENU_MONITOR=<GDK monitor number>
+        if (n := os.environ.get("HYPR_APPMENU_MONITOR")) is not None:
+            GtkLayerShell.set_monitor(self.win, Gdk.Display.get_default().get_monitor(int(n)))
+        self.fixed = Gtk.Fixed()
+        catcher = Gtk.EventBox()                     # a click outside the panels closes
+        catcher.add(self.fixed)
+        catcher.connect("button-press-event", lambda *_a: Gtk.main_quit())
+        self.win.add(catcher)
+        self.win.connect("key-press-event", self.key)
+        self.sub = None
+        self.main = self.panel(self.entries())
+        self.fixed.put(self.main, X, Y)
+
+    def entries(self):
+        """[(label, icon, action or None, submenu entries or None)]; None = separator"""
+        by_cat, by_id = apps()
+        recent = [i for i in (RECENT.read_text().split() if RECENT.exists() else []) if i in by_id][:NRECENT]
+        out = [(by_id[i][0], app_icon(by_id[i][1]), self.launcher(i), None) for i in recent]
+        out += [None] if recent else []
+        for cat in sorted(by_cat, key=lambda c: (c == "Other", c)):
+            sub = [(n, app_icon(a), self.launcher(a.get_id()), None)
+                   for n, a in sorted(by_cat[cat], key=lambda t: t[0].lower())]
+            out.append((cat, image(ICON_CAT.get(cat)), None, sub))
+        power = [("Log out", image(ICON_CAT["logout"]), self.cmd(["uwsm", "stop"]), None),
+                 ("Reboot", image(ICON_CAT["reboot"]), self.cmd(["systemctl", "reboot"]), None),
+                 ("Shut down", image(ICON_CAT["power"]), self.cmd(["systemctl", "poweroff"]), None)]
+        return [*out, None, ("Run…", image(ICON_CAT["run"]), self.cmd(["fuzzel"]), None),
+                ("Shut down…", image(ICON_CAT["power"]), None, power)]
+
+    def panel(self, entries, is_sub=False):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.get_style_context().add_class("panel")
+        for e in entries:
+            if e is None:
+                box.pack_start(Gtk.Separator(), False, False, 0)
+                continue
+            label, img, action, sub = e
+            row = Gtk.Box(spacing=8)
+            row.pack_start(img, False, False, 0)
+            row.pack_start(Gtk.Label(label=label, xalign=0), True, True, 0)
+            if sub:
+                row.pack_start(Gtk.Label(label="▸"), False, False, 0)
+            b = Gtk.Button()
+            b.set_relief(Gtk.ReliefStyle.NONE)
+            b.add(row)
+            if sub:
+                b.connect("enter-notify-event", lambda w, _e, s=sub: self.open_sub(w, s))
+                b.connect("focus-in-event", lambda w, _e, s=sub: self.open_sub(w, s))
+                b.connect("clicked", lambda w, s=sub: self.open_sub(w, s))
+            else:
+                if not is_sub:   # hovering a plain entry of the main menu closes the submenu
+                    b.connect("enter-notify-event", lambda *_a: self.close_sub())
+                b.connect("clicked", lambda _w, a=action: a())
+            box.pack_start(b, False, False, 0)
+        return box
+
+    def open_sub(self, button, entries):
+        if self.sub and self.sub.owner is button:
+            return
+        self.close_sub()
+        self.sub = self.panel(entries, is_sub=True)
+        self.sub.owner = button
+        _x, y0 = button.translate_coordinates(self.fixed, 0, 0)
+        self.sub.show_all()
+        h = self.sub.get_preferred_height()[1]
+        y = max(0, min(y0, self.win.get_allocated_height() - h))   # stay on screen
+        self.fixed.put(self.sub, X + self.main.get_allocated_width() - 2, y)
+
+    def close_sub(self):
+        if self.sub:
+            self.sub.destroy()
+            self.sub = None
+
+    def launcher(self, app_id):
+        def go():
+            RECENT.parent.mkdir(parents=True, exist_ok=True)
+            old = RECENT.read_text().split() if RECENT.exists() else []
+            RECENT.write_text("\n".join([app_id, *[i for i in old if i != app_id]][:NRECENT]) + "\n")
+            run(["uwsm", "app", "--", app_id])
+            Gtk.main_quit()
+        return go
+
+    def cmd(self, argv):
+        def go():
+            run(argv)
+            Gtk.main_quit()
+        return go
+
+    def key(self, _w, e):
+        if e.keyval == Gdk.KEY_Escape:
+            Gtk.main_quit()
+        elif e.keyval == Gdk.KEY_Left and self.sub:
+            owner = self.sub.owner
+            self.close_sub()
+            owner.grab_focus()
+            return True
+        return False
+
+    def show(self):
+        self.win.show_all()
+        buttons = [c for c in self.main.get_children() if isinstance(c, Gtk.Button)]
+        sel = os.environ.get("HYPR_APPMENU_SELECT")   # screenshots: open this submenu
+        for b in buttons:
+            if sel and any(isinstance(w, Gtk.Label) and w.get_text() == sel
+                           for w in b.get_child().get_children()):
+                b.grab_focus()
+                return
+        if buttons:
+            buttons[0].grab_focus()
+
+
+def css():
+    hc = HOME / ".config/hypr/hostcolor.lua"
+    m = re.search(r'color = "([0-9a-fA-F]{6})"', hc.read_text() if hc.exists() else "")
+    sel = m.group(1) if m else "000080"
+    # the same background as the top bar
+    bar = HOME / ".config/waybar/style.css"
+    b = re.search(r"window#waybar\s*\{[^}]*background:\s*(#[0-9a-fA-F]{3,8})", bar.read_text() if bar.exists() else "")
+    bg = b.group(1) if b else "#fff8f0"
+    p = Gtk.CssProvider()
+    p.load_from_data(f"""
+      window.hypr-appmenu, window.hypr-appmenu > eventbox {{ background: transparent; }}
+      .panel {{ background: {bg}; border: 1px solid #000000; padding: 2px; }}
+      .panel button {{ font: bold 10pt Sans; color: #000000; padding: 2px 6px; min-height: 28px;
+                       border: none; border-radius: 0; box-shadow: none; background: transparent; }}
+      .panel button:hover, .panel button:focus {{ background: #{sel}; outline: none; }}
+      .panel button:hover label, .panel button:focus label {{ color: #ffffff; }}
+      .panel separator {{ background: #808080; min-height: 1px; margin: 3px 0; }}
+    """.encode())
+    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), p, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+
+css()
+Menu().show()
+Gtk.main()

@@ -1,0 +1,42 @@
+{
+  "name": "debian-hypr-themes",
+  "displayName": "debian-hypr themes",
+  "publisher": "debian-hypr",
+  "version": "1.0.0",
+  "description": "Managed by debian-hypr (tools/vscodetheme.py): the terminal profile themes",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "debian-hypr Cobalt",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cobalt-color-theme.json"
+      },
+      {
+        "label": "debian-hypr Navy",
+        "uiTheme": "vs-dark",
+        "path": "./themes/navy-color-theme.json"
+      },
+      {
+        "label": "debian-hypr Fixedsys",
+        "uiTheme": "vs-dark",
+        "path": "./themes/fixedsys-color-theme.json"
+      },
+      {
+        "label": "debian-hypr Cream",
+        "uiTheme": "vs",
+        "path": "./themes/cream-color-theme.json"
+      },
+      {
+        "label": "debian-hypr Petrol",
+        "uiTheme": "vs-dark",
+        "path": "./themes/petrol-color-theme.json"
+      }
+    ]
+  }
+}

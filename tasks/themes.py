@@ -1,6 +1,7 @@
 """Themes for CLI tools, one per Terminator profile (default = cobalt, navy, fixedsys,
 cream). hypr-termtheme switches them together with the terminal; Chromium keeps the cream frame."""
 from pyinfra import host
+from pyinfra.facts.server import Hostname
 from pyinfra.operations import files, server
 
 home = host.data.desktop_home
@@ -28,6 +29,35 @@ for t in themes:
               dest=f"{home}/.config/foot/themes/{t}.ini", mode="644", create_remote_dir=True)
 # Ghostty's old config name (the base config is config.ghostty now)
 files.file(name="Ghostty: remove old ~/.config/ghostty/config", path=f"{home}/.config/ghostty/config", present=False)
+
+# VS Code + Positron (client role): the debian-hypr themes as a local extension (tools/vscodetheme.py),
+# settings the deploy owns: no telemetry, no self-update (the pinned .deb is the update path),
+# native title bars (the Hyprland ones, in the host colour). hypr-termtheme sets theme + font.
+if host.get_fact(Hostname) in host.data.get("client_hosts", []):
+    for data, conf in ((".vscode", "Code"), (".positron", "Positron")):
+        files.sync(name=f"{conf}: debian-hypr themes extension", src="files/vscode/debian-hypr-themes/",
+                   dest=f"{home}/{data}/extensions/debian-hypr.debian-hypr-themes-1.0.0", delete=True)
+        server.shell(
+            name=f"{conf}: telemetry off, no self-update, native title bar",
+            commands=[f"""python3 - {home}/.config/{conf}/User/settings.json <<'EOF'
+import json, os, re, sys
+path = sys.argv[1]
+try:
+    prefs = json.loads(re.sub(r",(\\s*[}}\\]])", r"\\1", re.sub(r"^\\s*//.*$", "", open(path).read(), flags=re.M)))
+except FileNotFoundError:
+    prefs = {{}}
+except ValueError:
+    sys.exit(0)  # leave a file we can't parse alone
+want = {{"telemetry.telemetryLevel": "off", "update.mode": "none", "window.titleBarStyle": "native",
+        "workbench.enableExperiments": False, "extensions.ignoreRecommendations": True}}
+if any(prefs.get(k) != v for k, v in want.items()):
+    prefs.update(want)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(prefs, f, indent=4)
+        f.write("\\n")
+EOF"""],
+        )
 
 # btop.conf needs a color_theme line for hypr-termtheme to rewrite (btop writes the rest).
 server.shell(
