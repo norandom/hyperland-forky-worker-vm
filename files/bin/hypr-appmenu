@@ -3,7 +3,11 @@
 #   hypr-appmenu              categories -> applications, or type an app name (top-left)
 #   hypr-appmenu --at X Y     same, opened at X/Y (desktop right-click)
 #   hypr-appmenu power        log out / reboot / shut down
+# Top: the last HYPR_APPMENU_RECENT (3) applications started from here, then every
+# category with its applications under it ("Other" last).
 set -u
+nrecent=${HYPR_APPMENU_RECENT:-3}
+recent=${XDG_STATE_HOME:-$HOME/.local/state}/hypr-appmenu/recent
 pos=()
 if [ "${1:-}" = --at ]; then
   pos=(--x-margin "$2" --y-margin "$3"); shift 3
@@ -57,18 +61,34 @@ entries() {
   done
 }
 
+# Remember the application (most recent first, no repeats), then start it.
+launch() {
+  mkdir -p "${recent%/*}"
+  { echo "$1"; grep -vxF "$1" "$recent" 2>/dev/null; } | head -n "$nrecent" > "$recent.tmp" &&
+    mv "$recent.tmp" "$recent"
+  exec uwsm app -- "$1"
+}
+
 list=$(entries)
-# Top level: the categories, then every application ("Name · Category"), so
-# typing an app name finds it right away. Output: "cat <Category>" or "app <id>".
-pick=$( { cut -f1 <<<"$list" | sort -u | awk '{ printf "▸ %s\tcat %s\n", $0, $0 }'
-          awk -F'\t' '{ printf "%s · %s\tapp %s\n", $2, $1, $3 }' <<<"$list" | sort -f; } |
-        menu --prompt 'Apps > ' --with-nth=1 --accept-nth=2) || exit 0
+# Top level: recent applications, then each category ("▸ Category", opens it) followed
+# by its applications, so typing an app name finds it right away.
+# Output: "cat <Category>" or "app <id>".
+pick=$( { if [ "$nrecent" -gt 0 ] && [ -f "$recent" ]; then
+            head -n "$nrecent" "$recent" | while IFS= read -r id; do
+              awk -F'\t' -v id="$id" '$3 == id { printf "↺ %s\tapp %s\n", $2, $3; exit }' <<<"$list"
+            done
+          fi
+          awk -F'\t' -v OFS='\t' '{ print ($1 == "Other" ? "~" : "") $1, $0 }' <<<"$list" |
+            sort -t$'\t' -k1,1 -k3,3f | cut -f2- |
+            awk -F'\t' '$1 != c { c = $1; printf "▸ %s\tcat %s\n", c, c }
+                        { printf "      %s\tapp %s\n", $2, $3 }'; } |
+        menu --prompt 'Apps > ' --lines 20 --with-nth=1 --accept-nth=2) || exit 0
 case "$pick" in
-  app\ *) exec uwsm app -- "${pick#app }" ;;
+  app\ *) launch "${pick#app }" ;;
   cat\ *) cat=${pick#cat } ;;
   *) exit 0 ;;
 esac
 
 id=$(awk -F'\t' -v c="$cat" '$1 == c { print $2 "\t" $3 }' <<<"$list" | sort -f |
      menu --prompt "$cat > " --with-nth=1 --accept-nth=2) || exit 0
-[ -n "$id" ] && exec uwsm app -- "$id"
+[ -n "$id" ] && launch "$id"
