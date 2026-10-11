@@ -73,6 +73,7 @@ Every run is idempotent.
 | `memory` | zram swap, reclaim sysctls, earlyoom, journald/coredump limits |
 | `tuning` | network, filesystem, kernel command line, limits, modules, SSH |
 | `services` | disables cups/avahi/bluetooth/ModemManager/power-profiles if present; qemu-guest-agent |
+| `snitchd` | egress firewall: snitchd from a pinned release (norandom/snitch), rules in files/snitchd/rules.toml, boot revert; switches snitchd_enabled, snitchd_learn |
 | `containers` | rootless podman with `docker` / `docker compose` / `docker-compose` aliases |
 | `fonts` | Nerd Fonts 3.5.1: FiraCode (terminals), JetBrainsMono (UI); Fixedsys Core / Excelsior; emoji/symbol fallback (Noto Color Emoji, Symbola); font rendering |
 | `desktop` | Hyprland + uwsm, hyprbars title bars, waybar, mako, fuzzel, Terminator, desktop scripts |
@@ -176,6 +177,89 @@ schedules the real disks.
 
 **Limits.** 65536 open files (`nofile_*`) and 1024 inotify instances: Node,
 Java, dev servers and agents run out of the defaults (1024 / 128).
+
+## Egress firewall: snitchd
+
+[snitchd](https://github.com/norandom/snitch) (Go + BPF LSM; replaces Little Snitch)
+decides at `connect()` inside the kernel, keyed by the program's executable and the
+destination. The `snitchd` task (`tasks/snitchd.py`) installs it from a pinned release,
+and it runs from boot in **monitor mode**: every connection shows up in the journal with
+its program and the rule that matched, nothing is denied. The local network (RFC 1918,
+link-local, loopback) is allowed inside the BPF program; no rule can change that. Deny by
+default runs only as a bounded trial started by hand (below), and a reboot ends a trial:
+`snitchd-trial-boot.service`, enabled by the task, runs `snitchd end -at-boot` before the
+daemon starts. The task never passes a mode or a duration to the daemon and never touches
+the kill switch, the trial or the kept file. Verbs, fail-safes and the rules format are in
+the [snitch README](https://github.com/norandom/snitch); this section is the deploy side.
+
+**Switch and pins** (`group_data/all.py`): `snitchd_enabled = True`, `snitchd_version =
+"0.2.0"` (the tag without the `v`) and `snitchd_sha256`, the digest of the `snitchd` asset
+of that release. With the switch on, the task downloads
+`https://github.com/norandom/snitch/releases/download/v<version>/snitchd` to a temp dir,
+compares the digest and installs it as `/usr/local/sbin/snitchd` only when it matches (a
+mismatch names the seen and the expected digest and replaces nothing); copies the two units
+(`files/snitchd/snitchd.service`, `files/snitchd/snitchd-trial-boot.service`, verbatim
+copies of the snitch repo's, one header line added) to `/etc/systemd/system/`; enables both and starts
+`snitchd.service`; and restarts the daemon when the binary, a unit or the learning drop-in
+changed, never for the rules file. The trial and kept files under `/var/lib/snitch` are left
+alone; the daemon reads them again after a restart. One area only:
+`TARGET_HOSTS=VM-IP TARGET_USER=alice uv run pyinfra inventory.py tasks/snitchd.py`.
+
+**Bumping the version.** A tag `vX.Y.Z` in the snitch repo builds the release; the assets the deploy
+uses are `snitchd` and `snitchd.sha256` (the Python client's files ride along). Take the digest from `snitchd.sha256` on the release
+page, or download `snitchd` and run `sha256sum snitchd`; set `snitchd_version` and
+`snitchd_sha256` to the new values and deploy. The daemon is back within seconds, in
+monitor mode; `snitchd -version` prints the tag and `sudo snitchd status` shows it.
+`tools/pin-check.py` (the daily `pins` workflow) reports a newer snitch release.
+
+**Rules.** `files/snitchd/rules.toml` is deployed to `/etc/snitch/rules.toml` with the
+switch on or off, so the file stays current. Allow rules keyed by program and destination,
+translated from the Python client's BASELINE and DEV_TOOLS lists (each rule names its
+source). The daemon reloads a changed file by itself (within 5 s of the change, `SIGHUP` reloads at
+once), no restart; a broken file keeps the previous rules. `snitchd check -rules
+files/snitchd/rules.toml` validates the file without root; CI runs it with the pinned
+binary. Domain rules (github.com, pypi.org, ...) do not exist yet: the daemon decides on
+addresses, names come with the DNS tap. Each one is kept in the file as a comment
+`# deferred (DNS tap spec): <program> -> <domains>` next to its program, so the missing list
+is visible there. In monitor mode those programs are reported by name; in a trial they are
+denied beyond the rules in the file. `curl` is absent by design (wget and a bare python as a
+downloader too): a general-purpose downloader gets reported and asked about, never a
+blanket rule. Learned rules (next paragraph) are merged into the file by hand.
+
+**Learning run.** `snitchd_learn = True` and deploy: a drop-in
+(`/etc/systemd/system/snitchd.service.d/learn.conf`) adds `-learn`, and the daemon writes a
+rule for every connection it sees to `/var/lib/snitch/learned.toml`. After a working day,
+read that file as root, merge the rules you want into `files/snitchd/rules.toml` (by hand;
+the learned file is never deployed), set `snitchd_learn = False` and deploy again, which
+removes the drop-in and restarts the daemon. `snitchd trial` refuses while learning.
+
+**Trial** (deny by default, bounded). Open the serial console first (above): a trial
+without a rule for your own session cuts it, and the console needs no network. Then, on the
+VM: `sudo snitchd trial 10m` (1 to 60 min, default 10; verb flags such as `-extend` go
+before the duration) prints the deadline. `sudo snitchd status` shows daemon, mode, trial,
+kept, kill switch and rules, one line each (exit 1 when the daemon is down). `sudo snitchd
+end` ends the trial early; the daemon ends it at the deadline, and a reboot ends it. `sudo
+snitchd keep` (only during a trial) makes enforce stay past the deadline and reboots and
+prints the way back; `sudo snitchd unkeep` takes it back. From a checkout of the snitch
+repo, `sudo scripts/deploy-check.sh` checks the deployed service read-only (active, version,
+status, a rule event and a monitor event in the journal), and
+`sudo scripts/deploy-check.sh --trial` adds a prompted two-minute trial with a trap that
+ends it. The way back, as root on the serial console: the kill switch
+`bpftool map update pinned /sys/fs/bpf/snitch/kill key 0 0 0 0 value 1 0 0 0` allows
+everything until cleared (`value 0 0 0 0`); `scripts/fail-open.sh` in the snitch repo does
+all of it; and a reboot ends a trial. If `snitchd status` or `snitchd trial` says the record
+is missing a key, the daemon is an older build: `sudo systemctl restart snitchd.service`.
+
+**Off.** `snitchd_enabled = False` and deploy: `snitchd.service` and
+`snitchd-trial-boot.service` are stopped and disabled; the binary, the rules and the state
+files stay, so turning it on again needs no download. When a check fails, this or
+`scripts/fail-open.sh` from the console is the way out; record the failure before fixing
+anything.
+
+**Kept enforce and deploys.** A host kept in enforce has no domain rule for github.com yet
+(the deferred list above), so the task's own download of a new snitchd release is denied.
+`sudo snitchd unkeep` (or `sudo snitchd end`, which clears a trial and a kept marker alike) first, then
+deploy, then a new trial if wanted. The DNS tap spec removes the caveat.
 
 ## RDP
 
@@ -409,7 +493,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   Its tab bar is a slim flat line in the theme's colours (as Terminator's tabs),
   instead of the tall Adwaita toolbar.
 * **Network control**: Little Snitch is retired; [snitchd](https://github.com/norandom/snitch)
-  (Go, eBPF egress firewall with the `snitch` TUI) replaces it once it ships.
+  (Go, eBPF egress firewall) watches egress from boot in monitor mode, switch `snitchd_enabled`
+  (section "Egress firewall: snitchd").
 * **Away lock** (`hypr-away`): 10 minutes without an RDP session, and sudo asks for the
   password and ptrace is restricted; it unlocks as soon as you reconnect. Details:
   [docs/away-lock.md](docs/away-lock.md).
