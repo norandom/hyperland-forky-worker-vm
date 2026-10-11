@@ -6,7 +6,7 @@
 
 Reads the pins from group_data/all.py and asks each upstream for its latest stable release
 (GitHub via `gh api`, so it needs `gh` logged in or GH_TOKEN; Go, Kubernetes from their
-own sites). Only reports; bumping a pin (version + sha256) stays a manual commit.
+own sites). Only reports; tools/pin-bump.py does the bumping.
 Exit 0: all current, 1: updates found, 2: a lookup failed (and no updates).
 """
 import json

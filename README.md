@@ -443,8 +443,8 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   checksum verified), Vivaldi. Sublime, Typora and Vivaldi come from the vendors'
   apt repositories (deb822 sources pinned to their keys).
 * **Client role** (`client_hosts`, only the hosts listed; removed elsewhere): tools
-  for client work, pinned .debs with checksums. PdfCraft, DesignCraft
-  and GridCraft (ArtCraft, Apache-2.0; GridCraft is an Excel-style spreadsheet), Quarto, Positron (Posit's data science IDE) and VS Code,
+  for client work, pinned .debs with checksums. PdfCraft, DesignCraft,
+  GridCraft (Excel-style) and LightCraft (Lightroom-style) (ArtCraft, Apache-2.0), Quarto, Positron (Posit's data science IDE) and VS Code,
   about 4 GB together. Quarto works with Python only (no R): code cells run in a uv
   env with pinned Jupyter packages (`quarto_python`, `QUARTO_PYTHON` set for the shell
   and the session), PDF output through TinyTeX (`~/.TinyTeX`). VS Code's offer to add Microsoft's apt repo is declined; both
@@ -453,9 +453,17 @@ uv run python privdata.py open        # later: decrypt to private/ to edit, then
   profile like Sublime's (`hypr-termtheme`): a local extension generated from the
   Sublime schemes and terminal palettes (`tools/vscodetheme.py` →
   `files/vscode/debian-hypr-themes`).
-* **Pinned updates**: `tools/pin-check.py` compares every pin in `group_data/all.py`
-  with the newest upstream release; the daily `pins` workflow keeps an issue
-  "Pinned dependency updates" open while something is outdated.
+* **Pinned updates**: every download is pinned (version + sha256 in `group_data/all.py`).
+  The update process:
+  1. *Detect*: the daily `pins` workflow runs `tools/pin-check.py` against upstream and keeps
+     an issue "Pinned dependency updates" open while something is outdated.
+  2. *Bump*: it also runs `tools/pin-bump.py`, which sets the new version and the sha256
+     upstream publishes (GitHub's asset digest, VS Code's and Posit's metadata), and pushes
+     that to the branch `pin-bump`; the issue links its diff. Locally the same:
+     `tools/pin-bump.py [name ...]` (`--dry-run` to look first). Pins it can't bump safely
+     (hypr-rdp, Ghostty, Nerd Fonts, kubectl, Helm, ax) are listed as MANUAL.
+  3. *Apply*: merge (or commit the local bump), deploy, check the apps; the next run closes
+     the issue and deletes the branch.
 * **Files and sync**: rsync, Meld (graphical diff and merge for files and
   folders, like WinDiff), rclone (GitHub release, pinned).
 * **OneDrive (personal)** via rclone: `rclone_mounts` maps a remote to a folder
@@ -602,7 +610,7 @@ The projects this setup installs or builds on, with their home pages.
 - [Sublime Text](https://www.sublimetext.com), [Typora](https://typora.io), [Obsidian](https://obsidian.md), [NEdit](https://sourceforge.net/projects/nedit/), [Xfe](https://sourceforge.net/projects/xfe/) (file manager, with Xfw, Xfi, Xfa, Xfp)
 - [LibreOffice](https://www.libreoffice.org) (Calc, Writer), [Meld](https://meldmerge.org), [xpdf](http://www.xpdfreader.com), [qpdfview](https://launchpad.net/qpdfview), [Ristretto](https://docs.xfce.org/apps/ristretto/start)
 - [Vivaldi](https://vivaldi.com), [Chromium](https://www.chromium.org)
-- Client role: [Quarto](https://quarto.org), [Positron](https://positron.posit.co), [VS Code](https://code.visualstudio.com), [PdfCraft, DesignCraft and GridCraft](https://getartcraft.com/apps)
+- Client role: [Quarto](https://quarto.org), [Positron](https://positron.posit.co), [VS Code](https://code.visualstudio.com), [PdfCraft, DesignCraft, GridCraft and LightCraft](https://getartcraft.com/apps)
 - [rclone](https://rclone.org) (OneDrive), [rsync](https://rsync.samba.org), [rc](https://github.com/rustfs/cli) (RustFS)
 
 **Containers, security, agents**

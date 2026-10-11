@@ -2,7 +2,9 @@ name: pins
 
 # Daily: have newer versions of the pinned dependencies (group_data/all.py) been published?
 # Keeps one open issue "Pinned dependency updates" with the list (GitHub notifies on it);
-# closes it when every pin is current again. Bumping a pin stays a manual commit.
+# closes it when every pin is current again. tools/pin-bump.py bumps what it can (version +
+# upstream sha256) onto the branch "pin-bump"; the issue links its diff. Merging it and
+# deploying stays a human step (README: Updating pinned dependencies).
 
 on:
   schedule:
@@ -10,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # the pin-bump branch
   issues: write
 
 jobs:
@@ -26,14 +28,32 @@ jobs:
           rc=0; python3 tools/pin-check.py --markdown > report.md || rc=$?
           cat report.md
           echo "rc=$rc" >> "$GITHUB_ENV"
+      - name: Bump what can be bumped onto the pin-bump branch
+        if: env.rc == '1'
+        run: |
+          python3 tools/pin-bump.py > bump.txt || true
+          cat bump.txt
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -qam "Bump pins ($(grep -c '^bumped' bump.txt) from tools/pin-bump.py)"
+            git push -qf origin HEAD:refs/heads/pin-bump
+            echo "branch=1" >> "$GITHUB_ENV"
+          fi
       - name: Open, update or close the issue
         run: |
           num=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
           if [ "$rc" = 1 ]; then
-            { echo "Newer upstream releases than the pins in \`group_data/all.py\` (\`tools/pin-check.py\`):"; echo; cat report.md; } > body.md
+            { echo "Newer upstream releases than the pins in \`group_data/all.py\` (\`tools/pin-check.py\`):"; echo; cat report.md
+              if [ "${branch:-}" = 1 ]; then
+                echo; echo "**Bumped on branch \`pin-bump\`** (version + upstream sha256): [review and merge]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...pin-bump?expand=1)"
+                echo; echo '```'; cat bump.txt; echo '```'
+              fi
+              echo; echo "After merging: deploy and check; the next run closes this issue."; } > body.md
             if [ -n "$num" ]; then gh issue edit "$num" --body-file body.md
             else gh issue create --title "$TITLE" --body-file body.md; fi
           elif [ "$rc" = 0 ] && [ -n "$num" ]; then
             gh issue close "$num" --comment "All pins are current."
           fi
+          if [ "$rc" = 0 ]; then git push -q origin --delete pin-bump 2>/dev/null || true; fi
           [ "$rc" != 2 ]   # a failed lookup turns the run red; updates alone don't
