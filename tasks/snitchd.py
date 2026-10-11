@@ -40,6 +40,11 @@ if host.data.snitchd_enabled:
         _sudo=True,
     )
 
+    # --- On the path: sudo's secure_path and the user's PATH lack /usr/local/sbin, so `sudo snitchd …`
+    # and the root-less `snitchd check` need links (the units keep the real path; kept when off).
+    for link in ("/usr/sbin/snitchd", "/usr/local/bin/snitchd"):
+        files.link(name=f"snitchd on the path ({link})", path=link, target=binary, _sudo=True)
+
     # --- Units: verbatim copies of snitch/systemd/*.service (files/snitchd/, one header line) ------
     unit_ops = [files.put(name=u, src=f"files/snitchd/{u}", dest=f"/etc/systemd/system/{u}", mode="644", _sudo=True)
                 for u in units]
