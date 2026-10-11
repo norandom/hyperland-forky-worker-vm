@@ -201,6 +201,15 @@ ax_go_toolchain = "go1.27.1"
 bitwarden_version = "2026.9.1"
 bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
 
+# ArtCraft apps (github.com/storytold, Apache-2.0, early alpha): PdfCraft (PDF workbench) and
+# DesignCraft (page layout). .deb, no new dependencies (mesa-vulkan-drivers skipped, EGL is
+# enough), ~150 MB each. Optional: installed only on the hostnames listed, removed elsewhere.
+artcraft_hosts = ["debb"]
+artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
+    "pdfcraft": ("0.5.0", "7b840784b6aaae474a4cae506f63bb392049b359e7de3a4c758f98402b095b5f"),
+    "designcraft": ("0.5.0", "94719bd01ea59d932f9aea8c167065b484e7e51e6c97dc6aa04f661063e721a6"),
+}
+
 # Away lock (tasks/away.py): seconds without an RDP session before sudo, the Little Snitch UI
 # and ptrace lock (they unlock as soon as the session is back)
 away_grace_seconds = 600

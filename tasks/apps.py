@@ -1,8 +1,9 @@
 """Applications (system packages, no recommends; vendor apt repos for gh, Sublime Text,
-Typora, Vivaldi; Obsidian .deb)."""
+Typora, Vivaldi; Obsidian .deb; optional ArtCraft apps)."""
 from io import StringIO
 
 from pyinfra import host
+from pyinfra.facts.server import Hostname
 from pyinfra.operations import apt, files, server
 
 apt.packages(
@@ -139,6 +140,23 @@ rm -f /var/cache/debian-hypr/{g_deb}  # installed; the deploy checks the package
 )"""],
     _sudo=True,
 )
+
+# ArtCraft apps (PdfCraft, DesignCraft): .deb from GitHub releases (pinned, checksum verified),
+# only on the hosts in artcraft_hosts; removed again everywhere else
+art_on = host.get_fact(Hostname) in host.data.get("artcraft_hosts", [])
+for name, (ver, sha) in host.data.get("artcraft_apps", {}).items():
+    deb = f"{name}-{ver}-linux-x86_64.deb"
+    server.shell(
+        name=f"{name} {ver} (checksum verified)" if art_on else f"{name} removed (host not in artcraft_hosts)",
+        commands=[f"""[ "$(dpkg-query -W -f='${{Version}}' {name} 2>/dev/null)" = "{ver}-1" ] || (set -e
+install -d -m 755 /var/cache/debian-hypr
+curl -fsSL -o /var/cache/debian-hypr/{deb} https://github.com/storytold/{name}/releases/download/v{ver}/{deb}
+echo "{sha}  /var/cache/debian-hypr/{deb}" | sha256sum -c --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /var/cache/debian-hypr/{deb}
+rm -f /var/cache/debian-hypr/{deb}  # installed; the deploy checks the package version, not the file
+)""" if art_on else f"! dpkg-query -W {name} >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get purge -y {name}"],
+        _sudo=True,
+    )
 
 # --- Little Snitch for Linux (network monitor/firewall, web UI on :3031) --------------
 ls_ver = host.data.get("littlesnitch_version")
