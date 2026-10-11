@@ -67,8 +67,8 @@ serial_console = True
 # mode; deny only as a bounded trial (`sudo snitchd trial 10m`, reverted at boot), the serial
 # console above is the way back. False: service and boot revert stopped and disabled, files kept.
 snitchd_enabled = True
-snitchd_version = "0.2.0"       # tag without the v; sha256 = the snitchd asset's digest
-snitchd_sha256 = "a51cf6d6c27e1af9de2487f0613cee1f0ef061e020a99e1065feb669dc45d291"  # the snitchd asset of v0.2.0
+snitchd_version = "0.3.0"       # tag without the v; sha256 = the snitchd asset's digest
+snitchd_sha256 = "e1303f2f31e7d62be794f051ea21d00542f84fab42124afb5222eecead98ad64"  # the snitchd asset of v0.3.0
 snitchd_learn = False           # True: -learn, learned rules in /var/lib/snitch/learned.toml (reviewed by hand, never deployed)
 
 # SSH: allow root login with password (Mint repo's kvm_guest_optimization).

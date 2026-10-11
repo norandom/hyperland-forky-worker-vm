@@ -193,18 +193,22 @@ the kill switch, the trial or the kept file. Verbs, fail-safes and the rules for
 the [snitch README](https://github.com/norandom/snitch); this section is the deploy side.
 
 **Switch and pins** (`group_data/all.py`): `snitchd_enabled = True`, `snitchd_version =
-"0.2.0"` (the tag without the `v`) and `snitchd_sha256`, the digest of the `snitchd` asset
+"0.3.0"` (the tag without the `v`) and `snitchd_sha256`, the digest of the `snitchd` asset
 of that release. With the switch on, the task downloads
 `https://github.com/norandom/snitch/releases/download/v<version>/snitchd` to a temp dir,
 compares the digest and installs it as `/usr/local/sbin/snitchd` only when it matches (a
 mismatch names the seen and the expected digest and replaces nothing); copies the two units
 (`files/snitchd/snitchd.service`, `files/snitchd/snitchd-trial-boot.service`, verbatim
-copies of the snitch repo's, one header line added) to `/etc/systemd/system/`; links `/usr/sbin/snitchd`
+copies of the snitch repo's, one header line added) to `/etc/systemd/system/`; writes
+`/etc/snitch/operator` with the desktop user's name, who may then use the API's write verbs
+(trial, rule edits) from the desktop; links `/usr/sbin/snitchd`
 and `/usr/local/bin/snitchd` to the binary (sudo's `secure_path` and the user's PATH have no
 `/usr/local/sbin`); enables both and starts
 `snitchd.service`; and restarts the daemon when the binary, a unit or the learning drop-in
 changed, never for the rules file. The trial and kept files under `/var/lib/snitch` are left
-alone; the daemon reads them again after a restart. One area only:
+alone; the daemon reads them again after a restart. The daemon's API socket is
+`/run/snitch/api.sock` (readable by any local user); the schema is the snitch repo's
+`examples/api.md`, and `scripts/api-check.sh` there checks it, run as the desktop user. One area only:
 `TARGET_HOSTS=VM-IP TARGET_USER=alice uv run pyinfra inventory.py tasks/snitchd.py`.
 
 **Bumping the version.** A tag `vX.Y.Z` in the snitch repo builds the release; the assets the deploy

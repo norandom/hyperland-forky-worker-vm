@@ -24,6 +24,13 @@ files.put(name="snitchd rules", src="files/snitchd/rules.toml", dest="/etc/snitc
           _sudo=True)
 
 if host.data.snitchd_enabled:
+    # --- The operator: the desktop user may use the API's write verbs (trial, rule edits). The
+    # daemon ignores the file unless root-owned and not group/other-writable, so 644 root:root.
+    # Written before the binary so it exists on the first start.
+    files.put(name="snitchd operator (the desktop user may use the API's write verbs)",
+              src=StringIO(host.data.desktop_user + "\n"), dest="/etc/snitch/operator",
+              user="root", group="root", mode="644", _sudo=True)
+
     # --- The pinned release: downloaded to a temp dir, digest compared before `install`; a mismatch
     # names the seen and the expected digest and replaces nothing. The gate runs at execution time
     # against the installed binary's digest (a shell op is always "will change" at parse time).
