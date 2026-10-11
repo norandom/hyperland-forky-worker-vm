@@ -202,17 +202,19 @@ bitwarden_version = "2026.9.1"
 bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
 
 # Client role: tools for client work, installed only on the hostnames listed (removed
-# elsewhere). ~4.3 GB together: ArtCraft ~520 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
+# elsewhere). ~4.6 GB together: ArtCraft ~830 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
 client_hosts = ["debb"]
 # ArtCraft apps (github.com/storytold, Apache-2.0, early alpha): PdfCraft (PDF workbench),
 # DesignCraft (page layout), GridCraft (Excel-style spreadsheet), LightCraft (Lightroom-style
-# photo editor). .deb, no new dependencies
+# photo editor), WordCraft (Word-style), DeckCraft (PowerPoint-style). .deb, no new dependencies
 # (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
     "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
     "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
     "gridcraft": ("0.5.0", "c77321307ab3f2169765c5e7cfe26952dab82bed2b978581557f115c2f207158"),
     "lightcraft": ("0.6.0", "04aa36f4d9bc4e57d4d3d0a5673261f03d3fcdd13bdd2a1e46b693f7eca03a32"),
+    "wordcraft": ("0.5.0", "fd343cf3b846097ecf09c7ef5bd60adb38fd5a141f4c85490c8c7f061d2e5db2"),
+    "deckcraft": ("0.5.0", "83900da8713efdcd9e0f54dcd03ce09e9ff3cbf3910ab728f9a6b3d7fdf5dd03"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
