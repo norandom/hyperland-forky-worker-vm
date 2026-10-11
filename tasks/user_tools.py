@@ -28,12 +28,13 @@ ver = host.data.safe_chain_version
 sha = host.data.safe_chain_installer_sha256
 server.shell(
     name=f"Aikido Safe Chain {ver} (pinned installer, checksum verified)",
-    commands=[f"""[ -x {home}/.safe-chain/bin/safe-chain ] || (set -e
+    commands=[f"""[ -x {home}/.safe-chain/bin/safe-chain ] && [ "$(cat {home}/.local/share/debian-hypr/safe-chain.version 2>/dev/null)" = "{ver}" ] || (set -e
 t=$(mktemp)
 curl -fsSL https://github.com/AikidoSec/safe-chain/releases/download/{ver}/install-safe-chain.sh -o "$t"
 echo "{sha}  $t" | sha256sum -c -
 sh "$t"
-rm -f "$t")"""],
+rm -f "$t"
+mkdir -p {home}/.local/share/debian-hypr && echo {ver} > {home}/.local/share/debian-hypr/safe-chain.version)"""],
 )
 
 # --- Neovim: nvim-simple (CUA keys, menu bar, Berg theme), pinned --------------------------
@@ -98,11 +99,11 @@ WantedBy=default.target
 ax = host.data.get("ax_version")
 if ax:
     server.shell(
-        name=f"ax {ax} (Google's agentic orchestration CLI, built with Go)",
-        commands=[f"""[ "$(cat {home}/.local/share/debian-hypr/ax.version 2>/dev/null)" = "{ax}" ] || (set -e
+        name=f"ax {ax}, {host.data.ax_go_toolchain} (Google's agentic orchestration CLI, built with Go)",
+        commands=[f"""[ "$(cat {home}/.local/share/debian-hypr/ax.version 2>/dev/null)" = "{ax} {host.data.ax_go_toolchain}" ] || (set -e
 GOTOOLCHAIN={host.data.ax_go_toolchain} GOBIN={bin_dir} go install github.com/google/ax/cmd/ax@{ax}
 GOTOOLCHAIN={host.data.ax_go_toolchain} go clean -cache -modcache  # ~6 GB, only needed to rebuild
-mkdir -p {home}/.local/share/debian-hypr && echo {ax} > {home}/.local/share/debian-hypr/ax.version)"""],
+mkdir -p {home}/.local/share/debian-hypr && echo "{ax} {host.data.ax_go_toolchain}" > {home}/.local/share/debian-hypr/ax.version)"""],
     )
 comp = f"{home}/.local/share/bash-completion/completions"
 server.shell(

@@ -82,8 +82,8 @@ containers = True
 
 # --- User tools ------------------------------------------------------------------
 # Aikido Safe Chain (pinned installer; checksum from the project's README)
-safe_chain_version = "1.5.21"
-safe_chain_installer_sha256 = "03641bfdf4d5e3b5f0450120543579d578ed6354a8cff64bcfba8c8485f14474"
+safe_chain_version = "1.5.25"
+safe_chain_installer_sha256 = "83069f6db4215cccf6a26bdd6e65a5c2366b9d24322b2d5d2862d47385e56682"
 
 # Title bars: "mac" (cream, red/green circles left) or "win311" (navy, ⊟ ⊠ right).
 # Only sets the initial style; switch any time on the host: hypr-deco win311|mac
@@ -149,9 +149,9 @@ release_tools = {
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
-    # rclone (not in forky right now); sha256 from downloads.rclone.org/v1.75.1/SHA256SUMS
-    "rclone": ("https://github.com/rclone/rclone/releases/download/v1.75.1/rclone-v1.75.1-linux-amd64.zip",
-               "982b5aa772841168f8e380f139e9e787b2a105403e32b94da8676a0e1c0a13ab"),
+    # rclone (not in forky right now); sha256 from downloads.rclone.org/v1.75.2/SHA256SUMS
+    "rclone": ("https://github.com/rclone/rclone/releases/download/v1.75.2/rclone-v1.75.2-linux-amd64.zip",
+               "349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702"),
 }
 
 # rclone FUSE mounts (systemd user services): remote name -> folder in $HOME.
@@ -175,8 +175,8 @@ font_rendering = "rgb"
 # Neovim config: github.com/norandom/nvim-simple at this commit (replaces LazyVim)
 nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
 # Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
-obsidian_version = "1.13.7"
-obsidian_sha256 = "17dc33b49cb3e785ecc27edd2ea0c79e40207798b554fd2886e36ebee7af9ae0"
+obsidian_version = "1.14.4"
+obsidian_sha256 = "85b10dcba6edfc1c0460a6d18260cf31c30447a444bd858a6440b9c9c8806d25"
 # Ghostty .deb for Debian forky from github.com/mkasberg/ghostty-ubuntu (sha256 = GitHub's asset digest)
 ghostty_release = "1.3.1-0-ppa2"
 ghostty_version = "1.3.1-0.ppa2"
@@ -195,7 +195,7 @@ bar_graphs = False
 # tasks" on a cluster running Agent Substrate. No release binaries: built with Go at this
 # tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
 ax_version = "v0.3.1"
-ax_go_toolchain = "go1.27.1"
+ax_go_toolchain = "go1.27.2"
 
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
 bitwarden_version = "2026.9.1"
