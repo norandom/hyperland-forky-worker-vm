@@ -59,6 +59,7 @@ def pins(d):
         ("ghostty (forky .deb)", "mkasberg/ghostty-ubuntu", "", d["ghostty_release"], "ghostty_release"),
         ("bitwarden desktop", "bitwarden/clients", "desktop-v", d["bitwarden_version"], "bitwarden_version"),
         ("ax", "google/ax", "", d["ax_version"], "ax_version"),
+        ("snitchd", "norandom/snitch", "v", d["snitchd_version"], "snitchd_version"),
         *[(n, f"storytold/{n}", "v", v, "artcraft_apps") for n, (v, _sha) in d["artcraft_apps"].items()],
     ]
     for name, repo, prefix, ver, var in rel:

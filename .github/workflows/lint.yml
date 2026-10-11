@@ -61,3 +61,30 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
       - name: actionlint (these workflows)
         run: uvx --from actionlint-py actionlint -color
+
+  snitchd-rules:
+    # The pinned snitchd release (group_data/all.py) validates the rules file this repo deploys,
+    # and tasks/snitchd.py never carries a mode or duration flag or the BPF path: the daemon's
+    # fail-safes stay the daemon's (snitch repo CLAUDE.md), not the deploy's.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: snitchd check (pinned release validates files/snitchd/rules.toml)
+        run: |
+          read -r ver sha < <(python3 -I -c 'import runpy; d = runpy.run_path("group_data/all.py"); print(d["snitchd_version"], d["snitchd_sha256"])')
+          echo "snitchd v${ver} ${sha}"
+          dir=$(mktemp -d)
+          curl -fsSL -o "$dir/snitchd" "https://github.com/norandom/snitch/releases/download/v${ver}/snitchd"
+          (cd "$dir" && echo "${sha}  snitchd" | sha256sum -c)
+          chmod +x "$dir/snitchd"
+          "$dir/snitchd" check -rules files/snitchd/rules.toml
+      - name: no mode, duration or BPF path in the deploy task
+        run: |
+          # if/then, not `! grep`: under bash -e a `!` line is exempt from errexit and only the
+          # step's last line would decide; a hit must end the step.
+          if grep -nE 'snitchd[^#]*(-mode|-duration)' tasks/snitchd.py; then
+            echo "tasks/snitchd.py passes a mode or duration flag to snitchd"; exit 1
+          fi
+          if grep -n '/sys/fs/bpf' tasks/snitchd.py; then
+            echo "tasks/snitchd.py touches the BPF path"; exit 1
+          fi
