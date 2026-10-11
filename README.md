@@ -199,7 +199,9 @@ of that release. With the switch on, the task downloads
 compares the digest and installs it as `/usr/local/sbin/snitchd` only when it matches (a
 mismatch names the seen and the expected digest and replaces nothing); copies the two units
 (`files/snitchd/snitchd.service`, `files/snitchd/snitchd-trial-boot.service`, verbatim
-copies of the snitch repo's, one header line added) to `/etc/systemd/system/`; enables both and starts
+copies of the snitch repo's, one header line added) to `/etc/systemd/system/`; links `/usr/sbin/snitchd`
+and `/usr/local/bin/snitchd` to the binary (sudo's `secure_path` and the user's PATH have no
+`/usr/local/sbin`); enables both and starts
 `snitchd.service`; and restarts the daemon when the binary, a unit or the learning drop-in
 changed, never for the rules file. The trial and kept files under `/var/lib/snitch` are left
 alone; the daemon reads them again after a restart. One area only:
@@ -251,8 +253,8 @@ all of it; and a reboot ends a trial. If `snitchd status` or `snitchd trial` say
 is missing a key, the daemon is an older build: `sudo systemctl restart snitchd.service`.
 
 **Off.** `snitchd_enabled = False` and deploy: `snitchd.service` and
-`snitchd-trial-boot.service` are stopped and disabled; the binary, the rules and the state
-files stay, so turning it on again needs no download. When a check fails, this or
+`snitchd-trial-boot.service` are stopped and disabled; the binary, its links, the rules and the
+state files stay, so turning it on again needs no download. When a check fails, this or
 `scripts/fail-open.sh` from the console is the way out; record the failure before fixing
 anything.
 
