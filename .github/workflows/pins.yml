@@ -1,0 +1,39 @@
+name: pins
+
+# Daily: have newer versions of the pinned dependencies (group_data/all.py) been published?
+# Keeps one open issue "Pinned dependency updates" with the list (GitHub notifies on it);
+# closes it when every pin is current again. Bumping a pin stays a manual commit.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pin-check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TITLE: Pinned dependency updates
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pins against upstream
+        run: |
+          rc=0; python3 tools/pin-check.py --markdown > report.md || rc=$?
+          cat report.md
+          echo "rc=$rc" >> "$GITHUB_ENV"
+      - name: Open, update or close the issue
+        run: |
+          num=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+          if [ "$rc" = 1 ]; then
+            { echo "Newer upstream releases than the pins in \`group_data/all.py\` (\`tools/pin-check.py\`):"; echo; cat report.md; } > body.md
+            if [ -n "$num" ]; then gh issue edit "$num" --body-file body.md
+            else gh issue create --title "$TITLE" --body-file body.md; fi
+          elif [ "$rc" = 0 ] && [ -n "$num" ]; then
+            gh issue close "$num" --comment "All pins are current."
+          fi
+          [ "$rc" != 2 ]   # a failed lookup turns the run red; updates alone don't
