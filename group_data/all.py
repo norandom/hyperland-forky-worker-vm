@@ -206,8 +206,8 @@ bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537f
 # enough), ~150 MB each. Optional: installed only on the hostnames listed, removed elsewhere.
 artcraft_hosts = ["debb"]
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
-    "pdfcraft": ("0.5.0", "7b840784b6aaae474a4cae506f63bb392049b359e7de3a4c758f98402b095b5f"),
-    "designcraft": ("0.5.0", "94719bd01ea59d932f9aea8c167065b484e7e51e6c97dc6aa04f661063e721a6"),
+    "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
+    "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo, the Little Snitch UI
