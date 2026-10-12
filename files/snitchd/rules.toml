@@ -5,11 +5,10 @@
 # Format: snitch/examples/rules.toml; validated in CI with `snitchd check -rules files/snitchd/rules.toml`.
 #
 # What is NOT here yet:
-#   - Domain rules (github.com, pypi.org, ...): the daemon decides on addresses, names come with
-#     the DNS tap spec. Each one is listed below as `# deferred (DNS tap spec): <program> -> <domains>`
-#     next to its program, so the missing list is visible in this file. Until then, in monitor mode
-#     those programs are reported with their names; in enforce mode they are denied beyond the rules
-#     below.
+#   - Nothing from the Python client: since snitchd v0.4.0 (the DNS tap) the domain rules are real
+#     rules (`to = "<domain>"`, see the name rules section at the end): a name covers its
+#     subdomains, only names seen in this host's plain UDP DNS answers match, the cache is
+#     host-wide, a name rule is allow only.
 #   - Local-network rules: allowed inside the BPF program (RFC 1918, link-local, loopback, fc00::/7,
 #     fe80::/10, ::1), no rule can change that, so they appear as comments only.
 #
@@ -23,15 +22,13 @@
 
 # --- programs -------------------------------------------------------------------------------
 # Paths are filepath.Glob patterns (* ? [..], no **); `~` of the Python client is /home/*.
-# A program with only deferred or local-network rules is declared without rules so monitor
-# events and the learned file (/var/lib/snitch/learned.toml) name it.
+# A program with only local-network rules is declared without rules so monitor events and the
+# learned file (/var/lib/snitch/learned.toml) name it.
 
 [[program]]
 name  = "claude"
 paths = ["/home/*/.local/share/claude/versions/*"]
 note  = "dev tool: Claude Code, the session tooling (DEV_TOOLS)"
-# deferred (DNS tap spec): claude -> anthropic.com, claude.ai, claude.com
-# deferred (DNS tap spec): any -> anthropic.com, claude.ai, claude.com (BASELINE: Anthropic for any program)
 
 [[program]]
 name  = "codex"
@@ -40,74 +37,61 @@ paths = [
   "/home/*/.codex/packages/app-server-daemon/releases/*/bin/codex",
 ]
 note  = "dev tool: Codex (DEV_TOOLS); also the bar's quota module started by waybar"
-# deferred (DNS tap spec): codex -> chatgpt.com, openai.com, oaiusercontent.com
-# deferred (DNS tap spec): codex (bar quota via waybar) -> chatgpt.com, openai.com
 
 [[program]]
 name  = "copilot"
 paths = ["/home/*/.local/lib/node_modules/@github/copilot/node_modules/@github/copilot-linux-x64/copilot"]
 note  = "dev tool: Copilot CLI (DEV_TOOLS)"
-# deferred (DNS tap spec): copilot -> github.com, githubcopilot.com
 
 [[program]]
 name  = "gh"
 paths = ["/usr/bin/gh"]
 note  = "dev tool: gh (DEV_TOOLS)"
-# deferred (DNS tap spec): gh -> github.com, githubusercontent.com
 
 [[program]]
 name  = "git"
 paths = ["/usr/lib/git-core/git-remote-http"]   # git-remote-https is a symlink to it
 note  = "dev tool: git over http(s) (DEV_TOOLS)"
-# deferred (DNS tap spec): git -> github.com, gitlab.com, codeberg.org, gitea.com
 
 [[program]]
 name  = "ssh"
 paths = ["/usr/bin/ssh"]
 note  = "dev tool: git over ssh (DEV_TOOLS)"
-# deferred (DNS tap spec): ssh -> github.com, gitlab.com, codeberg.org, gitea.com
 
 [[program]]
 name  = "node"
 paths = ["/usr/bin/node"]
 note  = "dev tool: npm (DEV_TOOLS)"
-# deferred (DNS tap spec): node -> npmjs.org
 
 [[program]]
 name  = "uv"
 paths = ["/home/*/.local/bin/uv"]
 note  = "dev tool: uv (DEV_TOOLS)"
-# deferred (DNS tap spec): uv -> pypi.org, pythonhosted.org, astral.sh, github.com, githubusercontent.com
 
 [[program]]
 name  = "python"
 paths = ["/usr/bin/python3.*", "/home/*/.local/share/uv/python/*/bin/python3*"]
 note  = "dev tool: pip, the system and the uv-managed interpreters (DEV_TOOLS)"
-# deferred (DNS tap spec): python -> pypi.org, pythonhosted.org
 
 [[program]]
 name  = "cargo"
 paths = ["/usr/bin/cargo"]
 note  = "dev tool: cargo (DEV_TOOLS)"
-# deferred (DNS tap spec): cargo -> crates.io
 
 [[program]]
 name  = "go"
 paths = ["/usr/lib/go-*/bin/go", "/home/*/go/pkg/mod/golang.org/toolchain@*/bin/go"]
 note  = "dev tool: go, the Debian and the downloaded toolchains (DEV_TOOLS)"
-# deferred (DNS tap spec): go -> golang.org, storage.googleapis.com
 
 [[program]]
 name  = "podman"
 paths = ["/usr/bin/podman"]
 note  = "dev tool: podman (DEV_TOOLS)"
-# deferred (DNS tap spec): podman -> docker.io, docker.com, ghcr.io, quay.io, gcr.io, githubusercontent.com
 
 [[program]]
 name  = "helm"
 paths = ["/usr/local/bin/helm"]
 note  = "dev tool: helm (DEV_TOOLS); helm to the cluster is local network"
-# deferred (DNS tap spec): helm -> openobserve.ai, github.com, githubusercontent.com, ghcr.io
 # helm to the cluster (the Kubernetes API, 10.0.0.x): allowed inside the BPF program, no rule needed
 
 [[program]]
@@ -120,7 +104,6 @@ note  = "dev tool: kubernetes tools to the cluster (DEV_TOOLS)"
 name  = "hypr-agent-quota"
 paths = ["/home/*/.local/bin/hypr-agent-quota"]
 note  = "dev tool: the bar's quota module started by waybar (DEV_TOOLS)"
-# deferred (DNS tap spec): hypr-agent-quota -> anthropic.com, chatgpt.com, openai.com
 
 [[program]]
 name  = "hypr-rdp"
@@ -234,3 +217,307 @@ program = "apt"
 to      = "::/0"
 verdict = "allow"
 note    = "baseline and dev tool: repositories vary, apt checks signatures"
+
+# --- name rules (DNS tap, snitchd >= v0.4.0) -----------------------------------------------
+# One allow rule per program and domain from the Python client's lists; a name covers its
+# subdomains (github.com covers api.github.com). The `any` rules are the second belt for
+# connections whose program the kernel cannot name (BASELINE: Anthropic for any program).
+
+# claude: anthropic.com, claude.ai, claude.com
+[[rule]]
+program = "claude"
+to      = "anthropic.com"
+verdict = "allow"
+note    = "name rule: claude -> anthropic.com"
+
+[[rule]]
+program = "claude"
+to      = "claude.ai"
+verdict = "allow"
+note    = "name rule: claude -> claude.ai"
+
+[[rule]]
+program = "claude"
+to      = "claude.com"
+verdict = "allow"
+note    = "name rule: claude -> claude.com"
+
+
+# any: anthropic.com, claude.ai, claude.com
+[[rule]]
+program = "any"
+to      = "anthropic.com"
+verdict = "allow"
+note    = "name rule: any -> anthropic.com"
+
+[[rule]]
+program = "any"
+to      = "claude.ai"
+verdict = "allow"
+note    = "name rule: any -> claude.ai"
+
+[[rule]]
+program = "any"
+to      = "claude.com"
+verdict = "allow"
+note    = "name rule: any -> claude.com"
+
+
+# codex: chatgpt.com, openai.com, oaiusercontent.com
+[[rule]]
+program = "codex"
+to      = "chatgpt.com"
+verdict = "allow"
+note    = "name rule: codex -> chatgpt.com"
+
+[[rule]]
+program = "codex"
+to      = "openai.com"
+verdict = "allow"
+note    = "name rule: codex -> openai.com"
+
+[[rule]]
+program = "codex"
+to      = "oaiusercontent.com"
+verdict = "allow"
+note    = "name rule: codex -> oaiusercontent.com"
+
+
+# copilot: github.com, githubcopilot.com
+[[rule]]
+program = "copilot"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: copilot -> github.com"
+
+[[rule]]
+program = "copilot"
+to      = "githubcopilot.com"
+verdict = "allow"
+note    = "name rule: copilot -> githubcopilot.com"
+
+
+# gh: github.com, githubusercontent.com
+[[rule]]
+program = "gh"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: gh -> github.com"
+
+[[rule]]
+program = "gh"
+to      = "githubusercontent.com"
+verdict = "allow"
+note    = "name rule: gh -> githubusercontent.com"
+
+
+# git: github.com, gitlab.com, codeberg.org, gitea.com
+[[rule]]
+program = "git"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: git -> github.com"
+
+[[rule]]
+program = "git"
+to      = "gitlab.com"
+verdict = "allow"
+note    = "name rule: git -> gitlab.com"
+
+[[rule]]
+program = "git"
+to      = "codeberg.org"
+verdict = "allow"
+note    = "name rule: git -> codeberg.org"
+
+[[rule]]
+program = "git"
+to      = "gitea.com"
+verdict = "allow"
+note    = "name rule: git -> gitea.com"
+
+
+# ssh: github.com, gitlab.com, codeberg.org, gitea.com
+[[rule]]
+program = "ssh"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: ssh -> github.com"
+
+[[rule]]
+program = "ssh"
+to      = "gitlab.com"
+verdict = "allow"
+note    = "name rule: ssh -> gitlab.com"
+
+[[rule]]
+program = "ssh"
+to      = "codeberg.org"
+verdict = "allow"
+note    = "name rule: ssh -> codeberg.org"
+
+[[rule]]
+program = "ssh"
+to      = "gitea.com"
+verdict = "allow"
+note    = "name rule: ssh -> gitea.com"
+
+
+# node: npmjs.org
+[[rule]]
+program = "node"
+to      = "npmjs.org"
+verdict = "allow"
+note    = "name rule: node -> npmjs.org"
+
+
+# uv: pypi.org, pythonhosted.org, astral.sh, github.com, githubusercontent.com
+[[rule]]
+program = "uv"
+to      = "pypi.org"
+verdict = "allow"
+note    = "name rule: uv -> pypi.org"
+
+[[rule]]
+program = "uv"
+to      = "pythonhosted.org"
+verdict = "allow"
+note    = "name rule: uv -> pythonhosted.org"
+
+[[rule]]
+program = "uv"
+to      = "astral.sh"
+verdict = "allow"
+note    = "name rule: uv -> astral.sh"
+
+[[rule]]
+program = "uv"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: uv -> github.com"
+
+[[rule]]
+program = "uv"
+to      = "githubusercontent.com"
+verdict = "allow"
+note    = "name rule: uv -> githubusercontent.com"
+
+
+# python: pypi.org, pythonhosted.org
+[[rule]]
+program = "python"
+to      = "pypi.org"
+verdict = "allow"
+note    = "name rule: python -> pypi.org"
+
+[[rule]]
+program = "python"
+to      = "pythonhosted.org"
+verdict = "allow"
+note    = "name rule: python -> pythonhosted.org"
+
+
+# cargo: crates.io
+[[rule]]
+program = "cargo"
+to      = "crates.io"
+verdict = "allow"
+note    = "name rule: cargo -> crates.io"
+
+
+# go: golang.org, storage.googleapis.com
+[[rule]]
+program = "go"
+to      = "golang.org"
+verdict = "allow"
+note    = "name rule: go -> golang.org"
+
+[[rule]]
+program = "go"
+to      = "storage.googleapis.com"
+verdict = "allow"
+note    = "name rule: go -> storage.googleapis.com"
+
+
+# podman: docker.io, docker.com, ghcr.io, quay.io, gcr.io, githubusercontent.com
+[[rule]]
+program = "podman"
+to      = "docker.io"
+verdict = "allow"
+note    = "name rule: podman -> docker.io"
+
+[[rule]]
+program = "podman"
+to      = "docker.com"
+verdict = "allow"
+note    = "name rule: podman -> docker.com"
+
+[[rule]]
+program = "podman"
+to      = "ghcr.io"
+verdict = "allow"
+note    = "name rule: podman -> ghcr.io"
+
+[[rule]]
+program = "podman"
+to      = "quay.io"
+verdict = "allow"
+note    = "name rule: podman -> quay.io"
+
+[[rule]]
+program = "podman"
+to      = "gcr.io"
+verdict = "allow"
+note    = "name rule: podman -> gcr.io"
+
+[[rule]]
+program = "podman"
+to      = "githubusercontent.com"
+verdict = "allow"
+note    = "name rule: podman -> githubusercontent.com"
+
+
+# helm: openobserve.ai, github.com, githubusercontent.com, ghcr.io
+[[rule]]
+program = "helm"
+to      = "openobserve.ai"
+verdict = "allow"
+note    = "name rule: helm -> openobserve.ai"
+
+[[rule]]
+program = "helm"
+to      = "github.com"
+verdict = "allow"
+note    = "name rule: helm -> github.com"
+
+[[rule]]
+program = "helm"
+to      = "githubusercontent.com"
+verdict = "allow"
+note    = "name rule: helm -> githubusercontent.com"
+
+[[rule]]
+program = "helm"
+to      = "ghcr.io"
+verdict = "allow"
+note    = "name rule: helm -> ghcr.io"
+
+
+# hypr-agent-quota: anthropic.com, chatgpt.com, openai.com
+[[rule]]
+program = "hypr-agent-quota"
+to      = "anthropic.com"
+verdict = "allow"
+note    = "name rule: hypr-agent-quota -> anthropic.com"
+
+[[rule]]
+program = "hypr-agent-quota"
+to      = "chatgpt.com"
+verdict = "allow"
+note    = "name rule: hypr-agent-quota -> chatgpt.com"
+
+[[rule]]
+program = "hypr-agent-quota"
+to      = "openai.com"
+verdict = "allow"
+note    = "name rule: hypr-agent-quota -> openai.com"
