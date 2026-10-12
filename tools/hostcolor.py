@@ -40,6 +40,17 @@ def oklch_to_rgb(L, C, h):
     return rgb if all(-1e-4 <= c <= 1 + 1e-4 for c in rgb) else None
 
 
+def hue_of_rgb(rgb):
+    """OKLCH hue (degrees) of a linear sRGB colour."""
+    r, g, b = rgb
+    l_, m_, s_ = (max(0.0, v) ** (1 / 3) for v in (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
+                                                    0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
+                                                    0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b))
+    a = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_
+    b2 = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_
+    return round(math.degrees(math.atan2(b2, a))) % 360
+
+
 def in_gamut(L, h, C=0.14):
     """The most saturated colour of that lightness and hue that sRGB can show."""
     while C > 0:
@@ -85,7 +96,7 @@ def color_for(hostname, override=None, fleet=()):
     if override:
         hx = override.lstrip("#")
         rgb = tuple(_linear(int(hx[i:i + 2], 16) / 255) for i in (0, 2, 4))
-        L = 0.47
+        hue = hue_of_rgb(rgb)   # the pale tint follows the chosen colour
     else:
         L = 0.47
         rgb = in_gamut(L, hue)

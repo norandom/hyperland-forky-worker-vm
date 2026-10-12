@@ -255,5 +255,5 @@ win31_icons_commit = "c351992eadee522c585d2ef87f08fe0e168a80ca"
 # white text >= 4.6:1). List the fleet here: the position sets the hue (first 8 clearly apart);
 # hosts not listed fall back to a hash of the hostname. decor_colors overrides one host by hand.
 fleet_hosts = ["debb"]
-decor_colors = {}
+decor_colors = {"debb": "#7b1e1e"}  # dark red (was petrol #0b647e from the hash)
 

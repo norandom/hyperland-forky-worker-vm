@@ -15,6 +15,14 @@ end
 local ok, hc = pcall(require, "hostcolor")
 if not ok or type(hc) ~= "table" then hc = { color = "000080", pale = "ebe3d6" } end
 
+-- Frames, so neighbouring title bars never melt together: inactive windows get a near-black
+-- line around window and title bar; the active one "petrol on asphalt", the host colour running
+-- into an oil-slick sheen (violet, teal, gold) over dark green and black. A gradient border
+-- costs next to nothing (unlike shadows, which the CPU draws).
+local ASPHALT = "rgb(151515)"
+local OIL = { colors = { "rgb(" .. hc.color .. ")", "rgb(6b3d8a)", "rgb(2d7d82)", "rgb(9a8f3e)", "rgb(2e5a2e)",
+                         "rgb(151515)" }, angle = 45 }
+
 local style = "mac"
 local f = io.open((os.getenv("HOME") or "") .. "/.config/hypr/decorations-style", "r")
 if f then
@@ -31,7 +39,7 @@ local pin = "$HOME/.local/bin/hypr-pin"       -- stay on top on/off
 if style == "win311" then
   -- Windows 3.11: navy title bar, white centred title, square buttons on the right.
   hl.config({
-    general = { col = { active_border = "rgb(" .. hc.color .. ")", inactive_border = "rgb(c0c0c0)" } },
+    general = { col = { active_border = OIL, inactive_border = ASPHALT } },
     plugin = {
       hyprbars = {
         bar_height = 22,
@@ -44,6 +52,7 @@ if style == "win311" then
         bar_padding = 4,
         bar_button_padding = 2,
         on_double_click = maximize,
+        bar_precedence_over_border = true,   -- the frame runs around the title bar too
       },
     },
   })
@@ -63,7 +72,7 @@ if style == "win311" then
 else
   -- macOS-like: a pale tint of the host colour, navy text, red/green buttons on the left.
   hl.config({
-    general = { col = { active_border = "rgb(" .. hc.color .. ")" } },
+    general = { col = { active_border = OIL, inactive_border = ASPHALT } },
     plugin = {
       hyprbars = {
         bar_height = 24,
@@ -75,6 +84,7 @@ else
         bar_buttons_alignment = "left",
         bar_padding = 10,
         on_double_click = maximize,
+        bar_precedence_over_border = true,   -- the frame runs around the title bar too
       },
     },
   })
