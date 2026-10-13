@@ -23,5 +23,5 @@ require("layouts")     -- dynamic (floating, remembers) / golden-h / golden-v / 
 require("bindings")    -- keys
 require("autostart")   -- waybar, mako
 require("decorations") -- hyprbars title bars (Debian package)
-require("aerosnap")    -- drag to screen edge -> half / maximize
+require("aerosnap")    -- drag to screen edge -> half / maximize, corner -> quarter
 require("cursorzone")  -- during RDP show Hyprland's cursor only in resize zones

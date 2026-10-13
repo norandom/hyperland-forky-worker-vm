@@ -330,7 +330,7 @@ dagger call deb export --path=dist/ --allow-parent-dir-path   # dist/hypr-rdp-cl
   tree and file list like the Windows 3.11 File Manager, seeded with 3.11 colours.
 * **Top bar**: app menu, launchers (Xfe, Terminator, Vivaldi), layout mode, window list, clock, CPU/MEM/net (numbers; `bar_graphs = True` adds a graph of the last 50 s via `hypr-sparkline`), volume (speaker icon: click mutes, scroll or hover slider adjusts),
   terminal theme (● in the theme's colour, click to switch), keyboard layout
-  (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size.
+  (⌨ US/DE, click to switch), power button. Drag a window to a screen edge for half / full size, into a corner for a quarter.
 
 **Keyboard**: `keyboard_layout` / `keyboard_variant` / `keyboard_options`. Default:
 the Apple Magic Keyboard (2015) German layout as on the Mac (`de(mac_nodeadkeys)`):
