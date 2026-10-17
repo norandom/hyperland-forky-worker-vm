@@ -152,8 +152,8 @@ release_tools = {
              "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
     # Bitwarden CLI: the standalone build from the GitHub release, not npm (@bitwarden/cli
     # 2026.4.0 on npm was backdoored for 93 minutes, Apr 2026); sha256 = GitHub's digest
-    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
-           "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
+    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.10.0/bw-linux-2026.10.0.zip",
+           "269b67559caab860d1737f7554b32bdb8be9285d5689fee55193c137a0df9973"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
@@ -198,8 +198,8 @@ ax_version = "v0.3.1"
 ax_go_toolchain = "go1.27.2"
 
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
-bitwarden_version = "2026.9.1"
-bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
+bitwarden_version = "2026.10.0"
+bitwarden_sha256 = "fcabfc7da3c327e2625b105e951cee4e60703bb8e256f0aac9cc9bc83ec7063f"
 
 # Client role: tools for client work, installed only on the hostnames listed (removed
 # elsewhere). ~4.6 GB together: ArtCraft ~880 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
@@ -210,13 +210,13 @@ client_hosts = ["debb"]
 # CADCraft (AutoCAD-style). .deb, no new dependencies
 # (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
-    "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
-    "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
-    "gridcraft": ("0.5.0", "c77321307ab3f2169765c5e7cfe26952dab82bed2b978581557f115c2f207158"),
-    "lightcraft": ("0.6.0", "04aa36f4d9bc4e57d4d3d0a5673261f03d3fcdd13bdd2a1e46b693f7eca03a32"),
-    "wordcraft": ("0.5.0", "fd343cf3b846097ecf09c7ef5bd60adb38fd5a141f4c85490c8c7f061d2e5db2"),
-    "deckcraft": ("0.5.0", "83900da8713efdcd9e0f54dcd03ce09e9ff3cbf3910ab728f9a6b3d7fdf5dd03"),
-    "cadcraft": ("0.5.0", "c13f621394e8fe4d1323140d084380c5c7eb97cb03a1e489af7a5ac20521a3d1"),
+    "pdfcraft": ("0.8.0", "55645edc074f7cc958e1f076aae8da2da5c63f72fdc3ff332e728a1e04498921"),
+    "designcraft": ("0.8.0", "6e67ff230b0cf078c48ba4ceeced1f423f3cb14dc648ab831a4d9930c4dd9596"),
+    "gridcraft": ("0.7.0", "07b57541e33666f0ea5ae9c02c30f3b259e6b2161a359476907835529c600282"),
+    "lightcraft": ("0.8.0", "393e8b426138ae86d8f8f6d22d5b2085463f550b1b63e772ca0a2e6b809fe477"),
+    "wordcraft": ("0.7.0", "8ff1e2557956a279f56f7d79ee15aa5403aaac26197b1868ea3dc0b61a23344c"),
+    "deckcraft": ("0.7.0", "b498230acaff5b0e9659cd92b39ad5cfecf9691077ddb9c15a2f20b731272cc7"),
+    "cadcraft": ("0.7.0", "39f7e94ae330829151bcb9471e6236ee7d3bd33a3c5f8e912d2adf3b7826c8a9"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
@@ -233,9 +233,9 @@ client_debs = {
                "7f0c4769e7f0e55f50d922f44b18db5118fb388d2b8fd27291fe1f8beafb43eb"),
     "positron": ("2026.10.0+297-1791473330", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.0-297-x64.deb",
                  "3353fed8475b489d3c2f2f3bafb7abb9727be3a6385215d4967d0944596b2ea7"),
-    "code": ("1.141.0-1791276758", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
-             "2a59476c9bfcb90b3ddc372c36762471b7dfad1c/code_1.141.0-1791276758_amd64.deb",
-             "d0ff4f7702957d897d2e06956f8d42a08250c5df8339de3bec8190e56f726277"),
+    "code": ("1.142.0-1792035033", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
+             "6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/code_1.142.0-1792035033_amd64.deb",
+             "33454f7d2d7bc79a5925b3e794d106fb454a10c6a635ddfeb908a63659a44ec5"),
 }
 
 # Quarto (client role) with Python, no R: code cells run in a uv env with these packages
