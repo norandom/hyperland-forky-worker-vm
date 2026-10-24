@@ -90,8 +90,8 @@ containers = True
 
 # --- User tools ------------------------------------------------------------------
 # Aikido Safe Chain (pinned installer; checksum from the project's README)
-safe_chain_version = "1.5.25"
-safe_chain_installer_sha256 = "83069f6db4215cccf6a26bdd6e65a5c2366b9d24322b2d5d2862d47385e56682"
+safe_chain_version = "1.5.26"
+safe_chain_installer_sha256 = "9e4af7107f06d9c0d758cb08fb36804c2af88e24972f3a9d3f8c2bd0ca002adf"
 
 # Title bars: "mac" (cream, red/green circles left) or "win311" (navy, ⊟ ⊠ right).
 # Only sets the initial style; switch any time on the host: hypr-deco win311|mac
@@ -152,8 +152,8 @@ release_tools = {
              "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
     # Bitwarden CLI: the standalone build from the GitHub release, not npm (@bitwarden/cli
     # 2026.4.0 on npm was backdoored for 93 minutes, Apr 2026); sha256 = GitHub's digest
-    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
-           "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
+    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.10.0/bw-linux-2026.10.0.zip",
+           "269b67559caab860d1737f7554b32bdb8be9285d5689fee55193c137a0df9973"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
@@ -175,8 +175,8 @@ font_rendering = "rgb"
 # Neovim config: github.com/norandom/nvim-simple at this commit (replaces LazyVim)
 nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
 # Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
-obsidian_version = "1.14.4"
-obsidian_sha256 = "85b10dcba6edfc1c0460a6d18260cf31c30447a444bd858a6440b9c9c8806d25"
+obsidian_version = "1.14.5"
+obsidian_sha256 = "c37fb46a966f604823337fb36ab23bd1baf8ce912ec35af59d62358a93357bee"
 # Ghostty .deb for Debian forky from github.com/mkasberg/ghostty-ubuntu (sha256 = GitHub's asset digest)
 ghostty_release = "1.3.1-0-ppa2"
 ghostty_version = "1.3.1-0.ppa2"
@@ -195,11 +195,11 @@ bar_graphs = False
 # tasks" on a cluster running Agent Substrate. No release binaries: built with Go at this
 # tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
 ax_version = "v0.3.1"
-ax_go_toolchain = "go1.27.2"
+ax_go_toolchain = "go1.27.3"
 
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
-bitwarden_version = "2026.9.1"
-bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
+bitwarden_version = "2026.10.1"
+bitwarden_sha256 = "02cb6bc6a429d8d0da9fdf9d23739358165cf7b98a245783d6f641526f75b0a7"
 
 # Client role: tools for client work, installed only on the hostnames listed (removed
 # elsewhere). ~4.6 GB together: ArtCraft ~880 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
@@ -210,13 +210,13 @@ client_hosts = ["debb"]
 # CADCraft (AutoCAD-style). .deb, no new dependencies
 # (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
-    "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
-    "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
-    "gridcraft": ("0.5.0", "c77321307ab3f2169765c5e7cfe26952dab82bed2b978581557f115c2f207158"),
-    "lightcraft": ("0.6.0", "04aa36f4d9bc4e57d4d3d0a5673261f03d3fcdd13bdd2a1e46b693f7eca03a32"),
-    "wordcraft": ("0.5.0", "fd343cf3b846097ecf09c7ef5bd60adb38fd5a141f4c85490c8c7f061d2e5db2"),
-    "deckcraft": ("0.5.0", "83900da8713efdcd9e0f54dcd03ce09e9ff3cbf3910ab728f9a6b3d7fdf5dd03"),
-    "cadcraft": ("0.5.0", "c13f621394e8fe4d1323140d084380c5c7eb97cb03a1e489af7a5ac20521a3d1"),
+    "pdfcraft": ("0.13.0", "4f512eb936e3757cda98d5e5e41b7bfe5e0be7eb6850f5a0004be30d606e6774"),
+    "designcraft": ("0.12.0", "b040af8d6a4cbcfc3efc062611fed428ab144ce9b88e5081bf047fc5df479e9e"),
+    "gridcraft": ("0.11.1", "45afd336d8053dfd152ff9a2914fc269e435d4a347293e9f48c84d9bfef2581e"),
+    "lightcraft": ("0.13.0", "4dcd2437fe42e91a5cd5ea3481ef77b5ed675ef37131f0ccb97702fff298550d"),
+    "wordcraft": ("0.10.0", "64d86949373c178397a4f25d8ed52d346cf2ea46c2296e7cf648e409b98298a2"),
+    "deckcraft": ("0.10.0", "e899616ded007a5f2a4cc535469a1339df4217e3e4df87d181c8e4283771ed08"),
+    "cadcraft": ("0.12.0", "239ddb98a0fd4fa97e62c53de93a5aa286b93d88c328776a4d09b539390c92dd"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
@@ -231,11 +231,11 @@ away_grace_seconds = 600
 client_debs = {
     "quarto": ("1.10.19", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.10.19/quarto-1.10.19-linux-amd64.deb",
                "7f0c4769e7f0e55f50d922f44b18db5118fb388d2b8fd27291fe1f8beafb43eb"),
-    "positron": ("2026.10.0+297-1791473330", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.0-297-x64.deb",
-                 "3353fed8475b489d3c2f2f3bafb7abb9727be3a6385215d4967d0944596b2ea7"),
-    "code": ("1.141.0-1791276758", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
-             "2a59476c9bfcb90b3ddc372c36762471b7dfad1c/code_1.141.0-1791276758_amd64.deb",
-             "d0ff4f7702957d897d2e06956f8d42a08250c5df8339de3bec8190e56f726277"),
+    "positron": ("2026.10.1+2-1792187502", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.1-2-x64.deb",
+                 "e09b722eaace3970fa6dca8fc011c18fa0933a1fe50ae1146f528afe03d632fa"),
+    "code": ("1.143.1-1792691907", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
+             "e646868227c3e3a9e3f24277c8c7220be42c0be7/code_1.143.1-1792691907_amd64.deb",
+             "e459729dee13758960924be07157da44f0ba69503ab5edf4586fcde936bac9b9"),
 }
 
 # Quarto (client role) with Python, no R: code cells run in a uv env with these packages
