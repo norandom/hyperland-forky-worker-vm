@@ -90,8 +90,8 @@ containers = True
 
 # --- User tools ------------------------------------------------------------------
 # Aikido Safe Chain (pinned installer; checksum from the project's README)
-safe_chain_version = "1.5.25"
-safe_chain_installer_sha256 = "83069f6db4215cccf6a26bdd6e65a5c2366b9d24322b2d5d2862d47385e56682"
+safe_chain_version = "1.5.27"
+safe_chain_installer_sha256 = "600ebddcb3aaf1fd53653a8d7985df44528722c0f5ee7eb9fff86f26a1a4e5a8"
 
 # Title bars: "mac" (cream, red/green circles left) or "win311" (navy, ⊟ ⊠ right).
 # Only sets the initial style; switch any time on the host: hypr-deco win311|mac
@@ -152,8 +152,8 @@ release_tools = {
              "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
     # Bitwarden CLI: the standalone build from the GitHub release, not npm (@bitwarden/cli
     # 2026.4.0 on npm was backdoored for 93 minutes, Apr 2026); sha256 = GitHub's digest
-    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
-           "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
+    "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.10.1/bw-linux-2026.10.1.zip",
+           "eb09c3715291c21cf744819b873a255c1247b1b8b45bae138621a644ec7ad8f5"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
     "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
@@ -175,8 +175,8 @@ font_rendering = "rgb"
 # Neovim config: github.com/norandom/nvim-simple at this commit (replaces LazyVim)
 nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
 # Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
-obsidian_version = "1.14.4"
-obsidian_sha256 = "85b10dcba6edfc1c0460a6d18260cf31c30447a444bd858a6440b9c9c8806d25"
+obsidian_version = "1.14.5"
+obsidian_sha256 = "c37fb46a966f604823337fb36ab23bd1baf8ce912ec35af59d62358a93357bee"
 # Ghostty .deb for Debian forky from github.com/mkasberg/ghostty-ubuntu (sha256 = GitHub's asset digest)
 ghostty_release = "1.3.1-0-ppa2"
 ghostty_version = "1.3.1-0.ppa2"
@@ -195,11 +195,11 @@ bar_graphs = False
 # tasks" on a cluster running Agent Substrate. No release binaries: built with Go at this
 # tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
 ax_version = "v0.3.1"
-ax_go_toolchain = "go1.27.2"
+ax_go_toolchain = "go1.27.3"
 
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
-bitwarden_version = "2026.9.1"
-bitwarden_sha256 = "da5e0177da10805152268ee9d29cbaf278c4ea10650b0ebcd03c5697537fab82"
+bitwarden_version = "2026.10.2"
+bitwarden_sha256 = "72c9ff6c45b8c8d803a4e4102f2884d6f579f329801a8953921c118737d92bc0"
 
 # Client role: tools for client work, installed only on the hostnames listed (removed
 # elsewhere). ~4.6 GB together: ArtCraft ~880 MB, Quarto 450 MB, Positron 2.3 GB, VS Code 1 GB.
@@ -210,13 +210,13 @@ client_hosts = ["debb"]
 # CADCraft (AutoCAD-style). .deb, no new dependencies
 # (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
-    "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
-    "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
-    "gridcraft": ("0.5.0", "c77321307ab3f2169765c5e7cfe26952dab82bed2b978581557f115c2f207158"),
-    "lightcraft": ("0.6.0", "04aa36f4d9bc4e57d4d3d0a5673261f03d3fcdd13bdd2a1e46b693f7eca03a32"),
-    "wordcraft": ("0.5.0", "fd343cf3b846097ecf09c7ef5bd60adb38fd5a141f4c85490c8c7f061d2e5db2"),
-    "deckcraft": ("0.5.0", "83900da8713efdcd9e0f54dcd03ce09e9ff3cbf3910ab728f9a6b3d7fdf5dd03"),
-    "cadcraft": ("0.5.0", "c13f621394e8fe4d1323140d084380c5c7eb97cb03a1e489af7a5ac20521a3d1"),
+    "pdfcraft": ("0.16.1", "fb71f9b366214c8b0dafe01afba80d5280d554a7683ab7756f601a170668823b"),
+    "designcraft": ("0.15.2", "02dd8ff663be60deed416cbf9081ff21ef63f619256f68f0c147ecf7aa79a202"),
+    "gridcraft": ("0.14.2", "dde3b1fd4deb29bbdc0f2105e8f81d1f8d674baaabfe063ea4ed13142fa740e5"),
+    "lightcraft": ("0.16.0", "76a94847aeb510c6453605dd37cf86cdaa89a4b3f207418bc9dcf57016d72dd0"),
+    "wordcraft": ("0.13.2", "8b4ff5c43e4d5e4a116cfd6f64262017d68fa1824d7afa994a9b66129208cc68"),
+    "deckcraft": ("0.13.1", "f26dc05adfd197b53003c9bd5241e4caab8bf30f4bd40682ef9dffa6f78f85d5"),
+    "cadcraft": ("0.15.1", "8709398e54dd0d9a45524f81bdaf776aa6fe5e32db0b6f9493d94b8e444c9135"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
@@ -229,13 +229,13 @@ away_grace_seconds = 600
 # update.code.visualstudio.com/api/versions/<ver>/linux-deb-x64/stable; Microsoft's apt repo is
 # declined). Both editors get the debian-hypr themes (files/vscode, tools/vscodetheme.py).
 client_debs = {
-    "quarto": ("1.10.19", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.10.19/quarto-1.10.19-linux-amd64.deb",
-               "7f0c4769e7f0e55f50d922f44b18db5118fb388d2b8fd27291fe1f8beafb43eb"),
-    "positron": ("2026.10.0+297-1791473330", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.0-297-x64.deb",
-                 "3353fed8475b489d3c2f2f3bafb7abb9727be3a6385215d4967d0944596b2ea7"),
-    "code": ("1.141.0-1791276758", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
-             "2a59476c9bfcb90b3ddc372c36762471b7dfad1c/code_1.141.0-1791276758_amd64.deb",
-             "d0ff4f7702957d897d2e06956f8d42a08250c5df8339de3bec8190e56f726277"),
+    "quarto": ("1.10.20", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.10.20/quarto-1.10.20-linux-amd64.deb",
+               "39e4bc16f807ad7154fd5cc1238a077ff6be3f4015bc493693b598314f247adc"),
+    "positron": ("2026.10.2+3-1792798538", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.2-3-x64.deb",
+                 "2131efacd9d0227cf50db49c1ced2d976745342200a946ebbe1d95e78e6d6601"),
+    "code": ("1.144.0-1793133881", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
+             "2c33b50b16c472efe58357d1d2a8a5414bc23fbf/code_1.144.0-1793133881_amd64.deb",
+             "b8fbff92d8d95908990eed0acf004c980f29003725469e794ddbd017ea511a20"),
 }
 
 # Quarto (client role) with Python, no R: code cells run in a uv env with these packages
