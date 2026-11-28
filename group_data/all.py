@@ -67,8 +67,8 @@ serial_console = True
 # mode; deny only as a bounded trial (`sudo snitchd trial 10m`, reverted at boot), the serial
 # console above is the way back. False: service and boot revert stopped and disabled, files kept.
 snitchd_enabled = True
-snitchd_version = "0.4.0"       # tag without the v; sha256 = the snitchd asset's digest
-snitchd_sha256 = "adc33825de8990bc24364972da89d9c8e64e2fc615ff47b505327664047a7256"  # the snitchd asset of v0.4.0
+snitchd_version = "1.2.0"       # tag without the v; sha256 = the snitchd asset's digest
+snitchd_sha256 = "132ab7c23f2b73f37bdfe7fe7ba4ef3ced97339830668b6a2f9686b1ab8ee0b2"  # the snitchd asset of v1.2.0
 snitchd_learn = False           # True: -learn, learned rules in /var/lib/snitch/learned.toml (reviewed by hand, never deployed)
 
 # SSH: allow root login with password (Mint repo's kvm_guest_optimization).
@@ -90,8 +90,8 @@ containers = True
 
 # --- User tools ------------------------------------------------------------------
 # Aikido Safe Chain (pinned installer; checksum from the project's README)
-safe_chain_version = "1.5.25"
-safe_chain_installer_sha256 = "83069f6db4215cccf6a26bdd6e65a5c2366b9d24322b2d5d2862d47385e56682"
+safe_chain_version = "1.5.30"
+safe_chain_installer_sha256 = "c2e65ef2ae0d51cd120866297089dde88a148a0e8a4816a111c43bd60ab8293d"
 
 # Title bars: "mac" (cream, red/green circles left) or "win311" (navy, ⊟ ⊠ right).
 # Only sets the initial style; switch any time on the host: hypr-deco win311|mac
@@ -134,10 +134,10 @@ extra_fonts = {
 release_tools = {
     "podman-tui": ("https://github.com/containers/podman-tui/releases/download/v2.0.0/podman-tui-release-linux_amd64.zip",
                    "de1de10344a8ab636c64c2f982bdaa4e05696b642e2dd4692872f56b3254442f"),
-    "zellij": ("https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-x86_64-unknown-linux-musl.tar.gz",
-               "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
-    "upmd": ("https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
-             "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
+    "zellij": ("https://github.com/zellij-org/zellij/releases/download/v0.46.1/zellij-x86_64-unknown-linux-musl.tar.gz",
+               "1633211357c236053b51d1ae6415c23f7ff71aaae8e087315e499ceca1b17fa4"),
+    "upmd": ("https://github.com/rezigned/upmd/releases/download/v0.2.8/upmd-x86_64-unknown-linux-gnu.tar.xz",
+             "9befb2bd007e8425602c144f039326dc2a94a117019aca12c959b9b9ebc982ea"),
     # Kubernetes: kubectl from dl.k8s.io (Debian's is 4 minor versions behind; kubectl should
     # be within one minor version of the cluster), helm (not in Debian)
     "kubectl": ("https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl",
@@ -148,18 +148,18 @@ release_tools = {
     # node / pod usage; also `kubectl ktop`); sha256 from the projects' checksum files
     "k9s": ("https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_amd64.tar.gz",
             "c3752ad51a5a4015a113819c4eeb6e55a4d0e4b8e652494797532f6fc8161dd7"),
-    "ktop": ("https://github.com/vladimirvivien/ktop/releases/download/v0.5.3/ktop_v0.5.3_linux_amd64.tar.gz",
-             "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
+    "ktop": ("https://github.com/vladimirvivien/ktop/releases/download/v0.7.9/ktop_v0.7.9_linux_amd64.tar.gz",
+             "4b47308a97068266e364c84493e163395f4e362f7bbe2129881e90168f6fe7f0"),
     # Bitwarden CLI: the standalone build from the GitHub release, not npm (@bitwarden/cli
     # 2026.4.0 on npm was backdoored for 93 minutes, Apr 2026); sha256 = GitHub's digest
     "bw": ("https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
            "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
     # rc: the RustFS CLI (S3 + RustFS admin; also works with MinIO / AWS S3), github.com/rustfs/cli
-    "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
-           "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
+    "rc": ("https://github.com/rustfs/cli/releases/download/v0.1.38/rustfs-cli-linux-amd64-v0.1.38.tar.gz",
+           "9741028f46f5f5a152da1e3257980e9c7be2714c21b5b14a8bb5ac7d93f882e9"),
     # rclone (not in forky right now); sha256 from downloads.rclone.org/v1.75.2/SHA256SUMS
-    "rclone": ("https://github.com/rclone/rclone/releases/download/v1.75.2/rclone-v1.75.2-linux-amd64.zip",
-               "349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702"),
+    "rclone": ("https://github.com/rclone/rclone/releases/download/v1.76.0/rclone-v1.76.0-linux-amd64.zip",
+               "b00f00b3266c3764413afe599d3ec316f6f43b3e0ea8a0bc1d186d2133e46df7"),
 }
 
 # rclone FUSE mounts (systemd user services): remote name -> folder in $HOME.
@@ -175,8 +175,8 @@ font_rendering = "rgb"
 # Neovim config: github.com/norandom/nvim-simple at this commit (replaces LazyVim)
 nvim_simple_commit = "70717b469ce15ade8b1186c3650a484a5202cb75"
 # Obsidian .deb from github.com/obsidianmd/obsidian-releases (sha256 = GitHub's asset digest)
-obsidian_version = "1.14.4"
-obsidian_sha256 = "85b10dcba6edfc1c0460a6d18260cf31c30447a444bd858a6440b9c9c8806d25"
+obsidian_version = "1.15.1"
+obsidian_sha256 = "f77b6dfc8c040214f2febad2b1b9b051b6a838a47b0f4fb90a31cfcb79b8fcec"
 # Ghostty .deb for Debian forky from github.com/mkasberg/ghostty-ubuntu (sha256 = GitHub's asset digest)
 ghostty_release = "1.3.1-0-ppa2"
 ghostty_version = "1.3.1-0.ppa2"
@@ -195,7 +195,7 @@ bar_graphs = False
 # tasks" on a cluster running Agent Substrate. No release binaries: built with Go at this
 # tag (Go fetches the toolchain the tag needs, checksum-verified). None = don't install.
 ax_version = "v0.3.1"
-ax_go_toolchain = "go1.27.2"
+ax_go_toolchain = "go1.27.4"
 
 # Bitwarden desktop .deb from github.com/bitwarden/clients (pinned; sha256 = GitHub's digest)
 bitwarden_version = "2026.9.1"
@@ -210,13 +210,13 @@ client_hosts = ["debb"]
 # CADCraft (AutoCAD-style). .deb, no new dependencies
 # (mesa-vulkan-drivers skipped, EGL is enough).
 artcraft_apps = {  # name: (version, sha256 = the release's SHA256SUMS / GitHub digest)
-    "pdfcraft": ("0.6.0", "2d29427f608eccc70611a7fdff3d0e8d4a07c3fdabb0f4ab4c7e4a0f5a0aa2c2"),
-    "designcraft": ("0.6.0", "fcd82ec80a0665b13ddfd8e263b2a1eef5881c5bc2c63b34a7009f9c4ebdefeb"),
-    "gridcraft": ("0.5.0", "c77321307ab3f2169765c5e7cfe26952dab82bed2b978581557f115c2f207158"),
-    "lightcraft": ("0.6.0", "04aa36f4d9bc4e57d4d3d0a5673261f03d3fcdd13bdd2a1e46b693f7eca03a32"),
-    "wordcraft": ("0.5.0", "fd343cf3b846097ecf09c7ef5bd60adb38fd5a141f4c85490c8c7f061d2e5db2"),
-    "deckcraft": ("0.5.0", "83900da8713efdcd9e0f54dcd03ce09e9ff3cbf3910ab728f9a6b3d7fdf5dd03"),
-    "cadcraft": ("0.5.0", "c13f621394e8fe4d1323140d084380c5c7eb97cb03a1e489af7a5ac20521a3d1"),
+    "pdfcraft": ("0.22.0", "a7e0e781e55adc633b68b417ec9860115ccaa2cc636588f183ae03e66a5edcdb"),
+    "designcraft": ("0.21.1", "29e1d9656ac49b8e87ec0b675c89c1357b44657705e347d5e006a26f9ee6a2e6"),
+    "gridcraft": ("0.19.1", "3e9b093ee3bed8b1f008ea56c8d60e6a96890e24317be2bbb93e431f3c9d8112"),
+    "lightcraft": ("0.21.1", "c91ef47bec44995d99ce58e6c748af9fa6ab1ff1c11de9e290e0b8231176dad1"),
+    "wordcraft": ("0.19.1", "9ba913f053ab9cb9160d080f0c8db08c1c9eb94b3bdc7f2c0a0d784e034a5bd5"),
+    "deckcraft": ("0.19.1", "a6ebfb4a230e569c8ae8848611bb9813378b351557bc07b6964d8a348d264459"),
+    "cadcraft": ("0.20.1", "8e6ad1f487d6cd44dbcb73cd88ef1efb52252a2071094f2c23a468a641a06faa"),
 }
 
 # Away lock (tasks/away.py): seconds without an RDP session before sudo and ptrace
@@ -229,13 +229,13 @@ away_grace_seconds = 600
 # update.code.visualstudio.com/api/versions/<ver>/linux-deb-x64/stable; Microsoft's apt repo is
 # declined). Both editors get the debian-hypr themes (files/vscode, tools/vscodetheme.py).
 client_debs = {
-    "quarto": ("1.10.19", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.10.19/quarto-1.10.19-linux-amd64.deb",
-               "7f0c4769e7f0e55f50d922f44b18db5118fb388d2b8fd27291fe1f8beafb43eb"),
-    "positron": ("2026.10.0+297-1791473330", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.10.0-297-x64.deb",
-                 "3353fed8475b489d3c2f2f3bafb7abb9727be3a6385215d4967d0944596b2ea7"),
-    "code": ("1.141.0-1791276758", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
-             "2a59476c9bfcb90b3ddc372c36762471b7dfad1c/code_1.141.0-1791276758_amd64.deb",
-             "d0ff4f7702957d897d2e06956f8d42a08250c5df8339de3bec8190e56f726277"),
+    "quarto": ("1.11.9", "https://github.com/quarto-dev/quarto-cli/releases/download/v1.11.9/quarto-1.11.9-linux-amd64.deb",
+               "64078d1623d9ab89da766591f3410a0756f3737a37efb0897c7e84b863bf092a"),
+    "positron": ("2026.11.1+4-1794024154", "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.11.1-4-x64.deb",
+                 "3569815ed54083add81a7856f81b33a2d64b3c8e349e2b0cff8154d8fbf29106"),
+    "code": ("1.148.0-1795526052", "https://vscode.download.prss.microsoft.com/dbazure/download/stable/"
+             "661626d0e72f97806550790a98fb87116c9db825/code_1.148.0-1795526052_amd64.deb",
+             "da33c10565e17b83f93508a365222f31bba116ab5c9e7bef7f562783943fd513"),
 }
 
 # Quarto (client role) with Python, no R: code cells run in a uv env with these packages
